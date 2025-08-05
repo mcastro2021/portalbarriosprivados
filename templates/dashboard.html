@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Portal Barrio Privado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Dashboard</h1>
+            <p class="text-muted">Bienvenido, {{ current_user.name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <span id="connection-status" class="badge bg-success">Conectado</span>
+            <small class="text-muted">{{ current_datetime.strftime('%d/%m/%Y %H:%M') }}</small>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="card-number">{{ stats.total_residents|default(0) }}</div>
+                        <div class="card-label">Residentes</div>
+                    </div>
+                    <i class="bi bi-people card-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card info">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="card-number">{{ stats.active_reservations|default(0) }}</div>
+                        <div class="card-label">Reservas Activas</div>
+                    </div>
+                    <i class="bi bi-calendar-check card-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="card-number">{{ stats.pending_maintenance|default(0) }}</div>
+                        <div class="card-label">Mantenimiento Pendiente</div>
+                    </div>
+                    <i class="bi bi-tools card-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="card-number">{{ stats.today_visits|default(0) }}</div>
+                        <div class="card-label">Visitas Hoy</div>
+                    </div>
+                    <i class="bi bi-person-check card-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Actividad de Visitas (Últimos 6 meses)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="visit-chart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pie-chart me-2"></i>Estado de Expensas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="expense-chart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions and Recent Activities -->
+    <div class="row g-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning me-2"></i>Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('visits.new') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-person-plus me-2"></i>Registrar Visita
+                        </a>
+                        <a href="{{ url_for('reservations.new') }}" class="btn btn-outline-success">
+                            <i class="bi bi-calendar-plus me-2"></i>Hacer Reserva
+                        </a>
+                        <a href="{{ url_for('maintenance.new') }}" class="btn btn-outline-warning">
+                            <i class="bi bi-tools me-2"></i>Reportar Problema
+                        </a>
+                        <a href="{{ url_for('expenses.index') }}" class="btn btn-outline-info">
+                            <i class="bi bi-receipt me-2"></i>Ver Expensas
+                        </a>
+                        {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('news.new') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-newspaper me-2"></i>Publicar Noticia
+                        </a>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-dark">
+                            <i class="bi bi-gear me-2"></i>Administración
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Reservations -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar-event me-2"></i>Reservas de Hoy
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if today_reservations %}
+                        {% for reservation in today_reservations %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1">{{ reservation.space_name }}</h6>
+                                <small class="text-muted">
+                                    {{ reservation.start_time.strftime('%H:%M') }} - {{ reservation.end_time.strftime('%H:%M') }}
+                                </small>
+                            </div>
+                            <span class="badge bg-success">{{ reservation.status }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">No hay reservas para hoy</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-activity me-2"></i>Actividad Reciente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for activity in recent_activities %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-{{ activity.type_color }}"></div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ activity.title }}</h6>
+                                        <p class="text-muted mb-1">{{ activity.description }}</p>
+                                        <small class="text-muted">{{ activity.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                                    </div>
+                                    <span class="badge bg-{{ activity.type_color }}">{{ activity.type_label }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center py-4">No hay actividad reciente</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent News -->
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-newspaper me-2"></i>Últimas Noticias
+                    </h5>
+                    <a href="{{ url_for('news.index') }}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+                </div>
+                <div class="card-body">
+                    {% for news_item in recent_news %}
+                    <div class="d-flex align-items-start mb-3">
+                        {% if news_item.image %}
+                        <img src="{{ url_for('static', filename='uploads/' + news_item.image) }}" 
+                             class="rounded me-3" alt="{{ news_item.title }}" 
+                             style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="bi bi-newspaper text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ news_item.title }}</h6>
+                            <p class="text-muted mb-1 text-truncate-2">{{ news_item.content }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ news_item.created_at.strftime('%d/%m/%Y') }}</small>
+                                <span class="badge bg-primary">{{ news_item.category }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No hay noticias recientes</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Contacts -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Contactos de Emergencia
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <div class="text-center">
+                                <i class="bi bi-telephone-fill text-danger mb-2" style="font-size: 2rem;"></i>
+                                <h6>Emergencias</h6>
+                                <p class="mb-0 fw-bold">911</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="text-center">
+                                <i class="bi bi-shield-check text-primary mb-2" style="font-size: 2rem;"></i>
+                                <h6>Seguridad</h6>
+                                <p class="mb-0 fw-bold">+54 11 1234-5678</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="text-center">
+                                <i class="bi bi-tools text-warning mb-2" style="font-size: 2rem;"></i>
+                                <h6>Mantenimiento</h6>
+                                <p class="mb-0 fw-bold">+54 11 1234-5679</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="text-center">
+                                <i class="bi bi-envelope text-info mb-2" style="font-size: 2rem;"></i>
+                                <h6>Administración</h6>
+                                <p class="mb-0 fw-bold">admin@barrioprivado.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Timeline CSS -->
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #dee2e6;
+}
+
+.bg-visit { background-color: #007bff; }
+.bg-reservation { background-color: #28a745; }
+.bg-maintenance { background-color: #ffc107; }
+.bg-news { background-color: #17a2b8; }
+.bg-security { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Update dashboard data every 30 seconds
+setInterval(function() {
+    fetch('/api/dashboard/stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update statistics cards
+            document.querySelectorAll('.card-number').forEach((element, index) => {
+                const values = [
+                    data.total_residents,
+                    data.active_reservations,
+                    data.pending_maintenance,
+                    data.today_visits
+                ];
+                if (values[index] !== undefined) {
+                    element.textContent = values[index];
+                }
+            });
+        })
+        .catch(error => console.error('Error updating dashboard stats:', error));
+}, 30000);
+</script>
+{% endblock %} 

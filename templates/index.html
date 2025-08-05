@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Portal Barrio Privado - Inicio{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Bienvenido al Portal de tu Barrio Privado
+                </h1>
+                <p class="lead mb-4">
+                    Gestiona visitas, reservas, expensas y más desde un solo lugar. 
+                    Mantente conectado con tu comunidad de manera segura y eficiente.
+                </p>
+                {% if not current_user.is_authenticated %}
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-person-plus me-2"></i>Registrarse
+                    </a>
+                </div>
+                {% else %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                    <i class="bi bi-speedometer2 me-2"></i>Ir al Dashboard
+                </a>
+                {% endif %}
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="{{ url_for('static', filename='img/hero-illustration.svg') }}" 
+                     alt="Portal Barrio Privado" class="img-fluid" style="max-width: 400px;">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-5 fw-bold mb-3">Servicios Principales</h2>
+                <p class="lead text-muted">Todo lo que necesitas para gestionar tu barrio privado</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Visitas -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">Gestión de Visitas</h5>
+                        <p class="card-text">
+                            Registra visitas anticipadas, genera códigos QR temporales y 
+                            recibe notificaciones en tiempo real.
+                        </p>
+                        <a href="{{ url_for('visits.index') }}" class="btn btn-outline-primary">
+                            Gestionar Visitas
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reservas -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-calendar-check-fill text-success" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">Reserva de Espacios</h5>
+                        <p class="card-text">
+                            Reserva quinchos, SUM, canchas y otros espacios comunes 
+                            con calendario en tiempo real.
+                        </p>
+                        <a href="{{ url_for('reservations.index') }}" class="btn btn-outline-success">
+                            Ver Espacios
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expensas -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-receipt-cutoff text-info" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">Pago de Expensas</h5>
+                        <p class="card-text">
+                            Consulta y paga tus expensas online con múltiples 
+                            métodos de pago integrados.
+                        </p>
+                        <a href="{{ url_for('expenses.index') }}" class="btn btn-outline-info">
+                            Ver Expensas
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Noticias -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-newspaper text-warning" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">Noticias y Comunicaciones</h5>
+                        <p class="card-text">
+                            Mantente informado sobre novedades del barrio, 
+                            alertas importantes y eventos.
+                        </p>
+                        <a href="{{ url_for('news.index') }}" class="btn btn-outline-warning">
+                            Ver Noticias
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mantenimiento -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-tools text-secondary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">Mantenimiento</h5>
+                        <p class="card-text">
+                            Reporta problemas, sube fotos y sigue el estado 
+                            de tus reclamos de mantenimiento.
+                        </p>
+                        <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-secondary">
+                            Reportar Problema
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seguridad -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-shield-check text-danger" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">Seguridad</h5>
+                        <p class="card-text">
+                            Reportes de seguridad, acceso a cámaras IP y 
+                            botón de pánico para emergencias.
+                        </p>
+                        <a href="{{ url_for('security.index') }}" class="btn btn-outline-danger">
+                            Ver Seguridad
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+{% if current_user.is_authenticated %}
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="row text-center mb-4">
+            <div class="col-12">
+                <h3 class="fw-bold">Estadísticas del Barrio</h3>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="dashboard-card success text-center">
+                    <i class="bi bi-people card-icon"></i>
+                    <div class="card-number">{{ stats.total_residents|default(0) }}</div>
+                    <div class="card-label">Residentes</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="dashboard-card info text-center">
+                    <i class="bi bi-calendar-check card-icon"></i>
+                    <div class="card-number">{{ stats.active_reservations|default(0) }}</div>
+                    <div class="card-label">Reservas Activas</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="dashboard-card warning text-center">
+                    <i class="bi bi-tools card-icon"></i>
+                    <div class="card-number">{{ stats.pending_maintenance|default(0) }}</div>
+                    <div class="card-label">Mantenimiento Pendiente</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="dashboard-card text-center">
+                    <i class="bi bi-shield-check card-icon"></i>
+                    <div class="card-number">{{ stats.security_incidents|default(0) }}</div>
+                    <div class="card-label">Incidentes de Seguridad</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent News Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h3 class="fw-bold mb-4">Últimas Noticias</h3>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% for news_item in recent_news %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-hover">
+                    {% if news_item.image %}
+                    <img src="{{ url_for('static', filename='uploads/' + news_item.image) }}" 
+                         class="card-img-top" alt="{{ news_item.title }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-primary">{{ news_item.category }}</span>
+                            <small class="text-muted">{{ news_item.created_at.strftime('%d/%m/%Y') }}</small>
+                        </div>
+                        <h6 class="card-title">{{ news_item.title }}</h6>
+                        <p class="card-text text-truncate-2">{{ news_item.content }}</p>
+                        <a href="{{ url_for('news.detail', news_id=news_item.id) }}" class="btn btn-sm btn-outline-primary">
+                            Leer más
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center">
+                <p class="text-muted">No hay noticias recientes</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <a href="{{ url_for('news.index') }}" class="btn btn-primary">
+                    Ver todas las noticias
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="bg-dark text-white py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h3 class="fw-bold mb-4">¿Necesitas Ayuda?</h3>
+                <p class="lead mb-4">
+                    Nuestro equipo de soporte está disponible para ayudarte con cualquier consulta
+                    sobre el portal o los servicios del barrio.
+                </p>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-telephone-fill text-primary mb-3" style="font-size: 2rem;"></i>
+                            <h6>Teléfono</h6>
+                            <p class="mb-0">+54 11 1234-5678</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-envelope-fill text-primary mb-3" style="font-size: 2rem;"></i>
+                            <h6>Email</h6>
+                            <p class="mb-0">admin@barrioprivado.com</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-clock-fill text-primary mb-3" style="font-size: 2rem;"></i>
+                            <h6>Horarios</h6>
+                            <p class="mb-0">Lun-Vie 8:00-18:00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Chatbot -->
+<div class="chatbot-container">
+    <button class="chatbot-toggle" id="chatbot-toggle" title="Chat de Ayuda">
+        <i class="bi bi-chat-dots"></i>
+    </button>
+    <div class="chatbot-window" id="chatbot-window">
+        <div class="chatbot-header">
+            <span><i class="bi bi-robot me-2"></i>Asistente Virtual</span>
+            <button class="btn-close btn-close-white" id="chatbot-close"></button>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages">
+            <div class="text-center text-muted mt-3">
+                <i class="bi bi-robot mb-2" style="font-size: 2rem;"></i>
+                <p>¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte?</p>
+            </div>
+        </div>
+        <div class="chatbot-input">
+            <div class="input-group">
+                <input type="text" class="form-control" id="chatbot-input" placeholder="Escribe tu mensaje...">
+                <button class="btn btn-primary" id="chatbot-send">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-section h1 {
+    font-size: 3.5rem;
+    line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+}
+</style>
+{% endblock %} 
