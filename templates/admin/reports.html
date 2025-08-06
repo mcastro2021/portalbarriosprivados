@@ -1,0 +1,710 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes y Estadísticas - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-graph-up me-2"></i>Reportes y Estadísticas
+            </h2>
+            <p class="text-muted mb-0">Análisis completo de la actividad del barrio</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" onclick="exportAllReports()">
+                <i class="bi bi-download me-2"></i>Exportar Todo
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-calendar-range me-2"></i>Período
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?period=today">Hoy</a></li>
+                    <li><a class="dropdown-item" href="?period=week">Esta Semana</a></li>
+                    <li><a class="dropdown-item" href="?period=month">Este Mes</a></li>
+                    <li><a class="dropdown-item" href="?period=quarter">Este Trimestre</a></li>
+                    <li><a class="dropdown-item" href="?period=year">Este Año</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#customPeriodModal">Período Personalizado</a></li>
+                </ul>
+            </div>
+            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title mb-0">Total Visitas</h6>
+                            <h2 class="mb-0">{{ visit_stats.total if visit_stats else '0' }}</h2>
+                            <small class="opacity-75">
+                                {% if visit_stats and visit_stats.growth %}
+                                    <i class="bi bi-arrow-up"></i> +{{ visit_stats.growth }}% vs período anterior
+                                {% else %}
+                                    Sin cambios vs período anterior
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title mb-0">Reservas</h6>
+                            <h2 class="mb-0">{{ reservation_stats.total if reservation_stats else '0' }}</h2>
+                            <small class="opacity-75">
+                                {{ reservation_stats.approved if reservation_stats else '0' }} aprobadas, 
+                                {{ reservation_stats.pending if reservation_stats else '0' }} pendientes
+                            </small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-calendar-check-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title mb-0">Mantenimientos</h6>
+                            <h2 class="mb-0">{{ maintenance_stats.total if maintenance_stats else '0' }}</h2>
+                            <small class="opacity-75">
+                                {{ maintenance_stats.pending if maintenance_stats else '0' }} pendientes, 
+                                {{ maintenance_stats.completed if maintenance_stats else '0' }} completados
+                            </small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-tools fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title mb-0">Usuarios Activos</h6>
+                            <h2 class="mb-0">{{ user_stats.active if user_stats else '0' }}</h2>
+                            <small class="opacity-75">
+                                {{ user_stats.residents if user_stats else '0' }} residentes, 
+                                {{ user_stats.admins if user_stats else '0' }} administradores
+                            </small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-check-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Gráfico de Visitas por Mes -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Evolución de Visitas
+                    </h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <input type="radio" class="btn-check" name="visitChart" id="visitMonthly" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary" for="visitMonthly">Mensual</label>
+                        
+                        <input type="radio" class="btn-check" name="visitChart" id="visitWeekly" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="visitWeekly">Semanal</label>
+                        
+                        <input type="radio" class="btn-check" name="visitChart" id="visitDaily" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="visitDaily">Diario</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="visitsChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Espacios Reservados -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-trophy me-2"></i>Espacios Más Reservados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="spacesChart" height="300"></canvas>
+                    
+                    <div class="mt-3">
+                        {% if space_usage %}
+                            {% for space in space_usage %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2" style="width: 12px; height: 12px; background-color: {{ space.color }}; border-radius: 50%;"></div>
+                                    <span>{{ space.name }}</span>
+                                </div>
+                                <div class="text-end">
+                                    <strong>{{ space.count }}</strong>
+                                    <small class="text-muted">({{ space.percentage }}%)</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
+                                <p class="mb-0">No hay datos de reservas disponibles</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Estado de Mantenimientos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tools me-2"></i>Estado de Mantenimientos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="maintenanceChart" height="200"></canvas>
+                    
+                    <div class="row mt-3">
+                        {% if maintenance_by_status %}
+                            {% for status in maintenance_by_status %}
+                            <div class="col-6 mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2" style="width: 12px; height: 12px; background-color: {{ status.color }}; border-radius: 50%;"></div>
+                                    <div>
+                                        <div class="fw-bold">{{ status.count }}</div>
+                                        <small class="text-muted">{{ status.status }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actividad por Hora -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock me-2"></i>Actividad por Hora del Día
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="hourlyChart" height="200"></canvas>
+                    
+                    <div class="mt-3">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="fw-bold text-primary">{{ hourly_stats.peak_hour if hourly_stats else '10:00' }}</div>
+                                <small class="text-muted">Hora Pico</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="fw-bold text-success">{{ hourly_stats.avg_visits if hourly_stats else '12' }}</div>
+                                <small class="text-muted">Promedio/Hora</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="fw-bold text-warning">{{ hourly_stats.quiet_hour if hourly_stats else '15:00' }}</div>
+                                <small class="text-muted">Hora Tranquila</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tablas de Reportes Detallados -->
+    <div class="row">
+        <!-- Top Residentes por Visitas -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-lines-fill me-2"></i>Residentes con Más Visitas
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="exportTable('topResidents')">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="topResidents">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Residente</th>
+                                    <th>Visitas</th>
+                                    <th>Última Visita</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if top_residents %}
+                                    {% for resident in top_residents %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            <div class="fw-bold">{{ resident.name }}</div>
+                                            <small class="text-muted">{{ resident.address }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ resident.visit_count }}</span>
+                                        </td>
+                                        <td>
+                                            <small>{{ resident.last_visit.strftime('%d/%m/%Y') if resident.last_visit else 'N/A' }}</small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-3">
+                                            No hay datos disponibles
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen de Ingresos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-cash-stack me-2"></i>Resumen de Ingresos
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="exportTable('incomeReport')">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="incomeReport">
+                            <thead>
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th>Cantidad</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">Expensas Ordinarias</div>
+                                        <small class="text-muted">Mes actual</small>
+                                    </td>
+                                    <td>{{ income_stats.ordinary_count if income_stats else '0' }}</td>
+                                    <td class="text-success fw-bold">${{ income_stats.ordinary_amount if income_stats else '0' }}</td>
+                                    <td><span class="badge bg-success">Cobrado</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">Expensas Extraordinarias</div>
+                                        <small class="text-muted">Mes actual</small>
+                                    </td>
+                                    <td>{{ income_stats.extraordinary_count if income_stats else '0' }}</td>
+                                    <td class="text-warning fw-bold">${{ income_stats.extraordinary_amount if income_stats else '0' }}</td>
+                                    <td><span class="badge bg-warning">Pendiente</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">Multas y Sanciones</div>
+                                        <small class="text-muted">Mes actual</small>
+                                    </td>
+                                    <td>{{ income_stats.fines_count if income_stats else '0' }}</td>
+                                    <td class="text-danger fw-bold">${{ income_stats.fines_amount if income_stats else '0' }}</td>
+                                    <td><span class="badge bg-danger">Vencido</span></td>
+                                </tr>
+                                <tr class="table-primary">
+                                    <td class="fw-bold">TOTAL</td>
+                                    <td class="fw-bold">{{ income_stats.total_count if income_stats else '0' }}</td>
+                                    <td class="fw-bold text-primary">${{ income_stats.total_amount if income_stats else '0' }}</td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Período Personalizado -->
+<div class="modal fade" id="customPeriodModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-range me-2"></i>Período Personalizado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="customPeriodForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fecha Desde</label>
+                            <input type="date" class="form-control" name="start_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fecha Hasta</label>
+                            <input type="date" class="form-control" name="end_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tipos de Reporte</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="reports[]" value="visits" checked>
+                            <label class="form-check-label">Visitas</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="reports[]" value="reservations" checked>
+                            <label class="form-check-label">Reservas</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="reports[]" value="maintenance" checked>
+                            <label class="form-check-label">Mantenimiento</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="reports[]" value="expenses" checked>
+                            <label class="form-check-label">Expensas</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="generateCustomReport()">
+                    <i class="bi bi-graph-up me-2"></i>Generar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Datos para los gráficos (estos vendrían del backend)
+const visitsData = {{ visits_chart_data | tojson if visits_chart_data else '[]' }};
+const spacesData = {{ spaces_chart_data | tojson if spaces_chart_data else '[]' }};
+const maintenanceData = {{ maintenance_chart_data | tojson if maintenance_chart_data else '[]' }};
+const hourlyData = {{ hourly_chart_data | tojson if hourly_chart_data else '[]' }};
+
+// Configuración de colores
+const colors = [
+    '#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', 
+    '#fd7e14', '#20c997', '#6c757d', '#e83e8c', '#17a2b8'
+];
+
+// Gráfico de Visitas
+const visitsCtx = document.getElementById('visitsChart').getContext('2d');
+const visitsChart = new Chart(visitsCtx, {
+    type: 'line',
+    data: {
+        labels: visitsData.labels || ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+        datasets: [{
+            label: 'Visitas',
+            data: visitsData.values || [45, 52, 38, 65, 71, 58],
+            borderColor: colors[0],
+            backgroundColor: colors[0] + '20',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.1)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de Espacios
+const spacesCtx = document.getElementById('spacesChart').getContext('2d');
+const spacesChart = new Chart(spacesCtx, {
+    type: 'doughnut',
+    data: {
+        labels: spacesData.labels || ['SUM', 'Quincho', 'Cancha Fútbol', 'Piscina'],
+        datasets: [{
+            data: spacesData.values || [35, 25, 20, 20],
+            backgroundColor: colors.slice(0, 4)
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Gráfico de Mantenimiento
+const maintenanceCtx = document.getElementById('maintenanceChart').getContext('2d');
+const maintenanceChart = new Chart(maintenanceCtx, {
+    type: 'bar',
+    data: {
+        labels: maintenanceData.labels || ['Pendiente', 'En Proceso', 'Completado', 'Cancelado'],
+        datasets: [{
+            label: 'Mantenimientos',
+            data: maintenanceData.values || [8, 5, 12, 2],
+            backgroundColor: [colors[2], colors[0], colors[1], colors[3]]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.1)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de Actividad por Hora
+const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+const hourlyChart = new Chart(hourlyCtx, {
+    type: 'line',
+    data: {
+        labels: hourlyData.labels || ['6h', '8h', '10h', '12h', '14h', '16h', '18h', '20h', '22h'],
+        datasets: [{
+            label: 'Visitas por Hora',
+            data: hourlyData.values || [2, 8, 15, 22, 12, 8, 18, 14, 5],
+            borderColor: colors[4],
+            backgroundColor: colors[4] + '20',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.1)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Funciones para cambiar vista de gráfico de visitas
+document.querySelectorAll('input[name="visitChart"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        updateVisitsChart(this.id);
+    });
+});
+
+function updateVisitsChart(period) {
+    // Aquí se actualizarían los datos según el período seleccionado
+    let newData;
+    switch(period) {
+        case 'visitDaily':
+            newData = {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                values: [12, 19, 15, 25, 22, 18, 8]
+            };
+            break;
+        case 'visitWeekly':
+            newData = {
+                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                values: [85, 92, 78, 95]
+            };
+            break;
+        default: // monthly
+            newData = {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                values: [45, 52, 38, 65, 71, 58]
+            };
+    }
+    
+    visitsChart.data.labels = newData.labels;
+    visitsChart.data.datasets[0].data = newData.values;
+    visitsChart.update();
+}
+
+// Función para exportar reportes
+function exportAllReports() {
+    const link = document.createElement('a');
+    link.href = '/admin/api/export-reports';
+    link.download = `reportes_completo_${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.click();
+    
+    showToast('Exportando reportes completos...', 'info');
+}
+
+function exportTable(tableId) {
+    const table = document.getElementById(tableId);
+    const csv = tableToCSV(table);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${tableId}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function tableToCSV(table) {
+    const rows = [];
+    const tableRows = table.querySelectorAll('tr');
+    
+    tableRows.forEach(row => {
+        const cols = [];
+        const cells = row.querySelectorAll('th, td');
+        cells.forEach(cell => {
+            cols.push('"' + cell.textContent.replace(/"/g, '""') + '"');
+        });
+        rows.push(cols.join(','));
+    });
+    
+    return rows.join('\n');
+}
+
+// Generar reporte personalizado
+function generateCustomReport() {
+    const form = document.getElementById('customPeriodForm');
+    const formData = new FormData(form);
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const params = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+        params.append(key, value);
+    }
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('customPeriodModal'));
+    modal.hide();
+    
+    // Redirigir con parámetros
+    window.location.href = `/admin/reports?${params.toString()}`;
+}
+
+// Función para mostrar toast
+function showToast(message, type = 'success') {
+    // Crear toast dinámicamente
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    // Agregar al container de toasts
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = container.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    // Remover elemento después de que se oculte
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+
+// Auto-actualizar datos cada 5 minutos
+setInterval(() => {
+    // Aquí se podrían actualizar los datos via AJAX
+    console.log('Actualizando datos de reportes...');
+}, 300000);
+</script>
+{% endblock %}

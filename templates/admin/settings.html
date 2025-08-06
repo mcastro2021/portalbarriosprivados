@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración del Sistema - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-gear me-2"></i>Configuración del Sistema
+            </h2>
+            <p class="text-muted mb-0">Gestiona la configuración general del barrio</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Configuración General -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>Información del Barrio
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.settings') }}">
+                        <input type="hidden" name="section" value="general">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre del Barrio</label>
+                                <input type="text" class="form-control" name="barrio_name" 
+                                       value="Barrio Privado Los Jardines" placeholder="Nombre del barrio">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Dirección</label>
+                                <input type="text" class="form-control" name="barrio_address" 
+                                       value="Av. Principal 1234, Ciudad" placeholder="Dirección completa">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono Principal</label>
+                                <input type="tel" class="form-control" name="barrio_phone" 
+                                       value="+54 9 11 1234-5678" placeholder="+54 9 11 1234-5678">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email de Contacto</label>
+                                <input type="email" class="form-control" name="barrio_email" 
+                                       value="info@barrioprivado.com" placeholder="contacto@barrio.com">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="barrio_description" rows="3" 
+                                      placeholder="Descripción del barrio privado">Un exclusivo barrio privado con todas las comodidades para una vida tranquila y segura.</textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Guardar Información
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Configuración de Espacios Comunes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-house me-2"></i>Espacios Comunes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Espacio</th>
+                                    <th>Capacidad</th>
+                                    <th>Precio/Hora</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-house-door me-2"></i>Quincho Principal
+                                    </td>
+                                    <td>50 personas</td>
+                                    <td>Gratuito</td>
+                                    <td><span class="badge bg-success">Activo</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editSpaceModal">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-building me-2"></i>SUM
+                                    </td>
+                                    <td>100 personas</td>
+                                    <td>Gratuito</td>
+                                    <td><span class="badge bg-success">Activo</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-circle me-2"></i>Cancha de Fútbol
+                                    </td>
+                                    <td>22 personas</td>
+                                    <td>Gratuito</td>
+                                    <td><span class="badge bg-warning">Mantenimiento</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <button class="btn btn-success mt-3">
+                        <i class="bi bi-plus-lg me-2"></i>Agregar Espacio
+                    </button>
+                </div>
+            </div>
+
+            <!-- Configuración de Notificaciones -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bell me-2"></i>Configuración de Notificaciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.settings') }}">
+                        <input type="hidden" name="section" value="notifications">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Notificaciones por Email</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="emailNewVisit" checked>
+                                    <label class="form-check-label" for="emailNewVisit">
+                                        Nueva visita registrada
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="emailNewReservation" checked>
+                                    <label class="form-check-label" for="emailNewReservation">
+                                        Nueva reserva pendiente
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="emailMaintenance" checked>
+                                    <label class="form-check-label" for="emailMaintenance">
+                                        Solicitud de mantenimiento
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailSecurity" checked>
+                                    <label class="form-check-label" for="emailSecurity">
+                                        Reporte de seguridad
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6>Notificaciones WhatsApp</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="whatsappEmergency" checked>
+                                    <label class="form-check-label" for="whatsappEmergency">
+                                        Emergencias de seguridad
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="whatsappMaintenance">
+                                    <label class="form-check-label" for="whatsappMaintenance">
+                                        Mantenimientos urgentes
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="whatsappNews" checked>
+                                    <label class="form-check-label" for="whatsappNews">
+                                        Noticias importantes
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="whatsappPayments">
+                                    <label class="form-check-label" for="whatsappPayments">
+                                        Recordatorios de pago
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Guardar Configuración
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-lg-4">
+            <!-- Información del Sistema -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Información del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Versión del Sistema</small>
+                        <div class="fw-bold">Portal Barrios Privados v1.0</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Base de Datos</small>
+                        <div class="fw-bold">SQLite</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Usuarios Registrados</small>
+                        <div class="fw-bold">{{ stats.total_users if stats else '0' }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Espacio en Disco</small>
+                        <div class="fw-bold">125 MB usado</div>
+                        <div class="progress mt-1" style="height: 6px;">
+                            <div class="progress-bar" role="progressbar" style="width: 25%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones del Sistema -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tools me-2"></i>Mantenimiento del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="backupDatabase()">
+                            <i class="bi bi-download me-2"></i>Respaldar Base de Datos
+                        </button>
+                        
+                        <button class="btn btn-outline-warning" onclick="clearCache()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Limpiar Caché
+                        </button>
+                        
+                        <button class="btn btn-outline-info" onclick="exportReports()">
+                            <i class="bi bi-file-earmark-excel me-2"></i>Exportar Reportes
+                        </button>
+                        
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmResetModal">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Reiniciar Sistema
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración Rápida -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>Configuración Rápida
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="maintenanceMode">
+                        <label class="form-check-label" for="maintenanceMode">
+                            Modo Mantenimiento
+                        </label>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="autoApproveReservations">
+                        <label class="form-check-label" for="autoApproveReservations">
+                            Auto-aprobar Reservas
+                        </label>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="allowGuestRegistration" checked>
+                        <label class="form-check-label" for="allowGuestRegistration">
+                            Permitir Registro de Invitados
+                        </label>
+                    </div>
+                    
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="debugMode">
+                        <label class="form-check-label" for="debugMode">
+                            Modo Debug
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmResetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Confirmar Reinicio
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres reiniciar el sistema?</p>
+                <p class="text-danger small">
+                    <strong>Advertencia:</strong> Esto desconectará a todos los usuarios activos y puede tomar algunos minutos.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="restartSystem()">
+                    <i class="bi bi-power me-2"></i>Reiniciar Sistema
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Funciones de mantenimiento del sistema
+function backupDatabase() {
+    if (confirm('¿Crear respaldo de la base de datos?')) {
+        // Simular descarga de backup
+        const link = document.createElement('a');
+        link.href = '/admin/api/backup';
+        link.download = `backup_${new Date().toISOString().split('T')[0]}.db`;
+        link.click();
+        
+        // Mostrar mensaje de éxito
+        showAlert('Respaldo creado exitosamente', 'success');
+    }
+}
+
+function clearCache() {
+    if (confirm('¿Limpiar toda la caché del sistema?')) {
+        fetch('/admin/api/clear-cache', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                showAlert('Caché limpiada exitosamente', 'success');
+            })
+            .catch(error => {
+                showAlert('Error al limpiar la caché', 'danger');
+            });
+    }
+}
+
+function exportReports() {
+    const link = document.createElement('a');
+    link.href = '/admin/api/export-reports';
+    link.download = `reportes_${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.click();
+    
+    showAlert('Exportando reportes...', 'info');
+}
+
+function restartSystem() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmResetModal'));
+    modal.hide();
+    
+    showAlert('Reiniciando sistema... Por favor espera.', 'warning');
+    
+    fetch('/admin/api/restart', { method: 'POST' })
+        .then(response => {
+            if (response.ok) {
+                showAlert('Sistema reiniciado exitosamente', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            showAlert('Error al reiniciar el sistema', 'danger');
+        });
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-dismiss después de 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Guardar configuración automáticamente
+document.querySelectorAll('.form-check-input').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const setting = this.id;
+        const value = this.checked;
+        
+        // Simular guardado automático
+        fetch('/admin/api/save-setting', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                setting: setting,
+                value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Mostrar indicador visual de guardado
+            const label = this.nextElementSibling;
+            label.classList.add('text-success');
+            setTimeout(() => {
+                label.classList.remove('text-success');
+            }, 1000);
+        })
+        .catch(error => {
+            console.error('Error saving setting:', error);
+            // Revertir el checkbox si hay error
+            this.checked = !value;
+        });
+    });
+});
+
+// Validación de formularios
+document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        const requiredFields = this.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            showAlert('Por favor completa todos los campos requeridos', 'danger');
+        }
+    });
+});
+</script>
+{% endblock %}
