@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Solicitud de Mantenimiento - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-tools me-2"></i>Nueva Solicitud de Mantenimiento
+            </h2>
+            <p class="text-muted mb-0">Reporta problemas o solicita reparaciones en el barrio</p>
+        </div>
+        <div>
+            <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información de la Solicitud</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Título de la Solicitud *</label>
+                            <input type="text" class="form-control" name="title" required maxlength="200" placeholder="Ej: Filtración en el techo, Problema con la iluminación">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Categoría *</label>
+                                <select class="form-select" name="category" required>
+                                    <option value="">Selecciona una categoría</option>
+                                    <option value="plomeria">Plomería</option>
+                                    <option value="electricidad">Electricidad</option>
+                                    <option value="pintura">Pintura</option>
+                                    <option value="jardineria">Jardinería</option>
+                                    <option value="limpieza">Limpieza</option>
+                                    <option value="seguridad">Seguridad</option>
+                                    <option value="climatizacion">Climatización</option>
+                                    <option value="carpinteria">Carpintería</option>
+                                    <option value="cerrajeria">Cerrajería</option>
+                                    <option value="albañileria">Albañilería</option>
+                                    <option value="otros">Otros</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Prioridad *</label>
+                                <select class="form-select" name="priority" required>
+                                    <option value="">Selecciona la prioridad</option>
+                                    {% for priority_code, priority_name in priorities %}
+                                    <option value="{{ priority_code }}" 
+                                        class="{% if priority_code == 'urgent' %}text-danger{% elif priority_code == 'high' %}text-warning{% elif priority_code == 'medium' %}text-info{% else %}text-success{% endif %}">
+                                        {{ priority_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Ubicación Específica *</label>
+                            <input type="text" class="form-control" name="location" required placeholder="Ej: Manzana A Casa 15, Área común piscina, Portón principal">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descripción del Problema *</label>
+                            <textarea class="form-control" name="description" rows="5" required placeholder="Describe detalladamente el problema: qué está fallando, desde cuándo, en qué condiciones ocurre, etc."></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono de Contacto</label>
+                                <input type="tel" class="form-control" name="contact_phone" placeholder="+54 9 11 1234-5678">
+                                <div class="form-text">Para coordinar la reparación</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Horario Preferido</label>
+                                <select class="form-select" name="preferred_time">
+                                    <option value="">Sin preferencia</option>
+                                    <option value="mañana">Mañana (8:00 - 12:00)</option>
+                                    <option value="tarde">Tarde (12:00 - 18:00)</option>
+                                    <option value="noche">Noche (18:00 - 20:00)</option>
+                                    <option value="fin_semana">Fin de semana</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Fotos del Problema (opcional)</label>
+                            <input type="file" class="form-control" name="photos" accept="image/*" multiple>
+                            <div class="form-text">Sube fotos que ayuden a entender el problema. Máximo 5 fotos, 5MB cada una</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="urgent_access">
+                                    <label class="form-check-label">
+                                        <i class="bi bi-key text-warning me-1"></i>
+                                        Requiere acceso urgente
+                                    </label>
+                                    <div class="form-text">Marcar si necesita acceso inmediato a la propiedad</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="affects_safety">
+                                    <label class="form-check-label">
+                                        <i class="bi bi-exclamation-triangle text-danger me-1"></i>
+                                        Afecta la seguridad
+                                    </label>
+                                    <div class="form-text">Problema que compromete la seguridad</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle me-2"></i>Información del Proceso</h6>
+                            <ul class="mb-0 small">
+                                <li><strong>Revisión:</strong> Tu solicitud será revisada por administración</li>
+                                <li><strong>Asignación:</strong> Se asignará a un técnico o proveedor apropiado</li>
+                                <li><strong>Notificaciones:</strong> Recibirás actualizaciones sobre el progreso</li>
+                                <li><strong>Coordinación:</strong> El técnico se contactará contigo para coordinar</li>
+                                <li><strong>Emergencias:</strong> Para problemas críticos, contacta directamente a administración</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Información de costos -->
+                        <div class="alert alert-warning">
+                            <h6><i class="bi bi-currency-dollar me-2"></i>Información de Costos</h6>
+                            <p class="mb-2 small">
+                                <strong>Áreas comunes:</strong> Los costos son cubiertos por la administración.<br>
+                                <strong>Propiedades privadas:</strong> Los costos corren por cuenta del propietario.<br>
+                                <strong>Presupuesto:</strong> Se solicitará aprobación antes de proceder con reparaciones costosas.
+                            </p>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-2"></i>Enviar Solicitud
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Cambiar color del formulario según prioridad
+document.querySelector('select[name="priority"]').addEventListener('change', function() {
+    const card = document.querySelector('.card');
+    const value = this.value;
+    
+    // Remover clases anteriores
+    card.classList.remove('border-success', 'border-info', 'border-warning', 'border-danger');
+    
+    // Agregar clase según prioridad
+    if (value === 'low') {
+        card.classList.add('border-success');
+    } else if (value === 'medium') {
+        card.classList.add('border-info');
+    } else if (value === 'high') {
+        card.classList.add('border-warning');
+    } else if (value === 'urgent') {
+        card.classList.add('border-danger');
+    }
+    
+    // Mostrar alerta para prioridad urgente
+    const existingAlert = document.querySelector('.priority-alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    if (value === 'urgent') {
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger priority-alert mt-3';
+        alert.innerHTML = `
+            <h6><i class="bi bi-exclamation-triangle-fill me-2"></i>Prioridad Urgente</h6>
+            <p class="mb-0">Has seleccionado prioridad urgente. Si es una verdadera emergencia que compromete la seguridad, considera contactar directamente a administración.</p>
+        `;
+        this.parentNode.parentNode.appendChild(alert);
+    }
+});
+
+// Auto-marcar "afecta la seguridad" si la prioridad es urgente
+document.querySelector('select[name="priority"]').addEventListener('change', function() {
+    const affectsSafety = document.querySelector('input[name="affects_safety"]');
+    if (this.value === 'urgent') {
+        affectsSafety.checked = true;
+    }
+});
+
+// Preview de fotos
+document.querySelector('input[name="photos"]').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    
+    // Remover preview anterior si existe
+    const existingPreview = document.querySelector('.photos-preview');
+    if (existingPreview) {
+        existingPreview.remove();
+    }
+    
+    if (files.length > 0) {
+        const preview = document.createElement('div');
+        preview.className = 'photos-preview mt-2';
+        preview.innerHTML = '<div class="form-text mb-2">Vista previa de las fotos:</div>';
+        
+        const imagesContainer = document.createElement('div');
+        imagesContainer.className = 'd-flex flex-wrap gap-2';
+        
+        files.slice(0, 5).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgDiv = document.createElement('div');
+                imgDiv.innerHTML = `<img src="${e.target.result}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">`;
+                imagesContainer.appendChild(imgDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        preview.appendChild(imagesContainer);
+        
+        if (files.length > 5) {
+            const warning = document.createElement('div');
+            warning.className = 'form-text text-warning mt-1';
+            warning.textContent = `Solo se procesarán las primeras 5 fotos (seleccionaste ${files.length})`;
+            preview.appendChild(warning);
+        }
+        
+        this.parentNode.appendChild(preview);
+    }
+});
+
+// Validación del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const title = this.querySelector('input[name="title"]').value.trim();
+    const category = this.querySelector('select[name="category"]').value;
+    const priority = this.querySelector('select[name="priority"]').value;
+    const location = this.querySelector('input[name="location"]').value.trim();
+    const description = this.querySelector('textarea[name="description"]').value.trim();
+    
+    if (!title) {
+        e.preventDefault();
+        alert('Por favor ingresa un título para la solicitud');
+        return false;
+    }
+    
+    if (!category) {
+        e.preventDefault();
+        alert('Por favor selecciona una categoría');
+        return false;
+    }
+    
+    if (!priority) {
+        e.preventDefault();
+        alert('Por favor selecciona la prioridad');
+        return false;
+    }
+    
+    if (!location) {
+        e.preventDefault();
+        alert('Por favor especifica la ubicación del problema');
+        return false;
+    }
+    
+    if (!description) {
+        e.preventDefault();
+        alert('Por favor describe el problema');
+        return false;
+    }
+    
+    if (description.length < 20) {
+        e.preventDefault();
+        alert('La descripción debe tener al menos 20 caracteres para ser útil');
+        return false;
+    }
+    
+    // Confirmación para prioridad urgente
+    if (priority === 'urgent') {
+        const confirm = window.confirm(
+            '¿Estás seguro de que este problema tiene prioridad URGENTE?\n\n' +
+            'Esto activará notificaciones inmediatas y se tratará como emergencia.\n\n' +
+            'Si no es realmente urgente, considera usar "Alta" prioridad.'
+        );
+        if (!confirm) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+
+// Contador de caracteres para descripción
+document.querySelector('textarea[name="description"]').addEventListener('input', function() {
+    const minLength = 20;
+    const currentLength = this.value.length;
+    
+    // Remover contador anterior si existe
+    const existingCounter = this.parentNode.querySelector('.char-counter');
+    if (existingCounter) {
+        existingCounter.remove();
+    }
+    
+    if (currentLength < minLength) {
+        const counter = document.createElement('div');
+        counter.className = 'char-counter form-text';
+        counter.textContent = `${minLength - currentLength} caracteres más para el mínimo requerido`;
+        counter.style.color = '#dc3545';
+        this.parentNode.appendChild(counter);
+    } else if (currentLength < 50) {
+        const counter = document.createElement('div');
+        counter.className = 'char-counter form-text text-success';
+        counter.textContent = 'Descripción suficiente. Más detalles ayudan a resolver el problema más rápido.';
+        this.parentNode.appendChild(counter);
+    }
+});
+
+// Sugerir categoría basada en el título
+document.querySelector('input[name="title"]').addEventListener('input', function() {
+    const title = this.value.toLowerCase();
+    const categorySelect = document.querySelector('select[name="category"]');
+    
+    // No cambiar si ya hay una categoría seleccionada
+    if (categorySelect.value) return;
+    
+    // Sugerencias basadas en palabras clave
+    if (title.includes('agua') || title.includes('caño') || title.includes('filtración') || title.includes('grifo')) {
+        categorySelect.value = 'plomeria';
+    } else if (title.includes('luz') || title.includes('electricidad') || title.includes('enchufe') || title.includes('cable')) {
+        categorySelect.value = 'electricidad';
+    } else if (title.includes('pintura') || title.includes('pared') || title.includes('manchas')) {
+        categorySelect.value = 'pintura';
+    } else if (title.includes('jardín') || title.includes('plantas') || title.includes('césped') || title.includes('poda')) {
+        categorySelect.value = 'jardineria';
+    } else if (title.includes('puerta') || title.includes('ventana') || title.includes('madera')) {
+        categorySelect.value = 'carpinteria';
+    } else if (title.includes('cerradura') || title.includes('llave') || title.includes('candado')) {
+        categorySelect.value = 'cerrajeria';
+    }
+});
+</script>
+{% endblock %}

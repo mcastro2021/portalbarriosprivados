@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Reporte de Seguridad - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-shield-exclamation me-2"></i>Nuevo Reporte de Seguridad
+            </h2>
+            <p class="text-muted mb-0">Reporta incidentes o situaciones de seguridad</p>
+        </div>
+        <div>
+            <a href="{{ url_for('security.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Botón de Emergencia -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-danger d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                <div class="flex-grow-1">
+                    <h5 class="mb-1">¿Es una emergencia?</h5>
+                    <p class="mb-0">Si estás en peligro inmediato, usa el botón de pánico o llama directamente al 911</p>
+                </div>
+                <a href="{{ url_for('security.panic_button') }}" class="btn btn-danger btn-lg ms-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>BOTÓN DE PÁNICO
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información del Incidente</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Incidente *</label>
+                                <select class="form-select" name="incident_type" required>
+                                    <option value="">Selecciona el tipo</option>
+                                    <option value="robo">Robo o Hurto</option>
+                                    <option value="vandalismo">Vandalismo</option>
+                                    <option value="intrusion">Intrusión</option>
+                                    <option value="sospechoso">Actividad Sospechosa</option>
+                                    <option value="vehiculo">Vehículo Sospechoso</option>
+                                    <option value="ruidos">Ruidos Extraños</option>
+                                    <option value="iluminacion">Problemas de Iluminación</option>
+                                    <option value="acceso">Problemas de Acceso</option>
+                                    <option value="violencia">Violencia Doméstica</option>
+                                    <option value="otros">Otros</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Prioridad *</label>
+                                <select class="form-select" name="priority" required>
+                                    <option value="">Selecciona la prioridad</option>
+                                    <option value="baja" class="text-success">Baja - Puede esperar</option>
+                                    <option value="media" class="text-warning">Media - Atención en horas</option>
+                                    <option value="alta" class="text-danger">Alta - Atención inmediata</option>
+                                    <option value="critica" class="text-danger fw-bold">Crítica - EMERGENCIA</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Título del Reporte *</label>
+                            <input type="text" class="form-control" name="title" required maxlength="200" placeholder="Ej: Robo en Manzana B, Actividad sospechosa en área común">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha y Hora del Incidente *</label>
+                                <input type="datetime-local" class="form-control" name="incident_datetime" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ubicación Específica *</label>
+                                <input type="text" class="form-control" name="location" required placeholder="Ej: Manzana A Casa 15, Portón principal, Área de piscina">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descripción Detallada del Incidente *</label>
+                            <textarea class="form-control" name="description" rows="6" required placeholder="Describe con el mayor detalle posible lo ocurrido: qué pasó, cuándo, dónde, quiénes estuvieron involucrados, etc."></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Personas Involucradas (opcional)</label>
+                                <textarea class="form-control" name="people_involved" rows="3" placeholder="Descripción de personas involucradas: edad aproximada, vestimenta, características físicas, etc."></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Vehículos Involucrados (opcional)</label>
+                                <textarea class="form-control" name="vehicles_involved" rows="3" placeholder="Descripción de vehículos: marca, modelo, color, patente (si es visible), etc."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Testigos (opcional)</label>
+                            <input type="text" class="form-control" name="witnesses" placeholder="Nombres y contactos de testigos del incidente">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Evidencia Fotográfica (opcional)</label>
+                            <input type="file" class="form-control" name="evidence_photos" accept="image/*" multiple>
+                            <div class="form-text">Sube fotos que ayuden a documentar el incidente. Máximo 10 fotos, 5MB cada una</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">¿Se reportó a la policía?</label>
+                                <select class="form-select" name="police_reported">
+                                    <option value="no">No</option>
+                                    <option value="si">Sí</option>
+                                    <option value="pendiente">Pendiente</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Denuncia (opcional)</label>
+                                <input type="text" class="form-control" name="police_report_number" placeholder="Si ya hiciste la denuncia">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Acciones Tomadas (opcional)</label>
+                            <textarea class="form-control" name="actions_taken" rows="3" placeholder="¿Qué medidas ya tomaste? ¿Contactaste a alguien? ¿Aseguraste el área?"></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notify_security" checked>
+                                    <label class="form-check-label">
+                                        <i class="bi bi-shield-check text-primary me-1"></i>
+                                        Notificar inmediatamente a seguridad
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notify_admin" checked>
+                                    <label class="form-check-label">
+                                        <i class="bi bi-person-badge text-info me-1"></i>
+                                        Notificar a administración
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="anonymous_report">
+                            <label class="form-check-label">
+                                <i class="bi bi-incognito text-secondary me-1"></i>
+                                Reporte anónimo
+                            </label>
+                            <div class="form-text">Tu identidad no será revelada en el reporte</div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <h6><i class="bi bi-info-circle me-2"></i>Información Importante</h6>
+                            <ul class="mb-0 small">
+                                <li><strong>Emergencias:</strong> Para situaciones de peligro inmediato, llama al 911</li>
+                                <li><strong>Confidencialidad:</strong> La información será tratada con total confidencialidad</li>
+                                <li><strong>Seguimiento:</strong> Recibirás actualizaciones sobre el estado de tu reporte</li>
+                                <li><strong>Falsas denuncias:</strong> Los reportes falsos pueden resultar en sanciones</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('security.index') }}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-shield-exclamation me-2"></i>Enviar Reporte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Establecer fecha y hora actual por defecto
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.querySelector('input[name="incident_datetime"]').value = now.toISOString().slice(0, 16);
+});
+
+// Cambiar color del formulario según prioridad
+document.querySelector('select[name="priority"]').addEventListener('change', function() {
+    const card = document.querySelector('.card');
+    const value = this.value;
+    
+    // Remover clases anteriores
+    card.classList.remove('border-success', 'border-warning', 'border-danger');
+    
+    // Agregar clase según prioridad
+    if (value === 'baja') {
+        card.classList.add('border-success');
+    } else if (value === 'media') {
+        card.classList.add('border-warning');
+    } else if (value === 'alta' || value === 'critica') {
+        card.classList.add('border-danger');
+    }
+    
+    // Mostrar alerta para prioridad crítica
+    const existingAlert = document.querySelector('.priority-alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    if (value === 'critica') {
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger priority-alert mt-3';
+        alert.innerHTML = `
+            <h6><i class="bi bi-exclamation-triangle-fill me-2"></i>Prioridad Crítica</h6>
+            <p class="mb-0">Has seleccionado prioridad crítica. Si es una verdadera emergencia, considera llamar al 911 o usar el botón de pánico.</p>
+        `;
+        this.parentNode.parentNode.appendChild(alert);
+    }
+});
+
+// Preview de fotos de evidencia
+document.querySelector('input[name="evidence_photos"]').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    
+    // Remover preview anterior si existe
+    const existingPreview = document.querySelector('.evidence-preview');
+    if (existingPreview) {
+        existingPreview.remove();
+    }
+    
+    if (files.length > 0) {
+        const preview = document.createElement('div');
+        preview.className = 'evidence-preview mt-2';
+        preview.innerHTML = '<div class="form-text mb-2">Vista previa de la evidencia:</div>';
+        
+        const imagesContainer = document.createElement('div');
+        imagesContainer.className = 'd-flex flex-wrap gap-2';
+        
+        files.slice(0, 10).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgDiv = document.createElement('div');
+                imgDiv.innerHTML = `<img src="${e.target.result}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">`;
+                imagesContainer.appendChild(imgDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        preview.appendChild(imagesContainer);
+        
+        if (files.length > 10) {
+            const warning = document.createElement('div');
+            warning.className = 'form-text text-warning mt-1';
+            warning.textContent = `Solo se procesarán las primeras 10 fotos (seleccionaste ${files.length})`;
+            preview.appendChild(warning);
+        }
+        
+        this.parentNode.appendChild(preview);
+    }
+});
+
+// Validación del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const incidentType = this.querySelector('select[name="incident_type"]').value;
+    const priority = this.querySelector('select[name="priority"]').value;
+    const title = this.querySelector('input[name="title"]').value.trim();
+    const incidentDatetime = this.querySelector('input[name="incident_datetime"]').value;
+    const location = this.querySelector('input[name="location"]').value.trim();
+    const description = this.querySelector('textarea[name="description"]').value.trim();
+    
+    if (!incidentType) {
+        e.preventDefault();
+        alert('Por favor selecciona el tipo de incidente');
+        return false;
+    }
+    
+    if (!priority) {
+        e.preventDefault();
+        alert('Por favor selecciona la prioridad');
+        return false;
+    }
+    
+    if (!title) {
+        e.preventDefault();
+        alert('Por favor ingresa un título para el reporte');
+        return false;
+    }
+    
+    if (!incidentDatetime) {
+        e.preventDefault();
+        alert('Por favor indica cuándo ocurrió el incidente');
+        return false;
+    }
+    
+    if (!location) {
+        e.preventDefault();
+        alert('Por favor especifica dónde ocurrió el incidente');
+        return false;
+    }
+    
+    if (!description) {
+        e.preventDefault();
+        alert('Por favor proporciona una descripción del incidente');
+        return false;
+    }
+    
+    if (description.length < 20) {
+        e.preventDefault();
+        alert('La descripción debe tener al menos 20 caracteres para ser útil');
+        return false;
+    }
+    
+    // Confirmación para prioridad crítica
+    if (priority === 'critica') {
+        const confirm = window.confirm(
+            '¿Estás seguro de que este es un incidente de prioridad CRÍTICA?\n\n' +
+            'Esto activará protocolos de emergencia y notificaciones inmediatas.\n\n' +
+            'Si es una verdadera emergencia, considera llamar al 911 directamente.'
+        );
+        if (!confirm) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+
+// Contador de caracteres para descripción
+document.querySelector('textarea[name="description"]').addEventListener('input', function() {
+    const minLength = 20;
+    const currentLength = this.value.length;
+    
+    // Remover contador anterior si existe
+    const existingCounter = this.parentNode.querySelector('.char-counter');
+    if (existingCounter) {
+        existingCounter.remove();
+    }
+    
+    if (currentLength < minLength) {
+        const counter = document.createElement('div');
+        counter.className = 'char-counter form-text';
+        counter.textContent = `${minLength - currentLength} caracteres más para el mínimo requerido`;
+        counter.style.color = '#dc3545';
+        this.parentNode.appendChild(counter);
+    }
+});
+</script>
+{% endblock %}

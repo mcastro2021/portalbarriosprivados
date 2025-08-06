@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Seguridad - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-shield-check me-2"></i>Reportes de Seguridad
+            </h2>
+            <p class="text-muted mb-0">Mantén informada a la comunidad sobre incidentes</p>
+        </div>
+        <div>
+            <a href="{{ url_for('security.new_report') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Nuevo Reporte
+            </a>
+            <button type="button" class="btn btn-danger" onclick="panicButton()">
+                <i class="bi bi-exclamation-triangle me-2"></i>Botón de Pánico
+            </button>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Seguridad -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">Pendientes</p>
+                        </div>
+                        <i class="bi bi-clock fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">En Proceso</p>
+                        </div>
+                        <i class="bi bi-gear fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">Resueltos</p>
+                        </div>
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">Críticos</p>
+                        </div>
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Tipo de Incidente</label>
+                    <select name="incident_type" class="form-select">
+                        <option value="">Todos los tipos</option>
+                        <option value="theft" {% if request.args.get('incident_type') == 'theft' %}selected{% endif %}>Robo/Hurto</option>
+                        <option value="vandalism" {% if request.args.get('incident_type') == 'vandalism' %}selected{% endif %}>Vandalismo</option>
+                        <option value="suspicious_activity" {% if request.args.get('incident_type') == 'suspicious_activity' %}selected{% endif %}>Actividad Sospechosa</option>
+                        <option value="medical_emergency" {% if request.args.get('incident_type') == 'medical_emergency' %}selected{% endif %}>Emergencia Médica</option>
+                        <option value="fire" {% if request.args.get('incident_type') == 'fire' %}selected{% endif %}>Incendio</option>
+                        <option value="other" {% if request.args.get('incident_type') == 'other' %}selected{% endif %}>Otro</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="in_progress" {% if request.args.get('status') == 'in_progress' %}selected{% endif %}>En Proceso</option>
+                        <option value="resolved" {% if request.args.get('status') == 'resolved' %}selected{% endif %}>Resuelto</option>
+                        <option value="closed" {% if request.args.get('status') == 'closed' %}selected{% endif %}>Cerrado</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Buscar por título o descripción..." 
+                           value="{{ request.args.get('search', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <a href="{{ url_for('security.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Reportes -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Reportes Recientes</h5>
+        </div>
+        <div class="card-body">
+            <!-- Estado vacío -->
+            <div class="text-center py-5">
+                <i class="bi bi-shield-check display-1 text-muted mb-3"></i>
+                <h4 class="text-muted">No hay reportes de seguridad</h4>
+                <p class="text-muted mb-4">El barrio está tranquilo. Los reportes de seguridad aparecerán aquí</p>
+                <a href="{{ url_for('security.new_report') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-2"></i>Crear Reporte
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Botón de Pánico -->
+<div class="modal fade" id="panicModal" tabindex="-1" aria-labelledby="panicModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="panicModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Botón de Pánico
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>¿Estás en una emergencia?</strong><br>
+                    Al activar el botón de pánico se notificará inmediatamente a seguridad y administración.
+                </div>
+                <form id="panicForm">
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación (opcional)</label>
+                        <input type="text" class="form-control" name="location" placeholder="Ej: Manzana 5, Casa 12">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción breve (opcional)</label>
+                        <textarea class="form-control" name="description" rows="2" placeholder="Describe brevemente la situación"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="confirmPanic()">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Activar Pánico
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit del formulario de filtros
+document.querySelectorAll('select[name="incident_type"], select[name="status"]').forEach(function(select) {
+    select.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+
+// Función del botón de pánico
+function panicButton() {
+    const modal = new bootstrap.Modal(document.getElementById('panicModal'));
+    modal.show();
+}
+
+function confirmPanic() {
+    // Aquí iría la lógica para enviar la alerta de pánico
+    alert('Alerta de pánico enviada. Seguridad ha sido notificada.');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('panicModal'));
+    modal.hide();
+    
+    // Simular redirección a crear reporte de emergencia
+    window.location.href = '{{ url_for("security.new_report") }}?emergency=true';
+}
+</script>
+{% endblock %}

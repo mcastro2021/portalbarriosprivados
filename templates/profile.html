@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-person-circle me-2"></i>Mi Perfil
+            </h2>
+            <p class="text-muted mb-0">Gestiona tu información personal y configuración</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información del Perfil -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if current_user.profile_image %}
+                            <img src="{{ url_for('uploaded_file', filename=current_user.profile_image) }}" 
+                                 class="rounded-circle" width="120" height="120" alt="Foto de perfil">
+                        {% else %}
+                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 120px; height: 120px;">
+                                <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="card-title">{{ current_user.name }}</h5>
+                    <p class="text-muted">{{ current_user.role.title() }}</p>
+                    <span class="badge bg-{% if current_user.is_active %}success{% else %}danger{% endif %}">
+                        {% if current_user.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Estadísticas Rápidas -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Estadísticas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Visitas registradas:</span>
+                        <strong>0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Reservas realizadas:</span>
+                        <strong>0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Reportes enviados:</span>
+                        <strong>0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Último acceso:</span>
+                        <strong>{{ current_user.last_login.strftime('%d/%m/%Y') if current_user.last_login else 'Nunca' }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formularios de Perfil -->
+        <div class="col-md-8">
+            <!-- Información Personal -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-person me-2"></i>Información Personal
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre Completo</label>
+                                <input type="text" class="form-control" name="name" value="{{ current_user.name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Usuario</label>
+                                <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <div class="input-group">
+                                    <input type="email" class="form-control" name="email" value="{{ current_user.email }}" required>
+                                    <span class="input-group-text">
+                                        {% if current_user.email_verified %}
+                                            <i class="bi bi-check-circle text-success" title="Email verificado"></i>
+                                        {% else %}
+                                            <i class="bi bi-x-circle text-danger" title="Email no verificado"></i>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <div class="input-group">
+                                    <input type="tel" class="form-control" name="phone" value="{{ current_user.phone or '' }}">
+                                    <span class="input-group-text">
+                                        {% if current_user.phone_verified %}
+                                            <i class="bi bi-check-circle text-success" title="Teléfono verificado"></i>
+                                        {% else %}
+                                            <i class="bi bi-x-circle text-danger" title="Teléfono no verificado"></i>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dirección en el Barrio</label>
+                            <input type="text" class="form-control" name="address" value="{{ current_user.address or '' }}" placeholder="Ej: Manzana 5, Casa 12">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contacto de Emergencia</label>
+                            <input type="text" class="form-control" name="emergency_contact" value="{{ current_user.emergency_contact or '' }}" placeholder="Nombre y teléfono">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Foto de Perfil</label>
+                            <input type="file" class="form-control" name="profile_image" accept="image/*">
+                            <div class="form-text">Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 2MB</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Cambiar Contraseña -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lock me-2"></i>Seguridad
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.change_password') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña Actual</label>
+                            <input type="password" class="form-control" name="current_password" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nueva Contraseña</label>
+                                <input type="password" class="form-control" name="new_password" required minlength="6">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Confirmar Nueva Contraseña</label>
+                                <input type="password" class="form-control" name="confirm_password" required minlength="6">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-key me-2"></i>Cambiar Contraseña
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Configuración de Notificaciones -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-bell me-2"></i>Configuración de Notificaciones
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">
+                                Recibir notificaciones por email
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="smsNotifications">
+                            <label class="form-check-label" for="smsNotifications">
+                                Recibir notificaciones por SMS
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="securityAlerts" checked>
+                            <label class="form-check-label" for="securityAlerts">
+                                Alertas de seguridad
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="maintenanceUpdates" checked>
+                            <label class="form-check-label" for="maintenanceUpdates">
+                                Actualizaciones de mantenimiento
+                            </label>
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="eventNotifications" checked>
+                            <label class="form-check-label" for="eventNotifications">
+                                Notificaciones de eventos
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg me-2"></i>Guardar Configuración
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación de formulario de cambio de contraseña
+document.querySelector('form[action*="change_password"]').addEventListener('submit', function(e) {
+    const newPassword = this.querySelector('input[name="new_password"]').value;
+    const confirmPassword = this.querySelector('input[name="confirm_password"]').value;
+    
+    if (newPassword !== confirmPassword) {
+        e.preventDefault();
+        alert('Las contraseñas no coinciden');
+        return false;
+    }
+    
+    if (newPassword.length < 6) {
+        e.preventDefault();
+        alert('La contraseña debe tener al menos 6 caracteres');
+        return false;
+    }
+});
+
+// Preview de imagen de perfil
+document.querySelector('input[name="profile_image"]').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.querySelector('img[alt="Foto de perfil"]') || 
+                       document.querySelector('.rounded-circle');
+            if (img.tagName === 'IMG') {
+                img.src = e.target.result;
+            } else {
+                // Reemplazar el div con una imagen
+                const newImg = document.createElement('img');
+                newImg.src = e.target.result;
+                newImg.className = 'rounded-circle';
+                newImg.width = 120;
+                newImg.height = 120;
+                newImg.alt = 'Foto de perfil';
+                img.parentNode.replaceChild(newImg, img);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

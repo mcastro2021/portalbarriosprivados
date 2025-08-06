@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Reservas - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-calendar-check me-2"></i>Mis Reservas
+            </h2>
+            <p class="text-muted mb-0">Gestiona tus reservas de espacios comunes</p>
+        </div>
+        <div>
+            <a href="{{ url_for('reservations.new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Nueva Reserva
+            </a>
+            <a href="{{ url_for('reservations.calendar') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-calendar me-2"></i>Ver Calendario
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="approved" {% if request.args.get('status') == 'approved' %}selected{% endif %}>Aprobada</option>
+                        <option value="rejected" {% if request.args.get('status') == 'rejected' %}selected{% endif %}>Rechazada</option>
+                        <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Espacio</label>
+                    <select name="space_type" class="form-select">
+                        <option value="">Todos los espacios</option>
+                        <option value="quincho" {% if request.args.get('space_type') == 'quincho' %}selected{% endif %}>Quincho</option>
+                        <option value="sum" {% if request.args.get('space_type') == 'sum' %}selected{% endif %}>SUM</option>
+                        <option value="cancha_futbol" {% if request.args.get('space_type') == 'cancha_futbol' %}selected{% endif %}>Cancha de Fútbol</option>
+                        <option value="cancha_tenis" {% if request.args.get('space_type') == 'cancha_tenis' %}selected{% endif %}>Cancha de Tenis</option>
+                        <option value="piscina" {% if request.args.get('space_type') == 'piscina' %}selected{% endif %}>Piscina</option>
+                        <option value="coworking" {% if request.args.get('space_type') == 'coworking' %}selected{% endif %}>Coworking</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Buscar por descripción..." 
+                           value="{{ request.args.get('search', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <a href="{{ url_for('reservations.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Reservas -->
+    {% if reservations.items %}
+        <div class="row">
+            {% for reservation in reservations.items %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">{{ reservation.space_name or reservation.space_type.title() }}</h6>
+                        <span class="badge bg-{% if reservation.status == 'approved' %}success{% elif reservation.status == 'pending' %}warning{% elif reservation.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                            {{ reservation.status.title() }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar-event me-2 text-primary"></i>
+                                <strong>{{ reservation.start_time.strftime('%d/%m/%Y') }}</strong>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-clock me-2 text-info"></i>
+                                {{ reservation.start_time.strftime('%H:%M') }} - {{ reservation.end_time.strftime('%H:%M') }}
+                            </div>
+                            {% if reservation.guests_count %}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-people me-2 text-success"></i>
+                                {{ reservation.guests_count }} invitados
+                            </div>
+                            {% endif %}
+                            {% if reservation.event_type %}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-tag me-2 text-warning"></i>
+                                {{ reservation.event_type }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if reservation.description %}
+                        <p class="text-muted small mb-3">{{ reservation.description[:100] }}{% if reservation.description|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+                        
+                        {% if reservation.admin_notes and reservation.status == 'rejected' %}
+                        <div class="alert alert-danger py-2 small">
+                            <strong>Motivo del rechazo:</strong><br>
+                            {{ reservation.admin_notes }}
+                        </div>
+                        {% endif %}
+                        
+                        <small class="text-muted">
+                            Solicitada el {{ reservation.created_at.strftime('%d/%m/%Y %H:%M') }}
+                        </small>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('reservations.show', reservation_id=reservation.id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye me-1"></i>Ver
+                            </a>
+                            {% if reservation.status == 'pending' %}
+                            <div>
+                                <a href="{{ url_for('reservations.edit', reservation_id=reservation.id) }}" 
+                                   class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="bi bi-pencil me-1"></i>Editar
+                                </a>
+                                <a href="{{ url_for('reservations.cancel', reservation_id=reservation.id) }}" 
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('¿Estás seguro de que quieres cancelar esta reserva?')">
+                                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                                </a>
+                            </div>
+                            {% elif reservation.status == 'approved' and reservation.start_time > current_datetime %}
+                            <a href="{{ url_for('reservations.cancel', reservation_id=reservation.id) }}" 
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('¿Estás seguro de que quieres cancelar esta reserva aprobada?')">
+                                <i class="bi bi-x-circle me-1"></i>Cancelar
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if reservations.pages > 1 %}
+        <nav aria-label="Navegación de reservas">
+            <ul class="pagination justify-content-center">
+                {% if reservations.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('reservations.index', page=reservations.prev_num, **request.args) }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in reservations.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != reservations.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('reservations.index', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if reservations.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('reservations.index', page=reservations.next_num, **request.args) }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <!-- Estado vacío -->
+        <div class="text-center py-5">
+            <i class="bi bi-calendar-x display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No tienes reservas</h4>
+            <p class="text-muted mb-4">Comienza reservando un espacio común para tus eventos</p>
+            <a href="{{ url_for('reservations.new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Hacer Primera Reserva
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit del formulario de filtros cuando cambian los selects
+document.querySelectorAll('select[name="status"], select[name="space_type"]').forEach(function(select) {
+    select.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+
+// Confirmación para cancelaciones
+document.querySelectorAll('[onclick*="confirm"]').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+        if (!confirm(this.getAttribute('onclick').match(/'([^']+)'/)[1])) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

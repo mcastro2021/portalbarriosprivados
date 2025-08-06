@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Noticia - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-newspaper me-2"></i>Nueva Noticia
+            </h2>
+            <p class="text-muted mb-0">Comparte información importante con la comunidad</p>
+        </div>
+        <div>
+            <a href="{{ url_for('news.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información de la Noticia</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Título de la Noticia *</label>
+                            <input type="text" class="form-control" name="title" required maxlength="200">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Categoría *</label>
+                                <select class="form-select" name="category" required>
+                                    <option value="">Selecciona una categoría</option>
+                                    <option value="general">General</option>
+                                    <option value="mantenimiento">Mantenimiento</option>
+                                    <option value="seguridad">Seguridad</option>
+                                    <option value="eventos">Eventos</option>
+                                    <option value="obras">Obras</option>
+                                    <option value="cortes">Cortes de Servicio</option>
+                                    <option value="emergencias">Emergencias</option>
+                                    <option value="anuncios">Anuncios</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha de Expiración</label>
+                                <input type="date" class="form-control" name="expires_at">
+                                <div class="form-text">Opcional. La noticia se ocultará después de esta fecha</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Contenido de la Noticia *</label>
+                            <textarea class="form-control" name="content" rows="8" required placeholder="Escribe el contenido completo de la noticia..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Imagen (opcional)</label>
+                            <input type="file" class="form-control" name="image" accept="image/*">
+                            <div class="form-text">Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 5MB</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_important">
+                                    <label class="form-check-label">
+                                        <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                                        Noticia Importante
+                                    </label>
+                                    <div class="form-text">Se destacará y aparecerá primero</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_published" checked>
+                                    <label class="form-check-label">
+                                        <i class="bi bi-eye text-success me-1"></i>
+                                        Publicar Inmediatamente
+                                    </label>
+                                    <div class="form-text">Si no está marcado, se guardará como borrador</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if current_user.role == 'admin' %}
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle me-2"></i>Opciones de Administrador</h6>
+                            <p class="mb-0">Como administrador, puedes publicar noticias inmediatamente y marcarlas como importantes para que aparezcan destacadas en la página principal.</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('news.index') }}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                            <div>
+                                <button type="submit" name="action" value="draft" class="btn btn-outline-primary me-2">
+                                    <i class="bi bi-file-earmark me-2"></i>Guardar Borrador
+                                </button>
+                                <button type="submit" name="action" value="publish" class="btn btn-primary">
+                                    <i class="bi bi-check-lg me-2"></i>Publicar Noticia
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Preview de imagen
+document.querySelector('input[name="image"]').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Remover preview anterior si existe
+        const existingPreview = document.querySelector('.image-preview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.createElement('div');
+            preview.className = 'image-preview mt-2';
+            preview.innerHTML = `
+                <img src="${e.target.result}" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                <div class="form-text">Vista previa de la imagen</div>
+            `;
+            document.querySelector('input[name="image"]').parentNode.appendChild(preview);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Contador de caracteres para el título
+document.querySelector('input[name="title"]').addEventListener('input', function() {
+    const maxLength = 200;
+    const currentLength = this.value.length;
+    const remaining = maxLength - currentLength;
+    
+    // Remover contador anterior si existe
+    const existingCounter = this.parentNode.querySelector('.char-counter');
+    if (existingCounter) {
+        existingCounter.remove();
+    }
+    
+    if (currentLength > maxLength * 0.8) {
+        const counter = document.createElement('div');
+        counter.className = 'char-counter form-text';
+        counter.textContent = `${remaining} caracteres restantes`;
+        counter.style.color = remaining < 20 ? '#dc3545' : '#6c757d';
+        this.parentNode.appendChild(counter);
+    }
+});
+
+// Validación del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const title = this.querySelector('input[name="title"]').value.trim();
+    const category = this.querySelector('select[name="category"]').value;
+    const content = this.querySelector('textarea[name="content"]').value.trim();
+    
+    if (!title) {
+        e.preventDefault();
+        alert('Por favor ingresa un título para la noticia');
+        return false;
+    }
+    
+    if (!category) {
+        e.preventDefault();
+        alert('Por favor selecciona una categoría');
+        return false;
+    }
+    
+    if (!content) {
+        e.preventDefault();
+        alert('Por favor ingresa el contenido de la noticia');
+        return false;
+    }
+    
+    if (content.length < 10) {
+        e.preventDefault();
+        alert('El contenido de la noticia debe tener al menos 10 caracteres');
+        return false;
+    }
+});
+
+// Manejar botones de acción
+document.querySelectorAll('button[name="action"]').forEach(button => {
+    button.addEventListener('click', function() {
+        const isPublish = this.value === 'publish';
+        const publishCheckbox = document.querySelector('input[name="is_published"]');
+        publishCheckbox.checked = isPublish;
+    });
+});
+</script>
+{% endblock %}

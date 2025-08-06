@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa del Barrio - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-geo-alt me-2"></i>Mapa del Barrio
+            </h2>
+            <p class="text-muted mb-0">Explora las instalaciones y ubicaciones del barrio</p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-outline-primary" onclick="toggleView()">
+                <i class="bi bi-grid me-2"></i>Cambiar Vista
+            </button>
+        </div>
+    </div>
+
+    <!-- Leyenda -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="card-title">Leyenda</h6>
+            <div class="row">
+                <div class="col-md-2">
+                    <span class="badge bg-primary me-2">■</span>Residencias
+                </div>
+                <div class="col-md-2">
+                    <span class="badge bg-success me-2">■</span>Áreas Comunes
+                </div>
+                <div class="col-md-2">
+                    <span class="badge bg-warning me-2">■</span>Servicios
+                </div>
+                <div class="col-md-2">
+                    <span class="badge bg-info me-2">■</span>Recreación
+                </div>
+                <div class="col-md-2">
+                    <span class="badge bg-danger me-2">■</span>Emergencias
+                </div>
+                <div class="col-md-2">
+                    <span class="badge bg-secondary me-2">■</span>Estacionamiento
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapa -->
+    <div class="card">
+        <div class="card-body">
+            <div id="mapContainer" class="position-relative" style="min-height: 600px; background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%); border-radius: 8px;">
+                <!-- Vista del Mapa Simplificada -->
+                <div class="text-center py-5">
+                    <i class="bi bi-geo-alt display-1 text-success mb-3"></i>
+                    <h4 class="text-muted">Mapa Interactivo del Barrio</h4>
+                    <p class="text-muted mb-4">
+                        Aquí se mostraría el mapa interactivo del barrio con todas las ubicaciones importantes
+                    </p>
+                    
+                    <!-- Elementos del mapa simulados -->
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-house-door fs-1 text-primary"></i>
+                                    <h6 class="mt-2">Residencias</h6>
+                                    <p class="small text-muted">{{ blocks|length if blocks else 0 }} manzanas disponibles</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-building fs-1 text-success"></i>
+                                    <h6 class="mt-2">Áreas Comunes</h6>
+                                    <p class="small text-muted">Quincho, SUM, Piscina</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-shield-check fs-1 text-info"></i>
+                                    <h6 class="mt-2">Seguridad</h6>
+                                    <p class="small text-muted">Garita de acceso</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Puntos de Interés -->
+                    <div class="mt-4">
+                        <h6>Puntos de Interés</h6>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <span class="badge bg-primary">Administración</span>
+                            <span class="badge bg-success">Quincho</span>
+                            <span class="badge bg-success">SUM</span>
+                            <span class="badge bg-info">Piscina</span>
+                            <span class="badge bg-info">Cancha de Fútbol</span>
+                            <span class="badge bg-info">Cancha de Tenis</span>
+                            <span class="badge bg-warning">Portería Principal</span>
+                            <span class="badge bg-warning">Portería Secundaria</span>
+                            <span class="badge bg-secondary">Estacionamiento Visitas</span>
+                            <span class="badge bg-danger">Salida de Emergencia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controles del mapa -->
+                <div class="position-absolute top-0 end-0 m-3">
+                    <div class="btn-group-vertical">
+                        <button type="button" class="btn btn-light btn-sm" onclick="zoomIn()" title="Acercar">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="zoomOut()" title="Alejar">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="resetView()" title="Restablecer">
+                            <i class="bi bi-house"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Adicional -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Información del Barrio
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Superficie Total:</strong> 25 hectáreas</li>
+                        <li><strong>Cantidad de Lotes:</strong> 150 unidades</li>
+                        <li><strong>Áreas Verdes:</strong> 40% del terreno</li>
+                        <li><strong>Seguridad:</strong> 24/7 con cámaras</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-telephone me-2"></i>Contactos de Emergencia
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Seguridad:</strong> (011) 1234-5678</li>
+                        <li><strong>Administración:</strong> (011) 1234-5679</li>
+                        <li><strong>Mantenimiento:</strong> (011) 1234-5680</li>
+                        <li><strong>Emergencias:</strong> 911</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentView = 'satellite';
+let zoomLevel = 1;
+
+function toggleView() {
+    currentView = currentView === 'satellite' ? 'map' : 'satellite';
+    const container = document.getElementById('mapContainer');
+    if (currentView === 'map') {
+        container.style.background = 'linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%)';
+    } else {
+        container.style.background = 'linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%)';
+    }
+}
+
+function zoomIn() {
+    zoomLevel = Math.min(zoomLevel + 0.2, 2);
+    updateZoom();
+}
+
+function zoomOut() {
+    zoomLevel = Math.max(zoomLevel - 0.2, 0.5);
+    updateZoom();
+}
+
+function resetView() {
+    zoomLevel = 1;
+    updateZoom();
+}
+
+function updateZoom() {
+    const container = document.getElementById('mapContainer');
+    container.style.transform = `scale(${zoomLevel})`;
+    container.style.transformOrigin = 'center center';
+}
+
+// Simular carga del mapa
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        console.log('Mapa del barrio cargado');
+    }, 1000);
+});
+</script>
+{% endblock %}

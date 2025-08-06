@@ -32,12 +32,12 @@ class User(UserMixin, db.Model):
     
     # Relaciones
     visits = db.relationship('Visit', backref='resident', lazy='dynamic', cascade='all, delete-orphan')
-    reservations = db.relationship('Reservation', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    reservations = db.relationship('Reservation', foreign_keys='Reservation.user_id', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     news = db.relationship('News', backref='author', lazy='dynamic', cascade='all, delete-orphan')
-    maintenance_requests = db.relationship('Maintenance', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    maintenance_requests = db.relationship('Maintenance', foreign_keys='Maintenance.user_id', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     expenses = db.relationship('Expense', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     classifieds = db.relationship('Classified', backref='author', lazy='dynamic', cascade='all, delete-orphan')
-    security_reports = db.relationship('SecurityReport', backref='author', lazy='dynamic', cascade='all, delete-orphan')
+    security_reports = db.relationship('SecurityReport', foreign_keys='SecurityReport.user_id', backref='author', lazy='dynamic', cascade='all, delete-orphan')
     notifications = db.relationship('Notification', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     
     def set_password(self, password):

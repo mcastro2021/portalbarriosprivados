@@ -1,8 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from models import db, News, User
 from datetime import datetime
-from config import config
 
 bp = Blueprint('news', __name__, url_prefix='/news')
 
@@ -21,7 +20,8 @@ def index():
         page=page, per_page=10, error_out=False)
     
     # Obtener categorías para el filtro
-    categories = config['NEWS_CATEGORIES']
+    from flask import current_app
+    categories = current_app.config['NEWS_CATEGORIES']
     
     return render_template('news/index.html', news=news, categories=categories, current_category=category)
 
@@ -89,7 +89,7 @@ def new():
             return render_template('news/new.html')
     
     # Obtener categorías
-    categories = config['NEWS_CATEGORIES']
+    categories = current_app.config['NEWS_CATEGORIES']
     return render_template('news/new.html', categories=categories)
 
 @bp.route('/<int:news_id>/edit', methods=['GET', 'POST'])
@@ -142,7 +142,7 @@ def edit(news_id):
             flash(f'Error al actualizar la noticia: {str(e)}', 'error')
     
     # Obtener categorías
-    categories = config['NEWS_CATEGORIES']
+    categories = current_app.config['NEWS_CATEGORIES']
     return render_template('news/edit.html', news=news_item, categories=categories)
 
 @bp.route('/<int:news_id>/delete', methods=['POST'])

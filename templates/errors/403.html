@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Acceso denegado{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="error-page">
+                <h1 class="display-1 text-warning">403</h1>
+                <h2>Acceso denegado</h2>
+                <p class="lead">No tienes permisos para acceder a esta página.</p>
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('auth.login') }}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Volver al inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

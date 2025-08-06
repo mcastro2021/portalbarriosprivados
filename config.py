@@ -163,6 +163,10 @@ class DevelopmentConfig(Config):
     """Configuración para desarrollo"""
     DEBUG = True
     SQLALCHEMY_ECHO = True
+    
+    @classmethod
+    def init_app(cls, app):
+        pass
 
 class ProductionConfig(Config):
     """Configuración para producción"""
@@ -195,6 +199,10 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
+    
+    @classmethod
+    def init_app(cls, app):
+        pass
 
 # Diccionario de configuraciones
 config = {

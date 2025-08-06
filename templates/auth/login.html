@@ -19,15 +19,15 @@
                     <form method="POST" action="{{ url_for('auth.login') }}" data-validate>
                         {{ form.hidden_tag() }}
                         
-                        <!-- Email Field -->
+                        <!-- Username Field -->
                         <div class="mb-3">
-                            <label for="email" class="form-label">
-                                <i class="bi bi-envelope me-2"></i>Email
+                            <label for="username" class="form-label">
+                                <i class="bi bi-person me-2"></i>Usuario
                             </label>
-                            {{ form.email(class="form-control form-control-lg", placeholder="tu@email.com") }}
-                            {% if form.email.errors %}
+                            {{ form.username(class="form-control form-control-lg", placeholder="tu_usuario") }}
+                            {% if form.username.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.email.errors %}
+                                    {% for error in form.username.errors %}
                                         {{ error }}
                                     {% endfor %}
                                 </div>

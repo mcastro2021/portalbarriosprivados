@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Mantenimiento - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-tools me-2"></i>Solicitudes de Mantenimiento
+            </h2>
+            <p class="text-muted mb-0">Reporta problemas y solicita reparaciones</p>
+        </div>
+        <div>
+            <a href="{{ url_for('maintenance.new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Nueva Solicitud
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Mantenimiento -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">Pendientes</p>
+                        </div>
+                        <i class="bi bi-clock fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">En Progreso</p>
+                        </div>
+                        <i class="bi bi-gear fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">Completados</p>
+                        </div>
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">Urgentes</p>
+                        </div>
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        {% for status_code, status_name in statuses %}
+                        <option value="{{ status_code }}" {% if current_status == status_code %}selected{% endif %}>
+                            {{ status_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Categoría</label>
+                    <select name="category" class="form-select">
+                        <option value="">Todas las categorías</option>
+                        <option value="plomeria" {% if request.args.get('category') == 'plomeria' %}selected{% endif %}>Plomería</option>
+                        <option value="electricidad" {% if request.args.get('category') == 'electricidad' %}selected{% endif %}>Electricidad</option>
+                        <option value="jardineria" {% if request.args.get('category') == 'jardineria' %}selected{% endif %}>Jardinería</option>
+                        <option value="pintura" {% if request.args.get('category') == 'pintura' %}selected{% endif %}>Pintura</option>
+                        <option value="limpieza" {% if request.args.get('category') == 'limpieza' %}selected{% endif %}>Limpieza</option>
+                        <option value="seguridad" {% if request.args.get('category') == 'seguridad' %}selected{% endif %}>Seguridad</option>
+                        <option value="otros" {% if request.args.get('category') == 'otros' %}selected{% endif %}>Otros</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Buscar por título o descripción..." 
+                           value="{{ request.args.get('search', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Solicitudes -->
+    {% if maintenance.items %}
+        <div class="row">
+            {% for request in maintenance.items %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">{{ request.title }}</h6>
+                        <span class="badge bg-{% if request.status == 'completed' %}success{% elif request.status == 'in_progress' %}info{% elif request.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                            {{ request.status.title() }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-tag me-2 text-primary"></i>
+                                <strong>{{ request.category.title() }}</strong>
+                            </div>
+                            {% if request.location %}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-geo-alt me-2 text-info"></i>
+                                {{ request.location }}
+                            </div>
+                            {% endif %}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-flag me-2 text-{% if request.priority == 'urgent' %}danger{% elif request.priority == 'high' %}warning{% elif request.priority == 'medium' %}info{% else %}secondary{% endif %}"></i>
+                                Prioridad: {{ request.priority.title() }}
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar me-2 text-success"></i>
+                                {{ request.created_at.strftime('%d/%m/%Y') }}
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted small mb-3">{{ request.description[:100] }}{% if request.description|length > 100 %}...{% endif %}</p>
+                        
+                        {% if request.admin_notes and request.status != 'pending' %}
+                        <div class="alert alert-info py-2 small">
+                            <strong>Notas:</strong><br>
+                            {{ request.admin_notes }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if request.assigned_to %}
+                        <small class="text-success">
+                            <i class="bi bi-person-check me-1"></i>Asignado
+                        </small>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('maintenance.show', maintenance_id=request.id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye me-1"></i>Ver
+                            </a>
+                            {% if request.status == 'pending' and current_user.id == request.user_id %}
+                            <div>
+                                <a href="{{ url_for('maintenance.edit', maintenance_id=request.id) }}" 
+                                   class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="bi bi-pencil me-1"></i>Editar
+                                </a>
+                                <a href="{{ url_for('maintenance.delete', maintenance_id=request.id) }}" 
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('¿Estás seguro de que quieres eliminar esta solicitud?')">
+                                    <i class="bi bi-trash me-1"></i>Eliminar
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if maintenance.pages > 1 %}
+        <nav aria-label="Navegación de mantenimiento">
+            <ul class="pagination justify-content-center">
+                {% if maintenance.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('maintenance.index', page=maintenance.prev_num, **request.args) }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in maintenance.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != maintenance.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('maintenance.index', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if maintenance.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('maintenance.index', page=maintenance.next_num, **request.args) }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <!-- Estado vacío -->
+        <div class="text-center py-5">
+            <i class="bi bi-tools display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No hay solicitudes de mantenimiento</h4>
+            <p class="text-muted mb-4">Cuando necesites una reparación, puedes crear una solicitud aquí</p>
+            <a href="{{ url_for('maintenance.new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Crear Primera Solicitud
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit del formulario de filtros
+document.querySelectorAll('select[name="status"], select[name="category"]').forEach(function(select) {
+    select.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+
+// Confirmación para eliminaciones
+document.querySelectorAll('[onclick*="confirm"]').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+        if (!confirm('¿Estás seguro de que quieres eliminar esta solicitud?')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

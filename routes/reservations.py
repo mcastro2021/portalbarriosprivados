@@ -1,9 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from models import db, Reservation, User
 from datetime import datetime, timedelta
 from dateutil import parser
-from config import config
 
 bp = Blueprint('reservations', __name__, url_prefix='/reservations')
 
@@ -111,7 +110,7 @@ def new():
             return render_template('reservations/new.html')
     
     # Obtener espacios disponibles
-    spaces = config['COMMON_SPACES']
+    spaces = current_app.config['COMMON_SPACES']
     return render_template('reservations/new.html', spaces=spaces)
 
 @bp.route('/<int:reservation_id>')
@@ -217,7 +216,7 @@ def edit(reservation_id):
             flash(f'Error al actualizar la reserva: {str(e)}', 'error')
     
     # Obtener espacios disponibles
-    spaces = config['COMMON_SPACES']
+    spaces = current_app.config['COMMON_SPACES']
     return render_template('reservations/edit.html', reservation=reservation, spaces=spaces)
 
 @bp.route('/<int:reservation_id>/delete', methods=['POST'])

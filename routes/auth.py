@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
+from forms import LoginForm, RegistrationForm, ChangePasswordForm, ForgotPasswordForm
 from datetime import datetime
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -12,21 +13,19 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        remember = request.form.get('remember') == 'on'
-        
-        if not username or not password:
-            flash('Por favor completa todos los campos', 'error')
-            return render_template('auth/login.html')
+    form = LoginForm()
+    
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        remember = form.remember_me.data
         
         user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
             if not user.is_active:
                 flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
-                return render_template('auth/login.html')
+                return render_template('auth/login.html', form=form)
             
             login_user(user, remember=remember)
             user.last_login = datetime.utcnow()
@@ -42,7 +41,7 @@ def login():
         else:
             flash('Usuario o contraseña incorrectos', 'error')
     
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', form=form)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -50,61 +49,44 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        name = request.form.get('name')
-        address = request.form.get('address')
-        phone = request.form.get('phone')
-        
-        # Validaciones
-        if not all([username, email, password, confirm_password, name]):
-            flash('Por favor completa todos los campos obligatorios', 'error')
-            return render_template('auth/register.html')
-        
-        if password != confirm_password:
-            flash('Las contraseñas no coinciden', 'error')
-            return render_template('auth/register.html')
-        
-        if len(password) < 6:
-            flash('La contraseña debe tener al menos 6 caracteres', 'error')
-            return render_template('auth/register.html')
-        
+    form = RegistrationForm()
+    
+    if form.validate_on_submit():
         # Verificar si el usuario ya existe
-        if User.query.filter_by(username=username).first():
+        if User.query.filter_by(username=form.username.data).first():
             flash('El nombre de usuario ya está en uso', 'error')
-            return render_template('auth/register.html')
+            return render_template('auth/register.html', form=form)
         
-        if User.query.filter_by(email=email).first():
+        if User.query.filter_by(email=form.email.data).first():
             flash('El email ya está registrado', 'error')
-            return render_template('auth/register.html')
+            return render_template('auth/register.html', form=form)
         
         try:
             # Crear nuevo usuario
             user = User(
-                username=username,
-                email=email,
-                name=name,
-                address=address,
-                phone=phone,
-                role='resident',
-                is_active=True
+                username=form.username.data,
+                email=form.email.data,
+                name=form.name.data,
+                address=form.address.data,
+                phone=form.phone.data,
+                emergency_contact=form.emergency_contact.data,
+                role='resident',  # Por defecto todos son residentes
+                is_active=True,
+                email_verified=False
             )
-            user.set_password(password)
+            user.set_password(form.password.data)
             
             db.session.add(user)
             db.session.commit()
             
-            flash('Registro exitoso. Por favor inicia sesión.', 'success')
+            flash('¡Registro exitoso! Ya puedes iniciar sesión.', 'success')
             return redirect(url_for('auth.login'))
             
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al registrar usuario: {str(e)}', 'error')
+            flash('Error al crear la cuenta. Inténtalo nuevamente.', 'error')
     
-    return render_template('auth/register.html')
+    return render_template('auth/register.html', form=form)
 
 @bp.route('/logout')
 @login_required
@@ -116,64 +98,41 @@ def logout():
 
 @bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
-    """Recuperar contraseña"""
+    """Página de recuperación de contraseña"""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     
-    if request.method == 'POST':
-        email = request.form.get('email')
-        
-        if not email:
-            flash('Por favor ingresa tu email', 'error')
-            return render_template('auth/forgot_password.html')
-        
-        user = User.query.filter_by(email=email).first()
-        
+    form = ForgotPasswordForm()
+    
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
         if user:
-            # Aquí se implementaría el envío de email para recuperar contraseña
-            # Por ahora solo mostramos un mensaje
-            flash('Si el email existe en nuestra base de datos, recibirás instrucciones para recuperar tu contraseña.', 'info')
+            # Aquí iría la lógica para enviar email de recuperación
+            flash('Si el email existe, recibirás instrucciones para recuperar tu contraseña.', 'info')
         else:
-            # Por seguridad, no revelamos si el email existe o no
-            flash('Si el email existe en nuestra base de datos, recibirás instrucciones para recuperar tu contraseña.', 'info')
-        
+            flash('Si el email existe, recibirás instrucciones para recuperar tu contraseña.', 'info')
         return redirect(url_for('auth.login'))
     
-    return render_template('auth/forgot_password.html')
+    return render_template('auth/forgot_password.html', form=form)
 
 @bp.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
     """Cambiar contraseña"""
-    if request.method == 'POST':
-        current_password = request.form.get('current_password')
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_password')
-        
-        if not all([current_password, new_password, confirm_password]):
-            flash('Por favor completa todos los campos', 'error')
-            return render_template('auth/change_password.html')
-        
-        if not current_user.check_password(current_password):
+    form = ChangePasswordForm()
+    
+    if form.validate_on_submit():
+        if not current_user.check_password(form.current_password.data):
             flash('La contraseña actual es incorrecta', 'error')
-            return render_template('auth/change_password.html')
-        
-        if new_password != confirm_password:
-            flash('Las nuevas contraseñas no coinciden', 'error')
-            return render_template('auth/change_password.html')
-        
-        if len(new_password) < 6:
-            flash('La nueva contraseña debe tener al menos 6 caracteres', 'error')
-            return render_template('auth/change_password.html')
+            return render_template('auth/change_password.html', form=form)
         
         try:
-            current_user.set_password(new_password)
+            current_user.set_password(form.new_password.data)
             db.session.commit()
-            flash('Contraseña cambiada correctamente', 'success')
+            flash('Contraseña actualizada correctamente', 'success')
             return redirect(url_for('profile'))
-            
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al cambiar la contraseña: {str(e)}', 'error')
+            flash('Error al actualizar la contraseña', 'error')
     
-    return render_template('auth/change_password.html') 
+    return render_template('auth/change_password.html', form=form)

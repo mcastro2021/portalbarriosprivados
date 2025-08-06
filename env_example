@@ -1,0 +1,42 @@
+# Configuración de la aplicación
+SECRET_KEY=your-secret-key-here-change-in-production
+FLASK_ENV=development
+DATABASE_URL=sqlite:///barrio_cerrado.db
+
+# Configuración de email (opcional)
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_DEFAULT_SENDER=your-email@gmail.com
+
+# MercadoPago (opcional para pagos)
+MERCADOPAGO_ACCESS_TOKEN=your-mercadopago-access-token
+MERCADOPAGO_PUBLIC_KEY=your-mercadopago-public-key
+
+# WhatsApp/Twilio (opcional para notificaciones)
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=your-twilio-whatsapp-number
+
+# OpenAI (opcional para chatbot inteligente)
+OPENAI_API_KEY=your-openai-api-key
+
+# Redis (opcional para cache y tareas en segundo plano)
+REDIS_URL=redis://localhost:6379/0
+
+# Configuración de seguridad
+SESSION_COOKIE_SECURE=False
+WTF_CSRF_ENABLED=True
+
+# Configuración de notificaciones
+NOTIFICATION_EMAIL_ENABLED=True
+NOTIFICATION_WHATSAPP_ENABLED=False
+NOTIFICATION_PUSH_ENABLED=True
+
+# Configuración del barrio
+BARRIO_NAME=Mi Barrio Privado
+BARRIO_ADDRESS=Dirección del Barrio
+BARRIO_PHONE=+54 9 11 1234-5678
+BARRIO_EMAIL=info@mibarrio.com

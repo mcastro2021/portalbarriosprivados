@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Clasificado - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-plus-square me-2"></i>Nuevo Clasificado
+            </h2>
+            <p class="text-muted mb-0">Publica un anuncio para la comunidad</p>
+        </div>
+        <div>
+            <a href="{{ url_for('classifieds.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información del Clasificado</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Título del Anuncio *</label>
+                            <input type="text" class="form-control" name="title" required maxlength="100" placeholder="Ej: Vendo bicicleta nueva, Busco jardinero, Clases de piano">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Categoría *</label>
+                                <select class="form-select" name="category" required>
+                                    <option value="">Selecciona una categoría</option>
+                                    <option value="venta">Venta</option>
+                                    <option value="compra">Compra</option>
+                                    <option value="servicios">Servicios</option>
+                                    <option value="trabajo">Trabajo</option>
+                                    <option value="intercambio">Intercambio</option>
+                                    <option value="donacion">Donación</option>
+                                    <option value="perdidos">Perdidos y Encontrados</option>
+                                    <option value="varios">Varios</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Precio (opcional)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" name="price" min="0" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="form-text">Deja en blanco si no aplica o es a convenir</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descripción *</label>
+                            <textarea class="form-control" name="description" rows="5" required placeholder="Describe tu anuncio con el mayor detalle posible..."></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono de Contacto</label>
+                                <input type="tel" class="form-control" name="contact_phone" placeholder="+54 9 11 1234-5678">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email de Contacto</label>
+                                <input type="email" class="form-control" name="contact_email" placeholder="tu-email@ejemplo.com">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Ubicación (opcional)</label>
+                            <input type="text" class="form-control" name="location" placeholder="Ej: Manzana A, Casa 15">
+                            <div class="form-text">Ayuda a los interesados a ubicarte mejor</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Imágenes (opcional)</label>
+                            <input type="file" class="form-control" name="images" accept="image/*" multiple>
+                            <div class="form-text">Puedes subir hasta 5 imágenes. Formatos: JPG, PNG, GIF. Máximo 2MB cada una</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_urgent">
+                                    <label class="form-check-label">
+                                        <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                                        Anuncio Urgente
+                                    </label>
+                                    <div class="form-text">Se destacará en la lista</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="allow_messages" checked>
+                                    <label class="form-check-label">
+                                        <i class="bi bi-chat text-info me-1"></i>
+                                        Permitir Mensajes Internos
+                                    </label>
+                                    <div class="form-text">Los vecinos podrán contactarte por la plataforma</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Expiración (opcional)</label>
+                            <input type="date" class="form-control" name="expires_at">
+                            <div class="form-text">El anuncio se ocultará automáticamente después de esta fecha</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle me-2"></i>Términos y Condiciones</h6>
+                            <ul class="mb-0 small">
+                                <li>Los clasificados deben respetar las normas de convivencia del barrio</li>
+                                <li>No se permite contenido ofensivo o inapropiado</li>
+                                <li>La administración se reserva el derecho de eliminar anuncios inadecuados</li>
+                                <li>Los datos de contacto solo serán visibles para vecinos registrados</li>
+                                <li>Máximo 3 anuncios activos por usuario</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="accept_terms" required>
+                            <label class="form-check-label">
+                                Acepto los términos y condiciones *
+                            </label>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('classifieds.index') }}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-2"></i>Publicar Clasificado
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Preview de imágenes
+document.querySelector('input[name="images"]').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    
+    // Remover preview anterior si existe
+    const existingPreview = document.querySelector('.images-preview');
+    if (existingPreview) {
+        existingPreview.remove();
+    }
+    
+    if (files.length > 0) {
+        const preview = document.createElement('div');
+        preview.className = 'images-preview mt-2';
+        preview.innerHTML = '<div class="form-text mb-2">Vista previa de las imágenes:</div>';
+        
+        const imagesContainer = document.createElement('div');
+        imagesContainer.className = 'd-flex flex-wrap gap-2';
+        
+        files.slice(0, 5).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgDiv = document.createElement('div');
+                imgDiv.innerHTML = `<img src="${e.target.result}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">`;
+                imagesContainer.appendChild(imgDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        preview.appendChild(imagesContainer);
+        
+        if (files.length > 5) {
+            const warning = document.createElement('div');
+            warning.className = 'form-text text-warning mt-1';
+            warning.textContent = `Solo se procesarán las primeras 5 imágenes (seleccionaste ${files.length})`;
+            preview.appendChild(warning);
+        }
+        
+        document.querySelector('input[name="images"]').parentNode.appendChild(preview);
+    }
+});
+
+// Contador de caracteres para título
+document.querySelector('input[name="title"]').addEventListener('input', function() {
+    const maxLength = 100;
+    const currentLength = this.value.length;
+    const remaining = maxLength - currentLength;
+    
+    // Remover contador anterior si existe
+    const existingCounter = this.parentNode.querySelector('.char-counter');
+    if (existingCounter) {
+        existingCounter.remove();
+    }
+    
+    if (currentLength > maxLength * 0.8) {
+        const counter = document.createElement('div');
+        counter.className = 'char-counter form-text';
+        counter.textContent = `${remaining} caracteres restantes`;
+        counter.style.color = remaining < 10 ? '#dc3545' : '#6c757d';
+        this.parentNode.appendChild(counter);
+    }
+});
+
+// Establecer fecha mínima para expiración (hoy)
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelector('input[name="expires_at"]').min = today;
+});
+
+// Validación del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const title = this.querySelector('input[name="title"]').value.trim();
+    const category = this.querySelector('select[name="category"]').value;
+    const description = this.querySelector('textarea[name="description"]').value.trim();
+    const acceptTerms = this.querySelector('input[name="accept_terms"]').checked;
+    
+    if (!title) {
+        e.preventDefault();
+        alert('Por favor ingresa un título para el clasificado');
+        return false;
+    }
+    
+    if (!category) {
+        e.preventDefault();
+        alert('Por favor selecciona una categoría');
+        return false;
+    }
+    
+    if (!description) {
+        e.preventDefault();
+        alert('Por favor ingresa una descripción');
+        return false;
+    }
+    
+    if (description.length < 10) {
+        e.preventDefault();
+        alert('La descripción debe tener al menos 10 caracteres');
+        return false;
+    }
+    
+    if (!acceptTerms) {
+        e.preventDefault();
+        alert('Debes aceptar los términos y condiciones');
+        return false;
+    }
+    
+    // Validar que al menos un método de contacto esté disponible
+    const phone = this.querySelector('input[name="contact_phone"]').value.trim();
+    const email = this.querySelector('input[name="contact_email"]').value.trim();
+    const allowMessages = this.querySelector('input[name="allow_messages"]').checked;
+    
+    if (!phone && !email && !allowMessages) {
+        e.preventDefault();
+        alert('Debes proporcionar al menos un método de contacto (teléfono, email o mensajes internos)');
+        return false;
+    }
+});
+</script>
+{% endblock %}

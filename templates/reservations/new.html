@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Reserva - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-calendar-plus me-2"></i>Nueva Reserva
+            </h2>
+            <p class="text-muted mb-0">Reserva un espacio común para tu evento</p>
+        </div>
+        <div>
+            <a href="{{ url_for('reservations.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información de la Reserva</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Espacio *</label>
+                            <select class="form-select" name="space_type" required>
+                                <option value="">Selecciona un espacio</option>
+                                <option value="quincho">Quincho</option>
+                                <option value="sum">SUM (Salón de Usos Múltiples)</option>
+                                <option value="cancha_futbol">Cancha de Fútbol</option>
+                                <option value="cancha_tenis">Cancha de Tenis</option>
+                                <option value="piscina">Piscina</option>
+                                <option value="coworking">Espacio Coworking</option>
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha y Hora de Inicio *</label>
+                                <input type="datetime-local" class="form-control" name="start_time" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha y Hora de Fin *</label>
+                                <input type="datetime-local" class="form-control" name="end_time" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cantidad de Invitados</label>
+                                <input type="number" class="form-control" name="guests_count" min="1" max="100">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Evento</label>
+                                <input type="text" class="form-control" name="event_type" placeholder="Ej: Cumpleaños, Reunión, Asado">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descripción del Evento</label>
+                            <textarea class="form-control" name="description" rows="3" placeholder="Describe tu evento para ayudarnos a aprobar la reserva"></textarea>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle me-2"></i>Información Importante</h6>
+                            <ul class="mb-0">
+                                <li>Las reservas deben solicitarse con al menos 24 horas de anticipación</li>
+                                <li>Todas las reservas están sujetas a aprobación por administración</li>
+                                <li>Recibirás una notificación una vez que tu reserva sea procesada</li>
+                                <li>Las reservas pueden ser canceladas hasta 2 horas antes del evento</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('reservations.index') }}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-2"></i>Solicitar Reserva
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Establecer fecha y hora mínima (24 horas desde ahora)
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    now.setHours(now.getHours() + 24); // Mínimo 24 horas de anticipación
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    
+    const startTime = document.querySelector('input[name="start_time"]');
+    const endTime = document.querySelector('input[name="end_time"]');
+    
+    startTime.min = now.toISOString().slice(0, 16);
+    endTime.min = now.toISOString().slice(0, 16);
+});
+
+// Sincronizar hora de fin cuando cambia la de inicio
+document.querySelector('input[name="start_time"]').addEventListener('change', function() {
+    const startTime = new Date(this.value);
+    const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // +2 horas por defecto
+    
+    endTime.setMinutes(endTime.getMinutes() - endTime.getTimezoneOffset());
+    document.querySelector('input[name="end_time"]').value = endTime.toISOString().slice(0, 16);
+});
+
+// Validación del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const spaceType = this.querySelector('select[name="space_type"]').value;
+    const startTime = this.querySelector('input[name="start_time"]').value;
+    const endTime = this.querySelector('input[name="end_time"]').value;
+    
+    if (!spaceType) {
+        e.preventDefault();
+        alert('Por favor selecciona un tipo de espacio');
+        return false;
+    }
+    
+    if (!startTime || !endTime) {
+        e.preventDefault();
+        alert('Por favor completa las fechas y horas');
+        return false;
+    }
+    
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    
+    if (end <= start) {
+        e.preventDefault();
+        alert('La hora de fin debe ser posterior a la hora de inicio');
+        return false;
+    }
+    
+    const duration = (end - start) / (1000 * 60 * 60); // horas
+    if (duration > 12) {
+        const confirm = window.confirm('La reserva es por más de 12 horas. ¿Deseas continuar?');
+        if (!confirm) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+</script>
+{% endblock %}

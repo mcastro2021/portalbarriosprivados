@@ -14,18 +14,40 @@ bp = Blueprint('visits', __name__, url_prefix='/visits')
 @login_required
 def index():
     """Lista de visitas"""
+    from datetime import date, timedelta
     page = request.args.get('page', 1, type=int)
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
     
     # Si es administrador, mostrar todas las visitas
     if current_user.role == 'admin':
         visits = Visit.query.order_by(Visit.created_at.desc()).paginate(
             page=page, per_page=20, error_out=False)
+        
+        # Calcular estadísticas para admin
+        total_visits = Visit.query.count()
+        pending_visits = Visit.query.filter_by(status='pending').count()
+        today_visits = Visit.query.filter(Visit.created_at >= today, Visit.created_at < tomorrow).count()
+        active_visits = Visit.query.filter_by(status='active').count()
     else:
         # Si es residente, mostrar solo sus visitas
         visits = Visit.query.filter_by(resident_id=current_user.id).order_by(Visit.created_at.desc()).paginate(
             page=page, per_page=20, error_out=False)
+        
+        # Calcular estadísticas para residente
+        total_visits = Visit.query.filter_by(resident_id=current_user.id).count()
+        pending_visits = Visit.query.filter_by(resident_id=current_user.id, status='pending').count()
+        today_visits = Visit.query.filter_by(resident_id=current_user.id).filter(Visit.created_at >= today, Visit.created_at < tomorrow).count()
+        active_visits = Visit.query.filter_by(resident_id=current_user.id, status='active').count()
     
-    return render_template('visits/index.html', visits=visits)
+    stats = {
+        'total_visits': total_visits,
+        'pending_visits': pending_visits,
+        'today_visits': today_visits,
+        'active_visits': active_visits
+    }
+    
+    return render_template('visits/index.html', visits=visits, stats=stats)
 
 @bp.route('/new', methods=['GET', 'POST'])
 @login_required

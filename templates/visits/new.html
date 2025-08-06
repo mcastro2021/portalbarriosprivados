@@ -1,270 +1,99 @@
 {% extends "base.html" %}
 
-{% block title %}Nueva Visita - Portal Barrio Privado{% endblock %}
+{% block title %}Nueva Visita - Portal Barrios Privados{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-person-plus me-2"></i>Registrar Nueva Visita
+            </h2>
+            <p class="text-muted mb-0">Registra una visita para que seguridad esté informada</p>
+        </div>
+        <div>
+            <a href="{{ url_for('visits.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Page Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0">
-                        <i class="bi bi-person-plus me-2"></i>Registrar Nueva Visita
-                    </h1>
-                    <p class="text-muted">Completa los datos del visitante y el horario de la visita</p>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información de la Visita</h5>
                 </div>
-                <a href="{{ url_for('visits.index') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Volver
-                </a>
-            </div>
-
-            <!-- Visit Form -->
-            <div class="card shadow-lg">
-                <div class="card-body p-4">
-                    <form method="POST" action="{{ url_for('visits.new') }}" data-validate>
-                        {{ form.hidden_tag() }}
-                        
-                        <!-- Visitor Information -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h5 class="border-bottom pb-2 mb-3">
-                                    <i class="bi bi-person me-2"></i>Información del Visitante
-                                </h5>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="visitor_name" class="form-label">
-                                    <i class="bi bi-person me-2"></i>Nombre Completo *
-                                </label>
-                                {{ form.visitor_name(class="form-control form-control-lg", placeholder="Nombre y apellido del visitante") }}
-                                {% if form.visitor_name.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.visitor_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="visitor_email" class="form-label">
-                                    <i class="bi bi-envelope me-2"></i>Email *
-                                </label>
-                                {{ form.visitor_email(class="form-control form-control-lg", placeholder="email@ejemplo.com") }}
-                                {% if form.visitor_email.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.visitor_email.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="visitor_phone" class="form-label">
-                                    <i class="bi bi-telephone me-2"></i>Teléfono *
-                                </label>
-                                {{ form.visitor_phone(class="form-control form-control-lg", placeholder="+54 11 1234-5678") }}
-                                {% if form.visitor_phone.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.visitor_phone.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="visitor_document" class="form-label">
-                                    <i class="bi bi-card-text me-2"></i>DNI/Pasaporte
-                                </label>
-                                {{ form.visitor_document(class="form-control form-control-lg", placeholder="12345678") }}
-                                {% if form.visitor_document.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.visitor_document.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Visit Details -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h5 class="border-bottom pb-2 mb-3">
-                                    <i class="bi bi-calendar-event me-2"></i>Detalles de la Visita
-                                </h5>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="visit_date" class="form-label">
-                                    <i class="bi bi-calendar me-2"></i>Fecha de Visita *
-                                </label>
-                                {{ form.visit_date(class="form-control form-control-lg", type="date") }}
-                                {% if form.visit_date.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.visit_date.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="start_time" class="form-label">
-                                    <i class="bi bi-clock me-2"></i>Hora de Inicio *
-                                </label>
-                                {{ form.start_time(class="form-control form-control-lg", type="time") }}
-                                {% if form.start_time.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.start_time.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="end_time" class="form-label">
-                                    <i class="bi bi-clock-fill me-2"></i>Hora de Fin *
-                                </label>
-                                {{ form.end_time(class="form-control form-control-lg", type="time") }}
-                                {% if form.end_time.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.end_time.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="visit_purpose" class="form-label">
-                                    <i class="bi bi-chat-text me-2"></i>Motivo de la Visita *
-                                </label>
-                                {{ form.visit_purpose(class="form-select form-select-lg") }}
-                                {% if form.visit_purpose.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.visit_purpose.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="vehicle_plate" class="form-label">
-                                    <i class="bi bi-car-front me-2"></i>Patente del Vehículo
-                                </label>
-                                {{ form.vehicle_plate(class="form-control form-control-lg", placeholder="AB123CD") }}
-                                {% if form.vehicle_plate.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.vehicle_plate.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label for="notes" class="form-label">
-                                    <i class="bi bi-sticky me-2"></i>Notas Adicionales
-                                </label>
-                                {{ form.notes(class="form-control", rows="3", placeholder="Información adicional sobre la visita...") }}
-                                {% if form.notes.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.notes.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Resident Selection (for admins) -->
-                        {% if current_user.role == 'admin' %}
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h5 class="border-bottom pb-2 mb-3">
-                                    <i class="bi bi-house me-2"></i>Residente Anfitrión
-                                </h5>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="resident_id" class="form-label">
-                                    <i class="bi bi-person-check me-2"></i>Seleccionar Residente *
-                                </label>
-                                {{ form.resident_id(class="form-select form-select-lg") }}
-                                {% if form.resident_id.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.resident_id.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Notifications -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h5 class="border-bottom pb-2 mb-3">
-                                    <i class="bi bi-bell me-2"></i>Notificaciones
-                                </h5>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check">
-                                    {{ form.notify_resident(class="form-check-input") }}
-                                    <label class="form-check-label" for="notify_resident">
-                                        Notificar al residente por email
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check">
-                                    {{ form.notify_security(class="form-check-input") }}
-                                    <label class="form-check-label" for="notify_security">
-                                        Notificar a seguridad
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Form Actions -->
+                <div class="card-body">
+                    <form method="POST">
                         <div class="row">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <a href="{{ url_for('visits.index') }}" class="btn btn-outline-secondary btn-lg">
-                                        <i class="bi bi-x me-2"></i>Cancelar
-                                    </a>
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="bi bi-check-lg me-2"></i>Registrar Visita
-                                    </button>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre del Visitante *</label>
+                                <input type="text" class="form-control" name="visitor_name" required>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono del Visitante</label>
+                                <input type="tel" class="form-control" name="visitor_phone">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Documento del Visitante</label>
+                                <input type="text" class="form-control" name="visitor_document">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Patente del Vehículo</label>
+                                <input type="text" class="form-control" name="vehicle_plate">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha y Hora de Entrada *</label>
+                                <input type="datetime-local" class="form-control" name="entry_time" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Duración Estimada (horas)</label>
+                                <select class="form-select" name="estimated_duration">
+                                    <option value="1">1 hora</option>
+                                    <option value="2" selected>2 horas</option>
+                                    <option value="3">3 horas</option>
+                                    <option value="4">4 horas</option>
+                                    <option value="6">6 horas</option>
+                                    <option value="8">8 horas</option>
+                                    <option value="24">Todo el día</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Propósito de la Visita</label>
+                            <input type="text" class="form-control" name="visit_purpose" placeholder="Ej: Reunión familiar, trabajo, entrega">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notas Adicionales</label>
+                            <textarea class="form-control" name="notes" rows="3" placeholder="Información adicional que pueda ser útil para seguridad"></textarea>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="notify_security" checked>
+                            <label class="form-check-label">
+                                Notificar inmediatamente a seguridad
+                            </label>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('visits.index') }}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-2"></i>Registrar Visita
+                            </button>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <!-- Help Information -->
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="bi bi-info-circle me-2"></i>Información Importante
-                    </h6>
-                    <ul class="mb-0">
-                        <li>Las visitas deben registrarse con al menos 2 horas de anticipación</li>
-                        <li>El horario máximo de visita es de 8 horas</li>
-                        <li>Se generará automáticamente un código QR para el acceso</li>
-                        <li>El residente recibirá una notificación por email</li>
-                        <li>La visita debe ser aprobada por seguridad antes del acceso</li>
-                    </ul>
                 </div>
             </div>
         </div>
@@ -272,149 +101,42 @@
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<style>
-.form-control:focus, .form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.form-check-input:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.card {
-    border-radius: 15px;
-    border: none;
-}
-</style>
-{% endblock %}
-
 {% block extra_js %}
 <script>
-// Set minimum date to today
+// Establecer fecha y hora actual por defecto
 document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date().toISOString().split('T')[0];
-    const visitDate = document.getElementById('visit_date');
-    if (visitDate) {
-        visitDate.min = today;
-    }
-    
-    // Auto-focus on visitor name
-    document.getElementById('visitor_name').focus();
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.querySelector('input[name="entry_time"]').value = now.toISOString().slice(0, 16);
 });
 
-// Auto-calculate end time based on start time
-document.getElementById('start_time').addEventListener('change', function() {
-    const startTime = this.value;
-    const endTime = document.getElementById('end_time');
-    
-    if (startTime) {
-        const [hours, minutes] = startTime.split(':');
-        const startDate = new Date();
-        startDate.setHours(parseInt(hours), parseInt(minutes), 0);
-        
-        // Add 2 hours by default
-        const endDate = new Date(startDate.getTime() + (2 * 60 * 60 * 1000));
-        
-        // Format to HH:MM
-        const endHours = endDate.getHours().toString().padStart(2, '0');
-        const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
-        
-        endTime.value = `${endHours}:${endMinutes}`;
-    }
-});
-
-// Form validation
+// Validación del formulario
 document.querySelector('form').addEventListener('submit', function(e) {
-    const requiredFields = this.querySelectorAll('[required]');
-    let isValid = true;
+    const visitorName = this.querySelector('input[name="visitor_name"]').value.trim();
+    const entryTime = this.querySelector('input[name="entry_time"]').value;
     
-    // Reset previous errors
-    document.querySelectorAll('.is-invalid').forEach(el => {
-        el.classList.remove('is-invalid');
-    });
-    
-    // Validate required fields
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.classList.add('is-invalid');
-            isValid = false;
-        }
-    });
-    
-    // Validate email
-    const email = document.getElementById('visitor_email');
-    if (email.value && !email.value.includes('@')) {
-        email.classList.add('is-invalid');
-        isValid = false;
-    }
-    
-    // Validate date (must be today or future)
-    const visitDate = document.getElementById('visit_date');
-    if (visitDate.value) {
-        const selectedDate = new Date(visitDate.value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (selectedDate < today) {
-            visitDate.classList.add('is-invalid');
-            isValid = false;
-        }
-    }
-    
-    // Validate time range
-    const startTime = document.getElementById('start_time');
-    const endTime = document.getElementById('end_time');
-    if (startTime.value && endTime.value) {
-        if (startTime.value >= endTime.value) {
-            endTime.classList.add('is-invalid');
-            isValid = false;
-        }
-    }
-    
-    if (!isValid) {
+    if (!visitorName) {
         e.preventDefault();
-        alert('Por favor, corrige los errores en el formulario.');
+        alert('Por favor ingresa el nombre del visitante');
+        return false;
     }
-});
-
-// Auto-save form data
-document.querySelectorAll('input, select, textarea').forEach(element => {
-    element.addEventListener('change', function() {
-        const formData = new FormData(document.querySelector('form'));
-        const data = {};
-        for (let [key, value] of formData.entries()) {
-            data[key] = value;
+    
+    if (!entryTime) {
+        e.preventDefault();
+        alert('Por favor selecciona la fecha y hora de entrada');
+        return false;
+    }
+    
+    const selectedTime = new Date(entryTime);
+    const now = new Date();
+    
+    if (selectedTime < now) {
+        const confirm = window.confirm('La fecha seleccionada es en el pasado. ¿Deseas continuar?');
+        if (!confirm) {
+            e.preventDefault();
+            return false;
         }
-        localStorage.setItem('visit_form_data', JSON.stringify(data));
-    });
-});
-
-// Load saved form data
-window.addEventListener('load', function() {
-    const saved = localStorage.getItem('visit_form_data');
-    if (saved) {
-        const data = JSON.parse(saved);
-        Object.keys(data).forEach(key => {
-            const input = document.querySelector(`[name="${key}"]`);
-            if (input && !input.value) {
-                input.value = data[key];
-            }
-        });
     }
 });
 </script>
-{% endblock %} 
+{% endblock %}

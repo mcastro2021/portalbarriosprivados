@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Clasificados - Portal Barrios Privados{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-tags me-2"></i>Clasificados del Barrio
+            </h2>
+            <p class="text-muted mb-0">Compra, vende o intercambia con tus vecinos</p>
+        </div>
+        <div>
+            <a href="{{ url_for('classifieds.new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Publicar Anuncio
+            </a>
+            <a href="{{ url_for('classifieds.my_classifieds') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-person me-2"></i>Mis Anuncios
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Categoría</label>
+                    <select name="category" class="form-select">
+                        <option value="">Todas las categorías</option>
+                        <option value="compra_venta" {% if request.args.get('category') == 'compra_venta' %}selected{% endif %}>Compra/Venta</option>
+                        <option value="servicios" {% if request.args.get('category') == 'servicios' %}selected{% endif %}>Servicios</option>
+                        <option value="eventos" {% if request.args.get('category') == 'eventos' %}selected{% endif %}>Eventos</option>
+                        <option value="alquiler" {% if request.args.get('category') == 'alquiler' %}selected{% endif %}>Alquiler</option>
+                        <option value="empleo" {% if request.args.get('category') == 'empleo' %}selected{% endif %}>Empleo</option>
+                        <option value="mascotas" {% if request.args.get('category') == 'mascotas' %}selected{% endif %}>Mascotas</option>
+                        <option value="otros" {% if request.args.get('category') == 'otros' %}selected{% endif %}>Otros</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Precio</label>
+                    <select name="price_range" class="form-select">
+                        <option value="">Cualquier precio</option>
+                        <option value="0-1000" {% if request.args.get('price_range') == '0-1000' %}selected{% endif %}>$0 - $1,000</option>
+                        <option value="1000-5000" {% if request.args.get('price_range') == '1000-5000' %}selected{% endif %}>$1,000 - $5,000</option>
+                        <option value="5000-10000" {% if request.args.get('price_range') == '5000-10000' %}selected{% endif %}>$5,000 - $10,000</option>
+                        <option value="10000+" {% if request.args.get('price_range') == '10000+' %}selected{% endif %}>Más de $10,000</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Buscar por título o descripción..." 
+                           value="{{ request.args.get('search', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <a href="{{ url_for('classifieds.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Clasificados -->
+    <div class="row">
+        <!-- Estado vacío -->
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-tags display-1 text-muted mb-3"></i>
+                <h4 class="text-muted">No hay clasificados disponibles</h4>
+                <p class="text-muted mb-4">Sé el primero en publicar un anuncio en el barrio</p>
+                <a href="{{ url_for('classifieds.new') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-2"></i>Publicar Primer Anuncio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit del formulario de filtros
+document.querySelectorAll('select[name="category"], select[name="price_range"]').forEach(function(select) {
+    select.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+</script>
+{% endblock %}

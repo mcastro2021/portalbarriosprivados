@@ -126,6 +126,28 @@ def create_app(config_name='default'):
         # Obtener visitas pendientes
         pending_visits_list = Visit.query.filter_by(resident_id=current_user.id, status='pending').order_by(Visit.entry_time).limit(3).all()
         
+        # Crear objeto stats para el dashboard
+        from datetime import date, timedelta
+        today = date.today()
+        tomorrow = today + timedelta(days=1)
+        
+        if current_user.role == 'admin':
+            today_visits = Visit.query.filter(Visit.created_at >= today, Visit.created_at < tomorrow).count()
+            total_residents = User.query.filter_by(role='resident').count()
+        else:
+            today_visits = Visit.query.filter_by(resident_id=current_user.id).filter(Visit.created_at >= today, Visit.created_at < tomorrow).count()
+            total_residents = 0
+        
+        stats = {
+            'total_residents': total_residents,
+            'active_reservations': active_reservations,
+            'pending_maintenance': pending_maintenance,
+            'today_visits': today_visits
+        }
+        
+        # Crear actividades recientes (simplificado para evitar errores)
+        recent_activities = []
+        
         return render_template('dashboard.html',
                              pending_visits=pending_visits,
                              active_reservations=active_reservations,
@@ -134,7 +156,10 @@ def create_app(config_name='default'):
                              recent_news=recent_news,
                              unread_notifications=unread_notifications,
                              upcoming_reservations=upcoming_reservations,
-                             pending_visits_list=pending_visits_list)
+                             pending_visits_list=pending_visits_list,
+                             current_datetime=datetime.utcnow(),
+                             stats=stats,
+                             recent_activities=recent_activities)
     
     @app.route('/profile', methods=['GET', 'POST'])
     @login_required

@@ -1,10 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from models import db, Maintenance, User
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
-from config import config
 
 bp = Blueprint('maintenance', __name__, url_prefix='/maintenance')
 
@@ -34,7 +33,8 @@ def index():
         page=page, per_page=20, error_out=False)
     
     # Obtener estados para el filtro
-    statuses = config['MAINTENANCE_STATUSES']
+    from flask import current_app
+    statuses = current_app.config['MAINTENANCE_STATUSES']
     
     return render_template('maintenance/index.html', maintenance=maintenance, statuses=statuses, current_status=status)
 
@@ -120,7 +120,7 @@ def new():
             return render_template('maintenance/new.html')
     
     # Obtener prioridades
-    priorities = config['MAINTENANCE_PRIORITIES']
+    priorities = current_app.config['MAINTENANCE_PRIORITIES']
     return render_template('maintenance/new.html', priorities=priorities)
 
 @bp.route('/<int:maintenance_id>')
@@ -221,7 +221,7 @@ def edit(maintenance_id):
             flash(f'Error al actualizar el reporte: {str(e)}', 'error')
     
     # Obtener prioridades
-    priorities = config['MAINTENANCE_PRIORITIES']
+    priorities = current_app.config['MAINTENANCE_PRIORITIES']
     return render_template('maintenance/edit.html', maintenance=maintenance, priorities=priorities)
 
 @bp.route('/<int:maintenance_id>/delete', methods=['POST'])
@@ -346,7 +346,7 @@ def api_stats():
     
     # Estadísticas por estado
     stats = {}
-    for status_code, status_name in config['MAINTENANCE_STATUSES']:
+    for status_code, status_name in current_app.config['MAINTENANCE_STATUSES']:
         count = query.filter_by(status=status_code).count()
         stats[status_code] = {
             'name': status_name,
@@ -355,7 +355,7 @@ def api_stats():
     
     # Estadísticas por prioridad
     priority_stats = {}
-    for priority_code, priority_name in config['MAINTENANCE_PRIORITIES']:
+    for priority_code, priority_name in current_app.config['MAINTENANCE_PRIORITIES']:
         count = query.filter_by(priority=priority_code).count()
         priority_stats[priority_code] = {
             'name': priority_name,
