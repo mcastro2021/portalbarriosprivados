@@ -84,7 +84,9 @@ def register():
             
         except Exception as e:
             db.session.rollback()
-            flash('Error al crear la cuenta. Inténtalo nuevamente.', 'error')
+            # Log del error para debugging
+            print(f"Error en registro: {str(e)}")
+            flash(f'Error al crear la cuenta: {str(e)}', 'error')
     
     return render_template('auth/register.html', form=form)
 

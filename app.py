@@ -528,6 +528,30 @@ def create_sample_data():
 # Crear instancia de la aplicación para gunicorn
 app = create_app()
 
+# Inicializar base de datos automáticamente en producción
+with app.app_context():
+    try:
+        db.create_all()
+        
+        # Crear usuario admin si no existe (para primera ejecución)
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin = User(
+                username='admin',
+                email='admin@barrioprivado.com',
+                name='Administrador del Sistema',
+                role='admin',
+                is_active=True,
+                email_verified=True
+            )
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
+            print("✅ Usuario administrador creado automáticamente")
+    except Exception as e:
+        print(f"⚠️ Error inicializando BD: {e}")
+        pass  # No fallar si ya existe
+
 if __name__ == '__main__':
     socketio = SocketIO(app)
     socketio.run(app, debug=True, host='0.0.0.0', port=5000) 

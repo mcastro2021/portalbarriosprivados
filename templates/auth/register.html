@@ -16,39 +16,22 @@
                     </div>
 
                     <!-- Registration Form -->
-                    <form method="POST" action="{{ url_for('auth.register') }}" data-validate>
+                    <form method="POST" action="{{ url_for('auth.register') }}">
                         {{ form.hidden_tag() }}
                         
-                        <div class="row">
-                            <!-- First Name -->
-                            <div class="col-md-6 mb-3">
-                                <label for="first_name" class="form-label">
-                                    <i class="bi bi-person me-2"></i>Nombre
-                                </label>
-                                {{ form.first_name(class="form-control form-control-lg", placeholder="Tu nombre") }}
-                                {% if form.first_name.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.first_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Last Name -->
-                            <div class="col-md-6 mb-3">
-                                <label for="last_name" class="form-label">
-                                    <i class="bi bi-person me-2"></i>Apellido
-                                </label>
-                                {{ form.last_name(class="form-control form-control-lg", placeholder="Tu apellido") }}
-                                {% if form.last_name.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.last_name.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="bi bi-person-circle me-2"></i>Usuario
+                            </label>
+                            {{ form.username(class="form-control form-control-lg", placeholder="Nombre de usuario") }}
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.username.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
 
                         <!-- Email -->
@@ -60,72 +43,25 @@
                             {% if form.email.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.email.errors %}
-                                        {{ error }}
+                                        <div>{{ error }}</div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
 
-                        <!-- Phone -->
+                        <!-- Full Name -->
                         <div class="mb-3">
-                            <label for="phone" class="form-label">
-                                <i class="bi bi-telephone me-2"></i>Teléfono
+                            <label for="name" class="form-label">
+                                <i class="bi bi-person me-2"></i>Nombre completo
                             </label>
-                            {{ form.phone(class="form-control form-control-lg", placeholder="+54 11 1234-5678") }}
-                            {% if form.phone.errors %}
+                            {{ form.name(class="form-control form-control-lg", placeholder="Tu nombre completo") }}
+                            {% if form.name.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.phone.errors %}
-                                        {{ error }}
+                                    {% for error in form.name.errors %}
+                                        <div>{{ error }}</div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                        </div>
-
-                        <!-- Address -->
-                        <div class="mb-3">
-                            <label for="address" class="form-label">
-                                <i class="bi bi-geo-alt me-2"></i>Dirección
-                            </label>
-                            {{ form.address(class="form-control form-control-lg", placeholder="Calle y número") }}
-                            {% if form.address.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.address.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="row">
-                            <!-- Block -->
-                            <div class="col-md-6 mb-3">
-                                <label for="block" class="form-label">
-                                    <i class="bi bi-grid me-2"></i>Manzana
-                                </label>
-                                {{ form.block(class="form-control form-control-lg", placeholder="A, B, C...") }}
-                                {% if form.block.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.block.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Lot -->
-                            <div class="col-md-6 mb-3">
-                                <label for="lot" class="form-label">
-                                    <i class="bi bi-house me-2"></i>Lote
-                                </label>
-                                {{ form.lot(class="form-control form-control-lg", placeholder="1, 2, 3...") }}
-                                {% if form.lot.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.lot.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
                         </div>
 
                         <!-- Password -->
@@ -133,22 +69,11 @@
                             <label for="password" class="form-label">
                                 <i class="bi bi-lock me-2"></i>Contraseña
                             </label>
-                            <div class="input-group">
-                                {{ form.password(class="form-control form-control-lg", placeholder="Mínimo 8 caracteres", id="password") }}
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                            <div class="form-text">
-                                <small>
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    Mínimo 8 caracteres, incluir mayúsculas, minúsculas y números
-                                </small>
-                            </div>
+                            {{ form.password(class="form-control form-control-lg", placeholder="Mínimo 6 caracteres") }}
                             {% if form.password.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.password.errors %}
-                                        {{ error }}
+                                        <div>{{ error }}</div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
@@ -156,236 +81,110 @@
 
                         <!-- Confirm Password -->
                         <div class="mb-3">
-                            <label for="confirm_password" class="form-label">
-                                <i class="bi bi-lock-fill me-2"></i>Confirmar Contraseña
+                            <label for="password2" class="form-label">
+                                <i class="bi bi-lock-fill me-2"></i>Confirmar contraseña
                             </label>
-                            <div class="input-group">
-                                {{ form.confirm_password(class="form-control form-control-lg", placeholder="Repite tu contraseña", id="confirm_password") }}
-                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                            {% if form.confirm_password.errors %}
+                            {{ form.password2(class="form-control form-control-lg", placeholder="Repite tu contraseña") }}
+                            {% if form.password2.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.confirm_password.errors %}
-                                        {{ error }}
+                                    {% for error in form.password2.errors %}
+                                        <div>{{ error }}</div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
 
-                        <!-- Terms and Conditions -->
-                        <div class="mb-3 form-check">
-                            {{ form.accept_terms(class="form-check-input") }}
-                            <label class="form-check-label" for="accept_terms">
-                                Acepto los <a href="#" class="text-decoration-none">términos y condiciones</a> y la 
-                                <a href="#" class="text-decoration-none">política de privacidad</a>
+                        <!-- Address (Optional) -->
+                        <div class="mb-3">
+                            <label for="address" class="form-label">
+                                <i class="bi bi-house me-2"></i>Dirección (opcional)
                             </label>
-                            {% if form.accept_terms.errors %}
+                            {{ form.address(class="form-control form-control-lg", placeholder="Manzana, Casa, etc.") }}
+                            {% if form.address.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.accept_terms.errors %}
-                                        {{ error }}
+                                    {% for error in form.address.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone (Optional) -->
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="bi bi-telephone me-2"></i>Teléfono (opcional)
+                            </label>
+                            {{ form.phone(class="form-control form-control-lg", placeholder="+54 9 11 1234-5678") }}
+                            {% if form.phone.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.phone.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Emergency Contact (Optional) -->
+                        <div class="mb-4">
+                            <label for="emergency_contact" class="form-label">
+                                <i class="bi bi-person-exclamation me-2"></i>Contacto de emergencia (opcional)
+                            </label>
+                            {{ form.emergency_contact(class="form-control form-control-lg", placeholder="Nombre y teléfono") }}
+                            {% if form.emergency_contact.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.emergency_contact.errors %}
+                                        <div>{{ error }}</div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="d-grid mb-3">
+                        <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="bi bi-person-plus me-2"></i>Crear Cuenta
                             </button>
                         </div>
                     </form>
 
-                    <!-- Divider -->
-                    <div class="text-center my-4">
-                        <span class="bg-white px-3 text-muted">o</span>
-                        <hr class="mt-n3">
-                    </div>
-
-                    <!-- Login Link -->
-                    <div class="text-center">
-                        <p class="mb-0">
+                    <!-- Links -->
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-0">
                             ¿Ya tienes cuenta? 
-                            <a href="{{ url_for('auth.login') }}" class="text-decoration-none fw-bold">
+                            <a href="{{ url_for('auth.login') }}" class="text-decoration-none">
                                 Inicia sesión aquí
                             </a>
                         </p>
                     </div>
                 </div>
             </div>
-
-            <!-- Additional Info -->
-            <div class="text-center mt-4">
-                <small class="text-muted">
-                    <i class="bi bi-shield-check me-1"></i>
-                    Tu información está protegida y encriptada
-                </small>
-            </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_css %}
 <style>
-.card {
-    border-radius: 15px;
-}
-
 .form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
-    transition: all 0.3s ease;
+    transition: transform 0.2s;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.form-check-input:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+.card {
+    border-radius: 1rem;
 }
 
-.password-strength {
-    height: 4px;
-    border-radius: 2px;
-    margin-top: 5px;
-    transition: all 0.3s ease;
+.form-control-lg {
+    border-radius: 0.5rem;
 }
-
-.password-strength.weak { background-color: #dc3545; }
-.password-strength.medium { background-color: #ffc107; }
-.password-strength.strong { background-color: #28a745; }
 </style>
 {% endblock %}
-
-{% block extra_js %}
-<script>
-// Toggle password visibility
-function togglePasswordVisibility(inputId, buttonId) {
-    const input = document.getElementById(inputId);
-    const button = document.getElementById(buttonId);
-    const icon = button.querySelector('i');
-    
-    button.addEventListener('click', function() {
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('bi-eye');
-            icon.classList.add('bi-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('bi-eye-slash');
-            icon.classList.add('bi-eye');
-        }
-    });
-}
-
-togglePasswordVisibility('password', 'togglePassword');
-togglePasswordVisibility('confirm_password', 'toggleConfirmPassword');
-
-// Password strength indicator
-document.getElementById('password').addEventListener('input', function() {
-    const password = this.value;
-    let strength = 0;
-    
-    if (password.length >= 8) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^A-Za-z0-9]/.test(password)) strength++;
-    
-    // Remove existing strength indicator
-    const existingIndicator = document.querySelector('.password-strength');
-    if (existingIndicator) {
-        existingIndicator.remove();
-    }
-    
-    if (password.length > 0) {
-        const indicator = document.createElement('div');
-        indicator.className = 'password-strength';
-        
-        if (strength < 3) {
-            indicator.classList.add('weak');
-        } else if (strength < 4) {
-            indicator.classList.add('medium');
-        } else {
-            indicator.classList.add('strong');
-        }
-        
-        this.parentNode.appendChild(indicator);
-    }
-});
-
-// Password confirmation validation
-document.getElementById('confirm_password').addEventListener('input', function() {
-    const password = document.getElementById('password').value;
-    const confirmPassword = this.value;
-    
-    if (confirmPassword && password !== confirmPassword) {
-        this.setCustomValidity('Las contraseñas no coinciden');
-        this.classList.add('is-invalid');
-    } else {
-        this.setCustomValidity('');
-        this.classList.remove('is-invalid');
-    }
-});
-
-// Form validation
-document.querySelector('form').addEventListener('submit', function(e) {
-    const requiredFields = this.querySelectorAll('[required]');
-    let isValid = true;
-    
-    // Reset previous errors
-    document.querySelectorAll('.is-invalid').forEach(el => {
-        el.classList.remove('is-invalid');
-    });
-    
-    // Validate required fields
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.classList.add('is-invalid');
-            isValid = false;
-        }
-    });
-    
-    // Validate email
-    const email = document.getElementById('email');
-    if (email.value && !email.value.includes('@')) {
-        email.classList.add('is-invalid');
-        isValid = false;
-    }
-    
-    // Validate password length
-    const password = document.getElementById('password');
-    if (password.value && password.value.length < 8) {
-        password.classList.add('is-invalid');
-        isValid = false;
-    }
-    
-    // Validate password confirmation
-    const confirmPassword = document.getElementById('confirm_password');
-    if (confirmPassword.value && password.value !== confirmPassword.value) {
-        confirmPassword.classList.add('is-invalid');
-        isValid = false;
-    }
-    
-    if (!isValid) {
-        e.preventDefault();
-    }
-});
-
-// Auto-focus on first name field
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('first_name').focus();
-});
-</script>
-{% endblock %} 
