@@ -9,6 +9,14 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///barrio_cerrado.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
+    # Configuraciones de optimización de base de datos
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 3600,
+        'pool_timeout': 20,
+        'max_overflow': 0
+    }
+    
     # Configuración de archivos
     UPLOAD_FOLDER = 'uploads'
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
@@ -173,6 +181,15 @@ class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_ECHO = False
     SESSION_COOKIE_SECURE = True
+    
+    # Configuraciones específicas para producción
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 3600,
+        'pool_timeout': 20,
+        'max_overflow': 20,
+        'pool_size': 5
+    }
     
     # Configuración de base de datos para producción
     @classmethod

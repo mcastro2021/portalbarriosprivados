@@ -42,7 +42,16 @@ def create_app(config_name='default'):
     login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
     login_manager.login_message_category = 'info'
     
-    socketio = SocketIO(app, cors_allowed_origins="*")
+    # Configurar SocketIO para producción
+    socketio_config = {
+        'async_mode': 'eventlet',
+        'cors_allowed_origins': ["https://portalbarriosprivados.onrender.com", "https://*.onrender.com"] if not app.debug else "*",
+        'ping_timeout': 60,
+        'ping_interval': 25,
+        'engineio_logger': False,
+        'logger': False
+    }
+    socketio = SocketIO(app, **socketio_config)
     mail = Mail(app)
     
     # Configurar logging
