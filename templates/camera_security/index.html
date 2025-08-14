@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Cámaras - Detección IA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="bi bi-camera-video-fill text-primary me-2"></i>
+                Sistema de Detección IA - Cámaras
+            </h1>
+            <p class="text-muted">Monitoreo en tiempo real con inteligencia artificial</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="initializeCameras()">
+                <i class="bi bi-play-circle me-2"></i>Inicializar Sistema
+            </button>
+            <button class="btn btn-warning" onclick="startDemo()">
+                <i class="bi bi-camera me-2"></i>Demo Detección
+            </button>
+            <a href="{{ url_for('camera_security.settings') }}" class="btn btn-outline-primary">
+                <i class="bi bi-gear me-2"></i>Configuración
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Cámaras Activas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_cameras }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-camera-video-fill fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Incidentes Detectados (24h)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_incidents }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-shield-exclamation fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Reportes IA (7d)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.ai_reports }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-robot fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Incidentes Críticos (24h)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.critical_incidents }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-exclamation-triangle-fill fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Camera Status -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-camera-video me-2"></i>Estado de Cámaras
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshCameraStatus()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="cameraGrid">
+                        {% for camera in camera_status.cameras %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card border-{% if camera.status == 'active' %}success{% else %}secondary{% endif %} h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ camera.id }}</h6>
+                                        <span class="badge bg-{% if camera.status == 'active' %}success{% else %}secondary{% endif %}">
+                                            {{ camera.status }}
+                                        </span>
+                                    </div>
+                                    <p class="card-text small text-muted mb-2">{{ camera.location }}</p>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <small class="text-muted">Incidentes</small>
+                                            <div class="fw-bold">{{ camera.incident_count }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Última Detección</small>
+                                            <div class="fw-bold small">
+                                                {% if camera.last_detection %}
+                                                    N/A
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-primary w-100" 
+                                                onclick="analyzeCamera('{{ camera.id }}')">
+                                            <i class="bi bi-search me-1"></i>Analizar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-12">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-camera-video fs-1 mb-3"></i>
+                                <p>No hay cámaras registradas. Haz clic en "Inicializar Sistema" para comenzar.</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Incidents -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Incidentes Recientes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="recentIncidents">
+                        {% for incident in recent_incidents.recent_incidents[:5] %}
+                        <div class="d-flex align-items-start mb-3 p-2 border-start border-{% if incident.severity == 'critical' %}danger{% elif incident.severity == 'high' %}warning{% else %}info{% endif %} border-3">
+                            <div class="flex-shrink-0 me-3">
+                                <i class="bi bi-{% if incident.severity == 'critical' %}exclamation-triangle-fill text-danger{% elif incident.severity == 'high' %}exclamation-circle text-warning{% else %}info-circle text-info{% endif %} fs-4"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 small">{{ incident.title[:50] }}...</h6>
+                                <p class="mb-1 small text-muted">{{ incident.location }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">{{ incident.created_at[:16] }}</small>
+                                    <span class="badge bg-{% if incident.confidence > 0.8 %}success{% elif incident.confidence > 0.6 %}warning{% else %}secondary{% endif %}">
+                                        {{ "%.0f"|format(incident.confidence * 100) }}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-shield-check fs-1 mb-3"></i>
+                            <p>No hay incidentes recientes</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Detection Panel -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-robot me-2"></i>Panel de Detección en Tiempo Real
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Seleccionar Cámara:</label>
+                                <select class="form-select" id="demoCamera">
+                                    <option value="CAM_001">CAM_001 - Entrada Principal</option>
+                                    <option value="CAM_002">CAM_002 - Portón Vehículos</option>
+                                    <option value="CAM_003">CAM_003 - Plaza Central</option>
+                                    <option value="CAM_004">CAM_004 - Club House</option>
+                                    <option value="CAM_005">CAM_005 - Sector Infantil</option>
+                                    <option value="CAM_006">CAM_006 - Estacionamiento</option>
+                                    <option value="CAM_007">CAM_007 - Perímetro Norte</option>
+                                    <option value="CAM_008">CAM_008 - Perímetro Sur</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-success w-100" onclick="startLiveDetection()">
+                                <i class="bi bi-play-circle me-2"></i>Iniciar Detección en Vivo
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-info-circle me-2"></i>Capacidades de IA</h6>
+                                <ul class="mb-0 small">
+                                    <li>Detección de personas y multitudes</li>
+                                    <li>Identificación de vehículos y velocidad</li>
+                                    <li>Detección de intrusión fuera de horario</li>
+                                    <li>Identificación de comportamiento sospechoso</li>
+                                    <li>Detección de incendios</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Results Modal -->
+<div class="modal fade" id="analysisModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-search me-2"></i>Resultados de Análisis
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="analysisResults">
+                <!-- Results will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize cameras
+async function initializeCameras() {
+    try {
+        const response = await fetch('/admin/camera-security/cameras/initialize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ ' + data.message);
+            location.reload();
+        } else {
+            alert('❌ Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Start demo detection
+async function startDemo() {
+    const cameraId = document.getElementById('demoCamera').value;
+    
+    try {
+        const response = await fetch('/admin/camera-security/detection/start-demo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ camera_id: cameraId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('🎬 ' + data.message);
+        } else {
+            alert('❌ Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Analyze specific camera
+async function analyzeCamera(cameraId) {
+    try {
+        const response = await fetch(`/admin/camera-security/camera/${cameraId}/analyze`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAnalysisResults(data.data);
+        } else {
+            alert('❌ Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Show analysis results in modal
+function showAnalysisResults(results) {
+    const modal = document.getElementById('analysisModal');
+    const resultsDiv = document.getElementById('analysisResults');
+    
+    let html = `
+        <div class="mb-3">
+            <h6>Cámara: ${results.camera_id}</h6>
+            <p class="text-muted">Timestamp: ${results.timestamp}</p>
+        </div>
+    `;
+    
+    if (results.detections && results.detections.length > 0) {
+        html += '<h6>Detecciones:</h6><ul>';
+        results.detections.forEach(detection => {
+            html += `<li><strong>${detection.type}:</strong> ${detection.count || detection.speed || 'N/A'} (Confianza: ${(detection.confidence * 100).toFixed(1)}%)</li>`;
+        });
+        html += '</ul>';
+    }
+    
+    if (results.incidents_detected && results.incidents_detected.length > 0) {
+        html += '<h6 class="text-danger">🚨 Incidentes Detectados:</h6><ul>';
+        results.incidents_detected.forEach(incident => {
+            html += `<li><strong>${incident.type}:</strong> ${incident.description} (Severidad: ${incident.severity})</li>`;
+        });
+        html += '</ul>';
+    } else {
+        html += '<div class="alert alert-success">✅ No se detectaron incidentes</div>';
+    }
+    
+    resultsDiv.innerHTML = html;
+    
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+}
+
+// Refresh camera status
+async function refreshCameraStatus() {
+    try {
+        const response = await fetch('/admin/camera-security/cameras/status');
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error refreshing status:', error);
+    }
+}
+
+// Start live detection
+function startLiveDetection() {
+    const cameraId = document.getElementById('demoCamera').value;
+    alert(`🎬 Iniciando detección en vivo para cámara ${cameraId}...\n\nLos incidentes detectados aparecerán automáticamente en la sección de incidentes recientes.`);
+}
+
+// Auto-refresh every 30 seconds
+setInterval(refreshCameraStatus, 30000);
+</script>
+{% endblock %}

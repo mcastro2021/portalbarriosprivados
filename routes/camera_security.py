@@ -4,7 +4,7 @@ Rutas para el sistema de detección de incidentes en cámaras
 
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from models import db, SecurityReport, User, Notification
+from models import db, SecurityReport, User
 from camera_incident_detection import camera_detector, initialize_camera_system, get_live_camera_status, get_recent_incidents, start_demo_detection
 from datetime import datetime, timedelta
 import json
@@ -31,13 +31,13 @@ def index():
     ).count()
     
     ai_reports = SecurityReport.query.filter(
-        SecurityReport.ai_detected == True,
+        SecurityReport.title.like('%ALERTA AUTOMÁTICA%'),
         SecurityReport.created_at >= datetime.now() - timedelta(days=7)
     ).count()
     
     critical_incidents = SecurityReport.query.filter(
         SecurityReport.severity == 'critical',
-        SecurityReport.created_at >= datetime.now() - timedelta(days=24)
+        SecurityReport.created_at >= datetime.now() - timedelta(hours=24)
     ).count()
     
     stats = {
@@ -148,31 +148,6 @@ def analyze_camera_frame():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@bp.route('/incidents/acknowledge/<int:incident_id>', methods=['POST'])
-@login_required
-def acknowledge_incident():
-    """Confirmar/reconocer incidente"""
-    if not current_user.can_access_admin():
-        return jsonify({'error': 'Permisos insuficientes'}), 403
-    
-    try:
-        incident = SecurityReport.query.get_or_404(incident_id)
-        
-        incident.status = 'acknowledged'
-        incident.assigned_to = current_user.username
-        incident.assigned_at = datetime.now()
-        incident.admin_notes = f"Incidente reconocido por {current_user.name} el {datetime.now().strftime('%d/%m/%Y %H:%M')}"
-        
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Incidente reconocido correctamente'
-        })
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
 @bp.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
@@ -209,22 +184,3 @@ def settings():
     }
     
     return render_template('camera_security/settings.html', settings=current_settings)
-
-@bp.route('/reports')
-@login_required
-def ai_reports():
-    """Reportes generados por IA"""
-    if not current_user.can_access_admin():
-        flash('No tienes permisos para acceder a esta página', 'error')
-        return redirect(url_for('dashboard'))
-    
-    page = request.args.get('page', 1, type=int)
-    
-    # Obtener reportes de IA
-    reports = SecurityReport.query.filter(
-        SecurityReport.ai_detected == True
-    ).order_by(SecurityReport.created_at.desc()).paginate(
-        page=page, per_page=20, error_out=False
-    )
-    
-    return render_template('camera_security/ai_reports.html', reports=reports)
