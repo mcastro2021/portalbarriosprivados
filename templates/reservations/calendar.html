@@ -177,7 +177,7 @@
 
 <script>
 // Calendar data from server
-const events = {{ events | tojsonfilter | safe }};
+const events = {{ events | tojson | safe }};
 let currentDate = new Date();
 
 function renderCalendar() {

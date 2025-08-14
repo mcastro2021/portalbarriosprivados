@@ -204,4 +204,39 @@ def api_recent():
             'author_name': news_item.author.name
         })
     
-    return jsonify(news_list) 
+    return jsonify(news_list)
+
+@bp.route('/<int:news_id>/publish', methods=['POST'])
+@login_required
+def publish(news_id):
+    """Publicar una noticia"""
+    if not current_user.can_access_admin():
+        return jsonify({'success': False, 'message': 'No tienes permisos'}), 403
+    
+    news_item = News.query.get_or_404(news_id)
+    news_item.is_published = True
+    news_item.published_at = datetime.utcnow()
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Noticia publicada correctamente'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@bp.route('/<int:news_id>/unpublish', methods=['POST'])
+@login_required
+def unpublish(news_id):
+    """Despublicar una noticia"""
+    if not current_user.can_access_admin():
+        return jsonify({'success': False, 'message': 'No tienes permisos'}), 403
+    
+    news_item = News.query.get_or_404(news_id)
+    news_item.is_published = False
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Noticia despublicada correctamente'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500 
