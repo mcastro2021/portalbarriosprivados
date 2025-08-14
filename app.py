@@ -658,6 +658,29 @@ with app.app_context():
             db.session.add(admin)
             db.session.commit()
             print("✅ Usuario administrador creado automáticamente")
+        
+        # Crear usuario mcastro2025 si no existe (usuario permanente)
+        mcastro = User.query.filter_by(username='mcastro2025').first()
+        if not mcastro:
+            mcastro = User(
+                username='mcastro2025',
+                email='mcastro2025@tejas4.com',
+                name='Manuel Castro',
+                role='admin',
+                is_active=True,
+                email_verified=True,
+                address='Tejas 4 - Casa Principal'
+            )
+            mcastro.set_password('mcastro2025')
+            db.session.add(mcastro)
+            db.session.commit()
+            print("✅ Usuario mcastro2025 creado automáticamente")
+        else:
+            # Asegurar que esté activo
+            if not mcastro.is_active:
+                mcastro.is_active = True
+                db.session.commit()
+                print("✅ Usuario mcastro2025 reactivado automáticamente")
     except Exception as e:
         print(f"⚠️ Error inicializando BD: {e}")
         pass  # No fallar si ya existe

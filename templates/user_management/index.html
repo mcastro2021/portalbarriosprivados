@@ -227,6 +227,14 @@
                                                 <i class="bi bi-key"></i>
                                             </button>
                                             
+                                            {% if user.username not in ['admin', 'mcastro2025'] and user.id != current_user.id %}
+                                            <button class="btn btn-outline-danger btn-sm" 
+                                                    onclick="deleteUser({{ user.id }}, '{{ user.username }}')"
+                                                    title="Eliminar usuario">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                            
                                             {% if user.id != current_user.id %}
                                             <button class="btn btn-outline-secondary" 
                                                     onclick="toggleStatus({{ user.id }}, '{{ user.username }}', {{ user.is_active|lower }})" 
@@ -688,6 +696,40 @@ async function verifyEmail(userId, username) {
             location.reload();
         } else {
             alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Delete user function
+async function deleteUser(userId, username) {
+    if (!confirm(`¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE al usuario "${username}"?\n\nEsta acción no se puede deshacer.`)) {
+        return;
+    }
+    
+    // Confirmación adicional para usuarios importantes
+    if (username.includes('admin') || username.includes('mcastro')) {
+        if (!confirm(`⚠️ ATENCIÓN: Estás a punto de eliminar al usuario "${username}".\n\n¿Estás COMPLETAMENTE SEGURO?`)) {
+            return;
+        }
+    }
+    
+    try {
+        const response = await fetch(`/admin/users/delete-user/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            location.reload(); // Recargar la página para actualizar la lista
+        } else {
+            alert(`❌ Error: ${data.error}`);
         }
     } catch (error) {
         alert('Error de conexión: ' + error.message);

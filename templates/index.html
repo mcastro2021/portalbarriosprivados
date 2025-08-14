@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Portal Tejas 4 - Barrio con Seguridad{% endblock %}
+{% block title %}Portal Barrio Privado - Inicio{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -8,14 +8,8 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <div class="d-flex align-items-center mb-4">
-                    <img src="{{ url_for('static', filename='images/tejas4-logo.svg') }}" 
-                         alt="Tejas 4 - Barrio con Seguridad" 
-                         style="height: 80px; width: auto;" 
-                         class="me-3">
-                </div>
                 <h1 class="display-4 fw-bold mb-4">
-                    Bienvenido al Portal Tejas 4
+                    Bienvenido al Portal de tu Barrio Privado
                 </h1>
                 <p class="lead mb-4">
                     Gestiona visitas, reservas, expensas y más desde un solo lugar. 
@@ -37,8 +31,13 @@
                 {% endif %}
             </div>
             <div class="col-lg-6 text-center">
-                <img src="{{ url_for('static', filename='img/hero-illustration.svg') }}" 
-                     alt="Portal Barrio Privado" class="img-fluid" style="max-width: 400px;">
+                <div class="hero-image-placeholder bg-light rounded shadow" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-house-door display-1 mb-3"></i>
+                        <h4>Tu Barrio Privado</h4>
+                        <p>Gestión moderna y segura</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

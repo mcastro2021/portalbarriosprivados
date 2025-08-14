@@ -347,3 +347,43 @@ def export_users():
     response.headers['Content-Disposition'] = f'attachment; filename=usuarios_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
     
     return response
+
+@bp.route('/delete-user/<int:user_id>', methods=['DELETE'])
+@login_required
+def delete_user(user_id):
+    """Eliminar usuario"""
+    if not current_user.can_access_admin():
+        return jsonify({'error': 'Permisos insuficientes'}), 403
+    
+    try:
+        user = User.query.get_or_404(user_id)
+        
+        # Verificar que no sea el mismo admin
+        if user.id == current_user.id:
+            return jsonify({
+                'success': False,
+                'error': 'No puedes eliminar tu propia cuenta'
+            }), 400
+        
+        # Verificar que no sea un usuario protegido
+        protected_users = ['admin', 'mcastro2025']
+        if user.username in protected_users:
+            return jsonify({
+                'success': False,
+                'error': f'No se puede eliminar el usuario "{user.username}" - Usuario protegido del sistema'
+            }), 400
+        
+        username = user.username
+        
+        # Eliminar físicamente (puedes cambiar por soft delete si prefieres)
+        db.session.delete(user)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Usuario {username} eliminado exitosamente'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
