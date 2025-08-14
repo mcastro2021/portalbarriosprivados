@@ -1,61 +1,107 @@
 """
-Rutas para el sistema de notificaciones de expensas
+Rutas para el sistema de notificaciones de expensas - VERSION SIMPLIFICADA
 """
 
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from models import db, Expense, User
-try:
-    from notification_service import NotificationService, test_email_config, test_whatsapp_config
-except ImportError:
-    # Usar versión simplificada si hay problemas de importación
-    from notification_service_simple import NotificationService, test_whatsapp_config
-    def test_email_config():
-        return True, "Email temporalmente deshabilitado"
 from datetime import datetime
-import json
+
+# Importar modelos de manera segura
+try:
+    from models import db, Expense, User
+    MODELS_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️ Error importando modelos: {e}")
+    MODELS_AVAILABLE = False
+
+# Importar servicio de notificaciones de manera segura
+try:
+    from notification_service_simple import NotificationService
+    NOTIFICATION_SERVICE_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️ Error importando notification service: {e}")
+    NOTIFICATION_SERVICE_AVAILABLE = False
 
 bp = Blueprint('expense_notifications', __name__, url_prefix='/admin/expense-notifications')
+
+@bp.route('/alive')
+def alive():
+    """Ruta de test sin autenticación ni dependencias"""
+    return "<h1>✅ Blueprint VIVO!</h1><p>Esta ruta funciona sin @login_required</p>"
+
+@bp.route('/test')
+@login_required
+def test():
+    """Ruta de prueba simple"""
+    try:
+        # Test básico sin base de datos
+        html = f"""
+        <h1>✅ Blueprint de expense_notifications funciona!</h1>
+        <p>URL: /admin/expense-notifications/test</p>
+        <p>Usuario actual: {current_user.username}</p>
+        <p>¿Es admin?: {current_user.can_access_admin()}</p>
+        <p>Datetime: {datetime.now()}</p>
+        <a href="/admin/expense-notifications/">Ir al index</a>
+        """
+        return html
+    except Exception as e:
+        return f"<h1>❌ Error en test: {e}</h1>"
+
+@bp.route('/test-db')
+@login_required  
+def test_db():
+    """Test de base de datos"""
+    try:
+        from models import Expense, User
+        total_expenses = Expense.query.count()
+        total_users = User.query.count()
+        
+        html = f"""
+        <h1>✅ Test de Base de Datos</h1>
+        <p>Total expensas: {total_expenses}</p>
+        <p>Total usuarios: {total_users}</p>
+        <a href="/admin/expense-notifications/">Ir al index</a>
+        """
+        return html
+    except Exception as e:
+        return f"<h1>❌ Error en test-db: {e}</h1>"
 
 @bp.route('/')
 @login_required
 def index():
-    """Panel principal de notificaciones de expensas"""
-    if not current_user.can_access_admin():
-        flash('No tienes permisos para acceder a esta página', 'error')
-        return redirect(url_for('dashboard'))
-    
-    # Estadísticas de notificaciones (con manejo de errores)
+    """Panel principal de notificaciones de expensas - VERSION ULTRA SIMPLE"""
     try:
-        total_expenses = Expense.query.filter_by(status='pending').count()
-        notifications_sent = Expense.query.filter_by(notification_sent=True).count()
-        pending_notifications = total_expenses - notifications_sent
+        print("🔍 DEBUG: Iniciando función index() - VERSION SIMPLE")
+        
+        # Test ultra básico - solo verificar permisos
+        if not hasattr(current_user, 'can_access_admin'):
+            return "❌ ERROR: Usuario no tiene método can_access_admin"
+        
+        if not current_user.can_access_admin():
+            return "❌ ERROR: Usuario sin permisos de admin"
+        
+        print("✅ DEBUG: Usuario tiene permisos de admin")
+        
+        # No usar base de datos - solo valores estáticos
+        stats = {
+            'total_expenses': 25,
+            'notifications_sent': 0,
+            'pending_notifications': 25,
+            'notification_rate': 0
+        }
+        
+        recent_expenses = []  # Lista vacía
+        
+        print("🔍 DEBUG: Renderizando template de prueba...")
+        return render_template('expense_notifications/test.html', 
+                             stats=stats, 
+                             recent_expenses=recent_expenses)
+    
     except Exception as e:
-        print(f"⚠️ Error consultando notificaciones: {e}")
-        # Valores por defecto si no existen las columnas
-        total_expenses = Expense.query.count()
-        notifications_sent = 0
-        pending_notifications = total_expenses
-    
-    # Expensas recientes (con manejo de errores)
-    try:
-        recent_expenses = Expense.query.join(User).filter(
-            Expense.status == 'pending'
-        ).order_by(Expense.created_at.desc()).limit(10).all()
-    except Exception as e:
-        print(f"⚠️ Error consultando expensas: {e}")
-        recent_expenses = Expense.query.order_by(Expense.created_at.desc()).limit(10).all()
-    
-    stats = {
-        'total_expenses': total_expenses,
-        'notifications_sent': notifications_sent,
-        'pending_notifications': pending_notifications,
-        'notification_rate': (notifications_sent / total_expenses * 100) if total_expenses > 0 else 0
-    }
-    
-    return render_template('expense_notifications/index.html', 
-                         stats=stats, 
-                         recent_expenses=recent_expenses)
+        print(f"❌ DEBUG: Error general en index(): {e}")
+        import traceback
+        print(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
+        return f"<h1>❌ Error en index(): {e}</h1><pre>{traceback.format_exc()}</pre>"
 
 @bp.route('/send-notification', methods=['POST'])
 @login_required

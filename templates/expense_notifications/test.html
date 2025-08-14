@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Test - Notificaciones{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>✅ Test de Notificaciones de Expensas</h1>
+    <p>Si ves este mensaje, el blueprint funciona correctamente.</p>
+    
+    <div class="alert alert-success">
+        <h4>Estadísticas de Prueba:</h4>
+        <p>Total Expensas: {{ stats.total_expenses if stats else 'N/A' }}</p>
+        <p>Notificaciones Enviadas: {{ stats.notifications_sent if stats else 'N/A' }}</p>
+        <p>Pendientes: {{ stats.pending_notifications if stats else 'N/A' }}</p>
+    </div>
+    
+    <div class="alert alert-info">
+        <h4>Tests Disponibles:</h4>
+        <p><a href="/admin/expense-notifications/test" class="btn btn-sm btn-primary">Test Básico</a></p>
+        <p><a href="/admin/expense-notifications/test-db" class="btn btn-sm btn-warning">Test Base de Datos</a></p>
+    </div>
+    
+    <a href="/admin/dashboard" class="btn btn-primary">Volver al Admin</a>
+</div>
+{% endblock %}
