@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}Calendario de Reservas - Portal Barrio Privado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-calendar-event me-2"></i>Calendario de Reservas
+                    </h1>
+                    <p class="text-muted mb-0">Visualiza todas las reservas de espacios comunes</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('reservations.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver
+                    </a>
+                    <a href="{{ url_for('reservations.new') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-2"></i>Nueva Reserva
+                    </a>
+                </div>
+            </div>
+
+            <!-- Calendar Container -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-calendar-month me-2"></i>
+                                <span id="currentMonth"></span>
+                            </h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary" onclick="previousMonth()">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="today()">
+                                    Hoy
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="nextMonth()">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">Leyenda de Espacios</h6>
+                            <div class="row">
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <span class="badge bg-primary me-2">■</span>Quincho Principal
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <span class="badge bg-success me-2">■</span>Quincho Pequeño
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <span class="badge bg-warning me-2">■</span>SUM
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <span class="badge bg-info me-2">■</span>Cancha de Fútbol
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <span class="badge bg-danger me-2">■</span>Cancha de Tenis
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <span class="badge bg-secondary me-2">■</span>Piscina
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <span class="badge bg-dark me-2">■</span>Coworking
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles de la Reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="eventDetails">
+                <!-- Event details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.calendar th,
+.calendar td {
+    border: 1px solid #dee2e6;
+    padding: 8px;
+    vertical-align: top;
+    height: 120px;
+    width: 14.28%;
+}
+
+.calendar th {
+    background-color: #f8f9fa;
+    text-align: center;
+    font-weight: bold;
+    height: 40px;
+}
+
+.calendar-day {
+    position: relative;
+    cursor: pointer;
+}
+
+.calendar-day-number {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.calendar-event {
+    background-color: #007bff;
+    color: white;
+    border-radius: 3px;
+    padding: 2px 4px;
+    margin: 1px 0;
+    font-size: 11px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.calendar-event:hover {
+    opacity: 0.8;
+}
+
+.calendar-event.quincho_1 { background-color: #007bff; }
+.calendar-event.quincho_2 { background-color: #28a745; }
+.calendar-event.sum { background-color: #ffc107; color: #000; }
+.calendar-event.cancha_futbol { background-color: #17a2b8; }
+.calendar-event.cancha_tenis { background-color: #dc3545; }
+.calendar-event.piscina { background-color: #6c757d; }
+.calendar-event.coworking { background-color: #343a40; }
+
+.other-month {
+    color: #ccc;
+}
+
+.today {
+    background-color: #fff3cd;
+}
+</style>
+
+<script>
+// Calendar data from server
+const events = {{ events | tojsonfilter | safe }};
+let currentDate = new Date();
+
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Update month display
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+    
+    // Create calendar HTML
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDay = firstDay.getDay();
+    
+    let html = '<table class="calendar">';
+    
+    // Header
+    html += '<tr>';
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    dayNames.forEach(day => {
+        html += `<th>${day}</th>`;
+    });
+    html += '</tr>';
+    
+    // Calendar days
+    let date = 1;
+    for (let week = 0; week < 6; week++) {
+        html += '<tr>';
+        for (let day = 0; day < 7; day++) {
+            if (week === 0 && day < startDay) {
+                html += '<td class="other-month"></td>';
+            } else if (date > daysInMonth) {
+                html += '<td class="other-month"></td>';
+            } else {
+                const isToday = isToday_(year, month, date);
+                const dayEvents = getDayEvents(year, month, date);
+                
+                html += `<td class="calendar-day ${isToday ? 'today' : ''}">`;
+                html += `<div class="calendar-day-number">${date}</div>`;
+                
+                dayEvents.forEach(event => {
+                    html += `<div class="calendar-event ${event.space_type}" onclick="showEventDetails(${event.id})">`;
+                    html += `${event.title}`;
+                    html += '</div>';
+                });
+                
+                html += '</td>';
+                date++;
+            }
+        }
+        html += '</tr>';
+        if (date > daysInMonth) break;
+    }
+    
+    html += '</table>';
+    document.getElementById('calendar').innerHTML = html;
+}
+
+function isToday_(year, month, date) {
+    const today = new Date();
+    return year === today.getFullYear() && 
+           month === today.getMonth() && 
+           date === today.getDate();
+}
+
+function getDayEvents(year, month, date) {
+    const targetDate = new Date(year, month, date);
+    return events.filter(event => {
+        const eventDate = new Date(event.start);
+        return eventDate.getFullYear() === year &&
+               eventDate.getMonth() === month &&
+               eventDate.getDate() === date;
+    });
+}
+
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+}
+
+function today() {
+    currentDate = new Date();
+    renderCalendar();
+}
+
+function showEventDetails(eventId) {
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+    
+    const spaceNames = {
+        'quincho_1': 'Quincho Principal',
+        'quincho_2': 'Quincho Pequeño',
+        'sum': 'SUM (Salón de Usos Múltiples)',
+        'cancha_futbol': 'Cancha de Fútbol',
+        'cancha_tenis': 'Cancha de Tenis',
+        'piscina': 'Piscina',
+        'coworking': 'Espacio Coworking'
+    };
+    
+    const startDate = new Date(event.start);
+    const endDate = new Date(event.end);
+    
+    const html = `
+        <div class="row">
+            <div class="col-12">
+                <h6><i class="bi bi-calendar-event me-2"></i>${event.title}</h6>
+                <p><strong>Espacio:</strong> ${spaceNames[event.space_type] || event.space_type}</p>
+                <p><strong>Fecha:</strong> ${startDate.toLocaleDateString('es-ES')}</p>
+                <p><strong>Hora:</strong> ${startDate.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})} - 
+                   ${endDate.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})}</p>
+                <p><strong>Usuario:</strong> ${event.user}</p>
+                ${event.description ? `<p><strong>Descripción:</strong> ${event.description}</p>` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('eventDetails').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('eventModal')).show();
+}
+
+// Initialize calendar
+document.addEventListener('DOMContentLoaded', function() {
+    renderCalendar();
+});
+</script>
+{% endblock %}
