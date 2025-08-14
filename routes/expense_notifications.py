@@ -25,15 +25,26 @@ def index():
         flash('No tienes permisos para acceder a esta página', 'error')
         return redirect(url_for('dashboard'))
     
-    # Estadísticas de notificaciones
-    total_expenses = Expense.query.filter_by(status='pending').count()
-    notifications_sent = Expense.query.filter_by(notification_sent=True).count()
-    pending_notifications = total_expenses - notifications_sent
+    # Estadísticas de notificaciones (con manejo de errores)
+    try:
+        total_expenses = Expense.query.filter_by(status='pending').count()
+        notifications_sent = Expense.query.filter_by(notification_sent=True).count()
+        pending_notifications = total_expenses - notifications_sent
+    except Exception as e:
+        print(f"⚠️ Error consultando notificaciones: {e}")
+        # Valores por defecto si no existen las columnas
+        total_expenses = Expense.query.count()
+        notifications_sent = 0
+        pending_notifications = total_expenses
     
-    # Expensas recientes
-    recent_expenses = Expense.query.join(User).filter(
-        Expense.status == 'pending'
-    ).order_by(Expense.created_at.desc()).limit(10).all()
+    # Expensas recientes (con manejo de errores)
+    try:
+        recent_expenses = Expense.query.join(User).filter(
+            Expense.status == 'pending'
+        ).order_by(Expense.created_at.desc()).limit(10).all()
+    except Exception as e:
+        print(f"⚠️ Error consultando expensas: {e}")
+        recent_expenses = Expense.query.order_by(Expense.created_at.desc()).limit(10).all()
     
     stats = {
         'total_expenses': total_expenses,

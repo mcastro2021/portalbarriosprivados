@@ -1,7 +1,12 @@
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_from_directory
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from flask_socketio import SocketIO, emit, join_room, leave_room
+try:
+    from flask_socketio import SocketIO, emit, join_room, leave_room
+    SOCKETIO_AVAILABLE = True
+except ImportError:
+    SOCKETIO_AVAILABLE = False
+    SocketIO = None
 from flask_mail import Mail, Message
 from flask_migrate import Migrate
 from werkzeug.utils import secure_filename
@@ -42,16 +47,24 @@ def create_app(config_name='default'):
     login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
     login_manager.login_message_category = 'info'
     
-    # Configurar SocketIO para producción
-    socketio_config = {
-        'async_mode': 'threading',
-        'cors_allowed_origins': ["https://portalbarriosprivados.onrender.com", "https://*.onrender.com"] if not app.debug else "*",
-        'ping_timeout': 60,
-        'ping_interval': 25,
-        'engineio_logger': False,
-        'logger': False
-    }
-    socketio = SocketIO(app, **socketio_config)
+    # Configurar SocketIO solo si está disponible
+    if SOCKETIO_AVAILABLE and SocketIO:
+        try:
+            socketio_config = {
+                'async_mode': 'threading',
+                'cors_allowed_origins': "*",
+                'logger': False,
+                'engineio_logger': False,
+                'manage_session': False  # Evitar problemas de sesión
+            }
+            socketio = SocketIO(app, **socketio_config)
+            print("✅ SocketIO configurado correctamente")
+        except Exception as e:
+            print(f"⚠️ Error configurando SocketIO: {e}")
+            socketio = None
+    else:
+        socketio = None
+        print("⚠️ SocketIO no disponible - funcionando sin tiempo real")
     mail = Mail(app)
     
     # Configurar logging
@@ -688,5 +701,8 @@ with app.app_context():
         pass  # No fallar si ya existe
 
 if __name__ == '__main__':
-    socketio = SocketIO(app)
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000) 
+    if SOCKETIO_AVAILABLE and SocketIO:
+        socketio = SocketIO(app)
+        socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    else:
+        app.run(debug=True, host='0.0.0.0', port=5000) 
