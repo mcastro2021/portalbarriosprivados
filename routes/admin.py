@@ -120,3 +120,26 @@ def toggle_user_status(user_id):
         'message': f'Usuario {"activado" if user.is_active else "desactivado"} correctamente',
         'is_active': user.is_active
     })
+
+# Rutas adicionales para templates existentes
+@bp.route('/reservations')
+@login_required
+@admin_required
+def reservations():
+    """Gestión de reservas (redirige a reservations)"""
+    return redirect(url_for('reservations.index'))
+
+@bp.route('/maintenance')
+@login_required
+@admin_required
+def maintenance():
+    """Gestión de mantenimiento (redirige a maintenance)"""
+    return redirect(url_for('maintenance.index'))
+
+@bp.route('/broadcast')
+@login_required
+@admin_required
+def broadcast():
+    """Sistema de notificaciones masivas"""
+    flash('Función de notificaciones masivas en desarrollo', 'info')
+    return redirect(url_for('admin.dashboard'))
