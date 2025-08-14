@@ -24,7 +24,7 @@ from config import config
 from models import db, User, Visit, Reservation, News, Maintenance, Expense, Classified, SecurityReport, Notification, NeighborhoodMap, ChatbotSession
 
 # Importar rutas
-from routes import auth, visits, reservations, news, maintenance, expenses, classifieds, security, chatbot, admin
+from routes import auth, visits, reservations, news, maintenance, expenses, classifieds, security, chatbot, admin, smart_maintenance
 
 def create_app(config_name='default'):
     """Factory function para crear la aplicación Flask"""
@@ -95,6 +95,7 @@ def create_app(config_name='default'):
     app.register_blueprint(security.bp)
     app.register_blueprint(chatbot.bp)
     app.register_blueprint(admin.bp)
+    app.register_blueprint(smart_maintenance.bp)
     
     # Rutas principales
     @app.route('/')

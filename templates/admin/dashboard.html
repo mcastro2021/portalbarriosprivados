@@ -249,6 +249,41 @@
         </div>
     </div>
 
+    <!-- Dashboard de IA -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-gradient-ai">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center">
+                                <div class="ai-icon-container me-3">
+                                    <i class="bi bi-robot fs-1 text-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="mb-1">🤖 Sistema de Inteligencia Artificial</h4>
+                                    <p class="mb-2 text-muted">
+                                        Clasificación automática de reclamos, análisis predictivo y gestión inteligente
+                                    </p>
+                                    <div class="d-flex gap-3">
+                                        <small class="badge bg-primary">✓ Clasificación Automática</small>
+                                        <small class="badge bg-success">✓ Detección de Prioridades</small>
+                                        <small class="badge bg-info">✓ Derivación Inteligente</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('smart_maintenance.ai_dashboard') }}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-bar-chart-line me-2"></i>Ver Dashboard IA
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Actividad Reciente -->
     <div class="row g-4">
         <div class="col-lg-6">
@@ -376,4 +411,56 @@ document.querySelectorAll('[data-confirm]').forEach(function(element) {
     });
 });
 </script>
+
+<style>
+.bg-gradient-ai {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.bg-gradient-ai .text-muted {
+    color: rgba(255,255,255,0.8) !important;
+}
+
+.ai-icon-container {
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-icon-container i {
+    color: white !important;
+    animation: pulse-ai 2s infinite;
+}
+
+@keyframes pulse-ai {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.bg-gradient-ai .badge {
+    background: rgba(255,255,255,0.2) !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.bg-gradient-ai .btn-primary {
+    background: white;
+    color: #667eea;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.bg-gradient-ai .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    color: #667eea;
+}
+</style>
 {% endblock %}

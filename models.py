@@ -227,6 +227,15 @@ class Maintenance(db.Model):
     assigned_at = db.Column(db.DateTime)
     completed_at = db.Column(db.DateTime)
     admin_notes = db.Column(db.Text)
+    
+    # Campos para IA y clasificación automática
+    ai_classification = db.Column(db.Text)  # JSON con clasificación IA completa
+    ai_suggestions = db.Column(db.Text)     # JSON con sugerencias de IA
+    assigned_area = db.Column(db.String(100))  # Área responsable detectada por IA
+    expected_response_time = db.Column(db.String(50))  # Tiempo esperado de respuesta
+    ai_confidence = db.Column(db.Float)     # Nivel de confianza de la clasificación (0-1)
+    manual_override = db.Column(db.Boolean, default=False)  # Si admin modificó clasificación IA
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
