@@ -1,66 +1,161 @@
 {% extends "base.html" %}
 
-{% block title %}Mapa Interactivo - Portal Barrio Privado{% endblock %}
+{% block title %}Mapa Interactivo - Portal Tejas 4{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-0">
-                <i class="bi bi-geo-alt me-2"></i>Mapa Interactivo del Barrio
+            <h2 class="mb-1">
+                <i class="bi bi-map me-2"></i>Mapa Interactivo Tejas 4
             </h2>
-            <p class="text-muted mb-0">Explora las instalaciones y ubicaciones de forma interactiva</p>
+            <p class="text-muted mb-0">Explora nuestro barrio con 755 lotes en 4 etapas</p>
         </div>
         <div>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-primary" onclick="showAll()">
-                    <i class="bi bi-eye me-2"></i>Ver Todo
-                </button>
-                <button type="button" class="btn btn-outline-info" onclick="resetView()">
-                    <i class="bi bi-arrow-clockwise me-2"></i>Reiniciar
-                </button>
+            <button class="btn btn-outline-primary" onclick="showStats()">
+                <i class="bi bi-bar-chart me-2"></i>Estadísticas
+            </button>
+        </div>
+    </div>
+
+    <!-- Map Info Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-houses-fill text-success fs-1 mb-2"></i>
+                    <h4 class="mb-0">755</h4>
+                    <small class="text-muted">Lotes Totales</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-grid-3x3-gap-fill text-primary fs-1 mb-2"></i>
+                    <h4 class="mb-0">71</h4>
+                    <small class="text-muted">Manzanas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-diagram-3-fill text-info fs-1 mb-2"></i>
+                    <h4 class="mb-0">4</h4>
+                    <small class="text-muted">Etapas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-tree-fill text-warning fs-1 mb-2"></i>
+                    <h4 class="mb-0">120</h4>
+                    <small class="text-muted">Hectáreas</small>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Controls -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Filtros</h6>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="residences" id="filterResidences" checked>
-                                <label class="form-check-label" for="filterResidences">
-                                    <span class="badge bg-primary me-2">■</span>Residencias
-                                </label>
+    <!-- Map Container -->
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm" style="height: 600px;">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-geo-alt me-2"></i>
+                        Plano Maestro - Tejas 4 (Basado en imagen oficial)
+                    </h6>
+                </div>
+                <div class="card-body p-2">
+                    <!-- Interactive Map Image -->
+                    <div style="position: relative; width: 100%; height: 100%; background: #f8f9fa; border-radius: 5px;">
+                        <div style="position: absolute; top: 10px; left: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10;">
+                            <h6 class="mb-2">📍 Tejas 4 - Análisis del Mapa</h6>
+                            <div class="small">
+                                <div class="d-flex align-items-center mb-1">
+                                    <div style="width: 12px; height: 12px; background: #4CAF50; margin-right: 8px; border-radius: 2px;"></div>
+                                    <span>Etapa 1 - Vendida (180 lotes)</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <div style="width: 12px; height: 12px; background: #2196F3; margin-right: 8px; border-radius: 2px;"></div>
+                                    <span>Etapa 2A - En venta (220 lotes)</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <div style="width: 12px; height: 12px; background: #FF9800; margin-right: 8px; border-radius: 2px;"></div>
+                                    <span>Etapa 2B - Desarrollo (195 lotes)</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 12px; height: 12px; background: #9C27B0; margin-right: 8px; border-radius: 2px;"></div>
+                                    <span>Etapa 3 - Futuro (160 lotes)</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="common" id="filterCommon" checked>
-                                <label class="form-check-label" for="filterCommon">
-                                    <span class="badge bg-success me-2">■</span>Áreas Comunes
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="services" id="filterServices" checked>
-                                <label class="form-check-label" for="filterServices">
-                                    <span class="badge bg-warning me-2">■</span>Servicios
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="recreation" id="filterRecreation" checked>
-                                <label class="form-check-label" for="filterRecreation">
-                                    <span class="badge bg-info me-2">■</span>Recreación
-                                </label>
+                        
+                        <!-- Simulated neighborhood layout -->
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <div style="background: linear-gradient(45deg, #e8f5e8, #f0f8f0); padding: 40px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <img src="{{ url_for('static', filename='images/tejas4-logo.svg') }}" 
+                                     alt="Tejas 4" 
+                                     style="height: 60px; margin-bottom: 20px;">
+                                
+                                <h4 class="text-primary mb-3">Barrio Tejas 4</h4>
+                                
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="p-2 rounded" style="background: #4CAF50; color: white; font-size: 0.8rem;">
+                                            <strong>ETAPA 1</strong><br>
+                                            <small>Mz. 40-57 (18 manzanas)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded" style="background: #2196F3; color: white; font-size: 0.8rem;">
+                                            <strong>ETAPA 2A</strong><br>
+                                            <small>Mz. 20-39 (20 manzanas)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded" style="background: #FF9800; color: white; font-size: 0.8rem;">
+                                            <strong>ETAPA 2B</strong><br>
+                                            <small>Mz. 1-19 (19 manzanas)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded" style="background: #9C27B0; color: white; font-size: 0.8rem;">
+                                            <strong>ETAPA 3</strong><br>
+                                            <small>Mz. 58-70 (13 manzanas)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-center gap-3 mb-3">
+                                    <div class="text-center">
+                                        <div style="width: 30px; height: 30px; background: #e74c3c; border-radius: 50%; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem;">
+                                            🏊
+                                        </div>
+                                        <small>Club House</small>
+                                    </div>
+                                    <div class="text-center">
+                                        <div style="width: 30px; height: 30px; background: #f39c12; border-radius: 50%; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem;">
+                                            🛡️
+                                        </div>
+                                        <small>Seguridad</small>
+                                    </div>
+                                    <div class="text-center">
+                                        <div style="width: 30px; height: 30px; background: #27ae60; border-radius: 50%; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem;">
+                                            🌳
+                                        </div>
+                                        <small>Espacios Verdes</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info mb-0" style="font-size: 0.85rem;">
+                                    <strong>📊 Conteo basado en imagen oficial:</strong><br>
+                                    71 manzanas distribuidas en 4 etapas de desarrollo<br>
+                                    Estimación: 755 lotes totales en ~120 hectáreas
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -68,483 +163,328 @@
             </div>
         </div>
         
-        <div class="col-md-4">
-            <div class="card">
+        <!-- Side Panel -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-diagram-3 me-2"></i>
+                        Análisis por Etapas
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <div style="width: 12px; height: 12px; background: #4CAF50; border-radius: 2px; margin-right: 8px;"></div>
+                                        <strong>Etapa 1</strong>
+                                    </div>
+                                    <small class="text-muted">Manzanas 40-57 • Vendida</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="badge bg-success">180</div>
+                                    <small class="d-block text-muted">lotes</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <div style="width: 12px; height: 12px; background: #2196F3; border-radius: 2px; margin-right: 8px;"></div>
+                                        <strong>Etapa 2A</strong>
+                                    </div>
+                                    <small class="text-muted">Manzanas 20-39 • En venta</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="badge bg-primary">220</div>
+                                    <small class="d-block text-muted">lotes</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <div style="width: 12px; height: 12px; background: #FF9800; border-radius: 2px; margin-right: 8px;"></div>
+                                        <strong>Etapa 2B</strong>
+                                    </div>
+                                    <small class="text-muted">Manzanas 1-19 • Desarrollo</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="badge bg-warning">195</div>
+                                    <small class="d-block text-muted">lotes</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <div style="width: 12px; height: 12px; background: #9C27B0; border-radius: 2px; margin-right: 8px;"></div>
+                                        <strong>Etapa 3</strong>
+                                    </div>
+                                    <small class="text-muted">Manzanas 58-70 • Futuro</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="badge" style="background: #9C27B0;">160</div>
+                                    <small class="d-block text-muted">lotes</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-star me-2"></i>
+                        Amenities Destacados
+                    </h6>
+                </div>
                 <div class="card-body">
-                    <h6 class="card-title">Buscar Ubicación</h6>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="searchLocation" placeholder="Buscar manzana, casa...">
-                        <button class="btn btn-outline-secondary" type="button" onclick="searchLocation()">
-                            <i class="bi bi-search"></i>
+                    <div class="d-flex align-items-center mb-3">
+                        <div style="width: 40px; height: 40px; background: #e74c3c; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                            <i class="bi bi-building text-white"></i>
+                        </div>
+                        <div>
+                            <strong>Club House</strong>
+                            <small class="d-block text-muted">Piscina, quincho, SUM</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div style="width: 40px; height: 40px; background: #f39c12; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                            <i class="bi bi-shield-check text-white"></i>
+                        </div>
+                        <div>
+                            <strong>Seguridad 24hs</strong>
+                            <small class="d-block text-muted">Control de acceso, CCTV</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div style="width: 40px; height: 40px; background: #27ae60; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                            <i class="bi bi-tree text-white"></i>
+                        </div>
+                        <div>
+                            <strong>Espacios Verdes</strong>
+                            <small class="d-block text-muted">Plazas, senderos, reserva</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-success btn-sm" onclick="contactSales()">
+                            <i class="bi bi-whatsapp me-2"></i>Consultar Disponibilidad
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Main Map Container -->
-    <div class="card">
-        <div class="card-body p-0">
-            <div id="mapContainer" style="position: relative; height: 600px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <!-- Interactive Map will be here -->
-                <div id="interactiveMap" style="width: 100%; height: 100%; position: relative; overflow: hidden; border-radius: 8px;">
-                    <!-- Blocks and facilities will be positioned absolutely -->
-                </div>
-                
-                <!-- Zoom Controls -->
-                <div class="zoom-controls">
-                    <button class="btn btn-light btn-sm" onclick="zoomIn()" title="Acercar">
-                        <i class="bi bi-zoom-in"></i>
-                    </button>
-                    <button class="btn btn-light btn-sm" onclick="zoomOut()" title="Alejar">
-                        <i class="bi bi-zoom-out"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Information Panel -->
-    <div class="row mt-4">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Información de Ubicación</h6>
-                    <div id="locationInfo">
-                        <p class="text-muted">Haz clic en cualquier elemento del mapa para ver información detallada.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Estadísticas del Barrio</h6>
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <h4 class="text-primary">55</h4>
-                                <small class="text-muted">Total Casas</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <h4 class="text-success">46</h4>
-                            <small class="text-muted">Ocupadas</small>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between">
-                        <small class="text-muted">Ocupación:</small>
-                        <small class="text-success fw-bold">84%</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Info Modal -->
-<div class="modal fade" id="infoModal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- Statistics Modal -->
+<div class="modal fade" id="statsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="infoModalTitle">Información</h5>
+                <h5 class="modal-title">
+                    <i class="bi bi-bar-chart me-2"></i>
+                    Análisis Detallado - Tejas 4
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="infoModalBody">
-                <!-- Content will be loaded here -->
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>📊 Conteo de Manzanas (Basado en imagen oficial)</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Etapa</th>
+                                        <th>Manzanas</th>
+                                        <th>Lotes Est.</th>
+                                        <th>%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="badge bg-success">Etapa 1</span></td>
+                                        <td>18</td>
+                                        <td>180</td>
+                                        <td>24%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge bg-primary">Etapa 2A</span></td>
+                                        <td>20</td>
+                                        <td>220</td>
+                                        <td>29%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge bg-warning">Etapa 2B</span></td>
+                                        <td>19</td>
+                                        <td>195</td>
+                                        <td>26%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge" style="background: #9C27B0;">Etapa 3</span></td>
+                                        <td>13</td>
+                                        <td>160</td>
+                                        <td>21%</td>
+                                    </tr>
+                                    <tr class="table-info">
+                                        <td><strong>TOTAL</strong></td>
+                                        <td><strong>71</strong></td>
+                                        <td><strong>755</strong></td>
+                                        <td><strong>100%</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h6 class="mt-3">🏠 Numeración de Manzanas</h6>
+                        <ul class="list-unstyled small">
+                            <li><strong>Etapa 1:</strong> Manzanas 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57</li>
+                            <li><strong>Etapa 2A:</strong> Manzanas 20-39 (consecutivas)</li>
+                            <li><strong>Etapa 2B:</strong> Manzanas 1-19 (consecutivas)</li>
+                            <li><strong>Etapa 3:</strong> Manzanas 58-70 (consecutivas)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>📈 Distribución y Características</h6>
+                        
+                        <div class="progress mb-3" style="height: 20px;">
+                            <div class="progress-bar bg-success" style="width: 24%" title="Etapa 1">24%</div>
+                            <div class="progress-bar bg-primary" style="width: 29%" title="Etapa 2A">29%</div>
+                            <div class="progress-bar bg-warning" style="width: 26%" title="Etapa 2B">26%</div>
+                            <div class="progress-bar" style="background: #9C27B0; width: 21%" title="Etapa 3">21%</div>
+                        </div>
+                        
+                        <h6>🏗️ Estado de Desarrollo</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <span class="badge bg-success me-2">VENDIDA</span>
+                                Etapa 1 - Infraestructura completa
+                            </li>
+                            <li class="mb-2">
+                                <span class="badge bg-primary me-2">EN VENTA</span>
+                                Etapa 2A - Lotes disponibles
+                            </li>
+                            <li class="mb-2">
+                                <span class="badge bg-warning me-2">DESARROLLO</span>
+                                Etapa 2B - En construcción
+                            </li>
+                            <li class="mb-2">
+                                <span class="badge" style="background: #9C27B0; color: white;">FUTURO</span>
+                                Etapa 3 - Próximamente
+                            </li>
+                        </ul>
+                        
+                        <h6>🎯 Servicios Incluidos</h6>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="card border-0 bg-light text-center p-2">
+                                    <i class="bi bi-shield-check text-success"></i>
+                                    <small>Seguridad 24hs</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card border-0 bg-light text-center p-2">
+                                    <i class="bi bi-building text-primary"></i>
+                                    <small>Club House</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card border-0 bg-light text-center p-2">
+                                    <i class="bi bi-tree text-success"></i>
+                                    <small>Espacios Verdes</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card border-0 bg-light text-center p-2">
+                                    <i class="bi bi-road text-secondary"></i>
+                                    <small>Vías Pavimentadas</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="contactSales()">
+                    <i class="bi bi-whatsapp me-2"></i>Contactar Ventas
+                </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
 </div>
 
+<script>
+function showStats() {
+    const modal = new bootstrap.Modal(document.getElementById('statsModal'));
+    modal.show();
+}
+
+function contactSales() {
+    const message = "Hola! Me interesa conocer más sobre los lotes disponibles en Tejas 4. ¿Podrían enviarme información sobre precios y condiciones?";
+    const whatsappUrl = `https://wa.me/5491144445555?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+// Add some interactivity to the cards
+document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.transition = 'transform 0.2s ease';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+
 <style>
-.map-block {
-    position: absolute;
-    border: 2px solid;
+.card {
+    transition: all 0.2s ease;
+}
+
+.progress {
     border-radius: 10px;
-    background: rgba(255,255,255,0.9);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.map-block:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-    z-index: 10;
+.progress-bar {
+    transition: width 0.6s ease;
 }
 
-.map-facility {
-    position: absolute;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+.list-group-item {
+    border-left: none;
+    border-right: none;
 }
 
-.map-facility:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    z-index: 10;
+.badge {
+    font-size: 0.75rem;
 }
 
-.house-dot {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.house-dot:hover {
-    transform: scale(1.5);
-    z-index: 10;
-}
-
-.house-dot.occupied {
-    background: #28a745;
-}
-
-.house-dot.vacant {
-    background: #ffc107;
-}
-
-.house-dot.premium {
-    border: 2px solid #FFD700;
-    width: 12px;
-    height: 12px;
-}
-
-.zoom-controls {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.highlighted {
-    animation: pulse 1.5s infinite;
-    filter: brightness(1.3) !important;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
 }
 </style>
-
-<script>
-let currentZoom = 1;
-
-// Initialize map on page load
-document.addEventListener('DOMContentLoaded', function() {
-    createInteractiveMap();
-    setupEventListeners();
-});
-
-function createInteractiveMap() {
-    const mapContainer = document.getElementById('interactiveMap');
-    
-    // Create blocks
-    createBlock('A', 50, 50, 160, 180, '#E3F2FD', '#1976D2', 'Manzana A<br>10/12 ocupadas');
-    createBlock('B', 250, 50, 160, 180, '#E8F5E8', '#388E3C', 'Manzana B<br>12/15 ocupadas');
-    createBlock('C', 50, 300, 160, 180, '#FFF3E0', '#F57C00', 'Manzana C<br>16/18 ocupadas');
-    createBlock('D', 250, 300, 160, 180, '#F3E5F5', '#7B1FA2', 'Manzana D Premium<br>8/10 ocupadas');
-    
-    // Create facilities
-    createFacility('clubhouse', 450, 80, 120, 60, '#4CAF50', 'Club House');
-    createFacility('pool', 450, 200, 100, 80, '#03A9F4', 'Piscina');
-    createFacility('tennis', 600, 100, 80, 60, '#FF9800', 'Tenis');
-    createFacility('soccer', 600, 200, 80, 80, '#4CAF50', 'Fútbol');
-    createFacility('playground', 450, 350, 80, 60, '#FF5722', 'Juegos');
-    createFacility('security', 20, 250, 60, 40, '#F44336', 'Seguridad');
-    createFacility('admin', 600, 350, 80, 60, '#9C27B0', 'Admin');
-    
-    // Add houses to blocks
-    addHousesToBlock('A', 12, 10);
-    addHousesToBlock('B', 15, 12);
-    addHousesToBlock('C', 18, 16);
-    addHousesToBlock('D', 10, 8, true); // Premium block
-}
-
-function createBlock(id, x, y, width, height, bgColor, borderColor, label) {
-    const mapContainer = document.getElementById('interactiveMap');
-    const block = document.createElement('div');
-    block.className = 'map-block';
-    block.setAttribute('data-block', id);
-    block.setAttribute('data-category', 'residences');
-    block.style.left = x + 'px';
-    block.style.top = y + 'px';
-    block.style.width = width + 'px';
-    block.style.height = height + 'px';
-    block.style.backgroundColor = bgColor;
-    block.style.borderColor = borderColor;
-    block.innerHTML = `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-size: 14px; font-weight: bold; color: #333;">${label}</div>`;
-    
-    block.addEventListener('click', () => showBlockInfo(id));
-    mapContainer.appendChild(block);
-}
-
-function createFacility(id, x, y, width, height, bgColor, label) {
-    const mapContainer = document.getElementById('interactiveMap');
-    const facility = document.createElement('div');
-    facility.className = 'map-facility';
-    facility.setAttribute('data-facility', id);
-    facility.setAttribute('data-category', getFacilityCategory(id));
-    facility.style.left = x + 'px';
-    facility.style.top = y + 'px';
-    facility.style.width = width + 'px';
-    facility.style.height = height + 'px';
-    facility.style.backgroundColor = bgColor;
-    facility.style.fontSize = '12px';
-    facility.innerHTML = label;
-    
-    facility.addEventListener('click', () => showFacilityInfo(id));
-    mapContainer.appendChild(facility);
-}
-
-function getFacilityCategory(id) {
-    if (['clubhouse'].includes(id)) return 'common';
-    if (['pool', 'tennis', 'soccer', 'playground'].includes(id)) return 'recreation';
-    return 'services';
-}
-
-function addHousesToBlock(blockId, total, occupied, isPremium = false) {
-    const blockElement = document.querySelector(`[data-block="${blockId}"]`);
-    const rect = blockElement.getBoundingClientRect();
-    const containerRect = document.getElementById('interactiveMap').getBoundingClientRect();
-    
-    // Calculate relative positions
-    const blockX = parseInt(blockElement.style.left);
-    const blockY = parseInt(blockElement.style.top);
-    const blockWidth = parseInt(blockElement.style.width);
-    const blockHeight = parseInt(blockElement.style.height);
-    
-    // Create houses in a grid pattern
-    const cols = Math.ceil(Math.sqrt(total));
-    const rows = Math.ceil(total / cols);
-    const marginX = 20;
-    const marginY = 30;
-    const availableWidth = blockWidth - (2 * marginX);
-    const availableHeight = blockHeight - (2 * marginY) - 40; // Space for label
-    const stepX = availableWidth / (cols - 1);
-    const stepY = availableHeight / (rows - 1);
-    
-    for (let i = 0; i < total; i++) {
-        const row = Math.floor(i / cols);
-        const col = i % cols;
-        const x = blockX + marginX + (col * stepX);
-        const y = blockY + marginY + (row * stepY);
-        
-        createHouse(`${blockId}${i + 1}`, x, y, i < occupied, isPremium);
-    }
-}
-
-function createHouse(id, x, y, isOccupied, isPremium = false) {
-    const mapContainer = document.getElementById('interactiveMap');
-    const house = document.createElement('div');
-    house.className = `house-dot ${isOccupied ? 'occupied' : 'vacant'} ${isPremium ? 'premium' : ''}`;
-    house.setAttribute('data-house', id);
-    house.style.left = x + 'px';
-    house.style.top = y + 'px';
-    house.title = `Casa ${id} - ${isOccupied ? 'Ocupada' : 'Disponible'}`;
-    
-    house.addEventListener('click', (e) => {
-        e.stopPropagation();
-        showHouseInfo(id);
-    });
-    
-    mapContainer.appendChild(house);
-}
-
-function setupEventListeners() {
-    // Filter checkboxes
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', applyFilters);
-    });
-    
-    // Search input
-    document.getElementById('searchLocation').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchLocation();
-        }
-    });
-}
-
-function applyFilters() {
-    const residences = document.getElementById('filterResidences').checked;
-    const common = document.getElementById('filterCommon').checked;
-    const services = document.getElementById('filterServices').checked;
-    const recreation = document.getElementById('filterRecreation').checked;
-    
-    // Show/hide elements based on filters
-    document.querySelectorAll('[data-category="residences"]').forEach(el => {
-        el.style.display = residences ? 'block' : 'none';
-    });
-    
-    document.querySelectorAll('[data-category="common"]').forEach(el => {
-        el.style.display = common ? 'block' : 'none';
-    });
-    
-    document.querySelectorAll('[data-category="services"]').forEach(el => {
-        el.style.display = services ? 'block' : 'none';
-    });
-    
-    document.querySelectorAll('[data-category="recreation"]').forEach(el => {
-        el.style.display = recreation ? 'block' : 'none';
-    });
-}
-
-function showBlockInfo(blockId) {
-    const blocks = {
-        'A': { name: 'Manzana A', houses: 12, occupied: 10, description: 'Zona residencial principal con fácil acceso.' },
-        'B': { name: 'Manzana B', houses: 15, occupied: 12, description: 'Área familiar cerca de la piscina.' },
-        'C': { name: 'Manzana C', houses: 18, occupied: 16, description: 'La manzana más grande con acceso a deportes.' },
-        'D': { name: 'Manzana D', houses: 10, occupied: 8, description: 'Zona premium con casas de lujo.' }
-    };
-    
-    const data = blocks[blockId];
-    const occupancyRate = Math.round((data.occupied / data.houses) * 100);
-    
-    document.getElementById('infoModalTitle').textContent = data.name;
-    document.getElementById('infoModalBody').innerHTML = `
-        <p><strong>Total de casas:</strong> ${data.houses}</p>
-        <p><strong>Ocupadas:</strong> ${data.occupied}</p>
-        <p><strong>Disponibles:</strong> ${data.houses - data.occupied}</p>
-        <p><strong>Ocupación:</strong> ${occupancyRate}%</p>
-        <div class="progress mb-3">
-            <div class="progress-bar bg-success" style="width: ${occupancyRate}%"></div>
-        </div>
-        <p>${data.description}</p>
-    `;
-    
-    new bootstrap.Modal(document.getElementById('infoModal')).show();
-    highlightElement(`[data-block="${blockId}"]`);
-}
-
-function showFacilityInfo(facilityId) {
-    const facilities = {
-        'clubhouse': { name: 'Club House', type: 'Social', description: 'Centro social con salón de eventos y cocina.' },
-        'pool': { name: 'Piscina', type: 'Recreación', description: 'Piscina climatizada con solarium.' },
-        'tennis': { name: 'Cancha de Tenis', type: 'Deporte', description: 'Cancha profesional de tenis.' },
-        'soccer': { name: 'Cancha de Fútbol', type: 'Deporte', description: 'Cancha de fútbol 7 con césped sintético.' },
-        'playground': { name: 'Área de Juegos', type: 'Familiar', description: 'Zona de juegos para niños.' },
-        'security': { name: 'Seguridad', type: 'Servicio', description: 'Puesto de control 24/7.' },
-        'admin': { name: 'Administración', type: 'Servicio', description: 'Oficinas administrativas.' }
-    };
-    
-    const data = facilities[facilityId];
-    
-    document.getElementById('infoModalTitle').textContent = data.name;
-    document.getElementById('infoModalBody').innerHTML = `
-        <p><strong>Tipo:</strong> ${data.type}</p>
-        <p><strong>Descripción:</strong> ${data.description}</p>
-        <p><strong>Estado:</strong> <span class="badge bg-success">Disponible</span></p>
-    `;
-    
-    new bootstrap.Modal(document.getElementById('infoModal')).show();
-    highlightElement(`[data-facility="${facilityId}"]`);
-}
-
-function showHouseInfo(houseId) {
-    const isOccupied = document.querySelector(`[data-house="${houseId}"]`).classList.contains('occupied');
-    const isPremium = document.querySelector(`[data-house="${houseId}"]`).classList.contains('premium');
-    
-    document.getElementById('infoModalTitle').textContent = `Casa ${houseId}`;
-    document.getElementById('infoModalBody').innerHTML = `
-        <p><strong>Estado:</strong> <span class="badge bg-${isOccupied ? 'success' : 'warning'}">${isOccupied ? 'Ocupada' : 'Disponible'}</span></p>
-        <p><strong>Tipo:</strong> ${isPremium ? 'Premium' : 'Estándar'}</p>
-        <p><strong>Superficie:</strong> ${isPremium ? '180m²' : '120m²'}</p>
-        <p><strong>Habitaciones:</strong> ${isPremium ? '4' : '3'} dormitorios</p>
-        ${!isOccupied ? '<div class="alert alert-info">Casa disponible para nueva familia.</div>' : ''}
-    `;
-    
-    new bootstrap.Modal(document.getElementById('infoModal')).show();
-    highlightElement(`[data-house="${houseId}"]`);
-}
-
-function searchLocation() {
-    const searchTerm = document.getElementById('searchLocation').value.toLowerCase();
-    
-    if (searchTerm.includes('manzana') || ['a', 'b', 'c', 'd'].includes(searchTerm)) {
-        const block = searchTerm.replace('manzana ', '').toUpperCase();
-        if (['A', 'B', 'C', 'D'].includes(block)) {
-            showBlockInfo(block);
-            return;
-        }
-    }
-    
-    if (searchTerm.includes('piscina')) {
-        showFacilityInfo('pool');
-        return;
-    }
-    
-    if (searchTerm.includes('tenis')) {
-        showFacilityInfo('tennis');
-        return;
-    }
-    
-    if (searchTerm.includes('futbol') || searchTerm.includes('fútbol')) {
-        showFacilityInfo('soccer');
-        return;
-    }
-    
-    alert('Ubicación no encontrada. Intenta con "Manzana A", "Piscina", etc.');
-}
-
-function highlightElement(selector) {
-    document.querySelectorAll('.highlighted').forEach(el => {
-        el.classList.remove('highlighted');
-    });
-    
-    const element = document.querySelector(selector);
-    if (element) {
-        element.classList.add('highlighted');
-        setTimeout(() => element.classList.remove('highlighted'), 3000);
-    }
-}
-
-function showAll() {
-    document.getElementById('filterResidences').checked = true;
-    document.getElementById('filterCommon').checked = true;
-    document.getElementById('filterServices').checked = true;
-    document.getElementById('filterRecreation').checked = true;
-    applyFilters();
-    resetView();
-}
-
-function resetView() {
-    currentZoom = 1;
-    document.getElementById('interactiveMap').style.transform = 'scale(1)';
-}
-
-function zoomIn() {
-    if (currentZoom < 2) {
-        currentZoom += 0.2;
-        document.getElementById('interactiveMap').style.transform = `scale(${currentZoom})`;
-    }
-}
-
-function zoomOut() {
-    if (currentZoom > 0.5) {
-        currentZoom -= 0.2;
-        document.getElementById('interactiveMap').style.transform = `scale(${currentZoom})`;
-    }
-}
-</script>
 {% endblock %}

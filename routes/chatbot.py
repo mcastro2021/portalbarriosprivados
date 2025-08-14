@@ -166,6 +166,9 @@ def process_message(message, session):
     elif any(word in message_lower for word in ['admin', 'administración', 'panel', 'gestión']):
         return handle_admin_query(message_lower, redirect_intent)
     
+    elif any(word in message_lower for word in ['registro', 'registrar', 'registrarse', 'crear cuenta', 'nueva cuenta', 'como registrarse']):
+        return handle_registration_query(message_lower, redirect_intent)
+    
     elif any(word in message_lower for word in ['ayuda', 'help', 'funciones', 'que puedes hacer']):
         return get_enhanced_help_message()
     
@@ -428,6 +431,48 @@ def handle_admin_query(message, redirect_intent=False):
         )
     
     return "Como administrador, puedes gestionar usuarios, contenido y configuraciones desde el panel de administración."
+
+def handle_registration_query(message, redirect_intent=False):
+    """Manejar consultas sobre registro de nuevos usuarios"""
+    if redirect_intent or any(word in message for word in ['ir', 'llevar', 'mostrar', 'crear']):
+        return create_response_with_redirect(
+            "Te estoy llevando al formulario de registro...",
+            "/auth/register",
+            "Registrarse"
+        )
+    
+    return """🏠 **Cómo Registrarse en Barrio Tejas 4**
+
+📝 **Pasos para crear tu cuenta:**
+
+1️⃣ **Haz clic en "Registrarse"** en la página principal
+2️⃣ **Completa el formulario** con:
+   • Nombre de usuario único
+   • Email válido (será verificado)
+   • Nombre completo
+   • Contraseña segura (mínimo 6 caracteres)
+
+3️⃣ **Información adicional:**
+   • Número de casa/lote
+   • Teléfono de contacto
+   • Dirección completa en el barrio
+
+4️⃣ **Verificación:**
+   • Recibirás un email de confirmación
+   • Un administrador debe aprobar tu cuenta
+   • Te notificaremos cuando esté activada
+
+📞 **¿Necesitas ayuda?**
+Contacta a administración:
+• Email: administracion@tejas4.com
+• Teléfono: +54 11 4444-5555
+• WhatsApp: +54 9 11 4444-5555
+• Horario: Lunes a Viernes 9:00-17:00
+
+⚡ **Acceso inmediato:**
+Algunos servicios (como este chatbot) están disponibles sin registro para consultas generales.
+
+¿Te ayudo a ir al formulario de registro? 🚀"""
 
 def get_help_message():
     """Mensaje de ayuda con funciones disponibles"""

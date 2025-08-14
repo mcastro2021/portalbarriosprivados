@@ -9,12 +9,9 @@ import json
 bp = Blueprint('security', __name__, url_prefix='/security')
 
 @bp.route('/')
-@login_required
 def index():
     """Mostrar reportes de seguridad"""
-    if not current_user.can_view_security_reports():
-        flash('No tienes permiso para acceder a esta sección', 'error')
-        return redirect(url_for('dashboard'))
+    # Permitir acceso público para crear reportes o ver botón antipánico
     
     page = request.args.get('page', 1, type=int)
     status = request.args.get('status', '')
@@ -22,9 +19,16 @@ def index():
     
     query = SecurityReport.query
     
-    # Filtros para usuarios no admin
-    if not current_user.can_access_admin():
-        query = query.filter_by(user_id=current_user.id)
+    # Filtros según tipo de usuario
+    if current_user.is_authenticated and current_user.can_view_security_reports():
+        # Admin ve todos los reportes
+        pass
+    elif current_user.is_authenticated:
+        # Usuario normal solo ve sus propios reportes
+        query = query.filter_by(reporter_id=current_user.id)
+    else:
+        # Usuario anónimo solo ve reportes públicos críticos
+        query = query.filter_by(severity='critical')
     
     if status:
         query = query.filter_by(status=status)
@@ -49,7 +53,6 @@ def index():
                          current_severity=severity)
 
 @bp.route('/new', methods=['GET', 'POST'])
-@login_required
 def new_report():
     """Crear nuevo reporte de seguridad"""
     if request.method == 'POST':
@@ -63,7 +66,10 @@ def new_report():
             
             # Crear reporte
             report = SecurityReport(
-                user_id=current_user.id,
+                user_id=current_user.id if current_user.is_authenticated else None,
+                reporter_name=request.form.get('reporter_name') if not current_user.is_authenticated else None,
+                reporter_phone=request.form.get('reporter_phone') if not current_user.is_authenticated else None,
+                reporter_email=request.form.get('reporter_email') if not current_user.is_authenticated else None,
                 title=request.form.get('title'),
                 incident_type=request.form.get('incident_type'),
                 description=request.form.get('description'),
@@ -212,17 +218,27 @@ def update_status(id):
         return jsonify({'error': str(e)}), 500
 
 @bp.route('/panic_button', methods=['POST'])
-@login_required
 def panic_button():
     """Activar botón de pánico"""
     try:
         # Crear reporte de emergencia
+        data = request.get_json() or {}
+        
+        if current_user.is_authenticated:
+            user_info = f'{current_user.name} ({current_user.username})'
+            location = current_user.address or 'Ubicación no especificada'
+        else:
+            user_info = data.get('anonymous_name', 'Usuario Anónimo')
+            location = data.get('location', 'Ubicación no especificada')
+        
         report = SecurityReport(
-            user_id=current_user.id,
-            title='ALERTA DE PÁNICO',
+            user_id=current_user.id if current_user.is_authenticated else None,
+            reporter_name=data.get('anonymous_name') if not current_user.is_authenticated else None,
+            reporter_phone=data.get('anonymous_phone') if not current_user.is_authenticated else None,
+            title='🚨 ALERTA DE PÁNICO',
             incident_type='emergency',
-            description=f'Botón de pánico activado por {current_user.name}',
-            location=current_user.address or 'Ubicación no especificada',
+            description=f'Botón de pánico activado por {user_info}. {data.get("emergency_description", "")}',
+            location=location,
             severity='critical',
             incident_date=datetime.utcnow().date(),
             incident_time=datetime.utcnow().time(),

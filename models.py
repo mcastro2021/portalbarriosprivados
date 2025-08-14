@@ -283,6 +283,7 @@ class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     month = db.Column(db.String(7), nullable=False)  # YYYY-MM
+    period = db.Column(db.String(20))  # Período legible como "Agosto 2025"
     amount = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')  # pending, paid, overdue, cancelled
@@ -295,6 +296,11 @@ class Expense(db.Model):
     late_fee = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Campos para notificaciones
+    notification_sent = db.Column(db.Boolean, default=False)
+    notification_date = db.Column(db.DateTime)
+    notification_method = db.Column(db.String(20))  # 'email', 'whatsapp', 'both'
     
     def is_overdue(self):
         """Verificar si la expensa está vencida"""
@@ -368,7 +374,13 @@ class SecurityReport(db.Model):
     __tablename__ = 'security_reports'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Permitir nulo para reportes anónimos
+    
+    # Campos para reportes anónimos
+    reporter_name = db.Column(db.String(100))
+    reporter_phone = db.Column(db.String(20))
+    reporter_email = db.Column(db.String(120))
+    
     title = db.Column(db.String(200), nullable=False)
     incident_type = db.Column(db.String(50), nullable=False)
     description = db.Column(db.Text, nullable=False)

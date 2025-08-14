@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}Notificaciones de Expensas - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">📧 Sistema de Notificaciones de Expensas</h2>
+                    <p class="text-muted">Envío automático por Email y WhatsApp</p>
+                </div>
+                <div>
+                    <button id="testConfigBtn" class="btn btn-outline-info me-2">
+                        <i class="bi bi-gear-fill me-2"></i>Probar Configuración
+                    </button>
+                    <button id="sendBulkBtn" class="btn btn-primary">
+                        <i class="bi bi-send-fill me-2"></i>Envío Masivo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-receipt text-primary fs-1 mb-2"></i>
+                    <h4 class="mb-0">{{ stats.total_expenses }}</h4>
+                    <small class="text-muted">Expensas Pendientes</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
+                    <h4 class="mb-0">{{ stats.notifications_sent }}</h4>
+                    <small class="text-muted">Notificaciones Enviadas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-clock-fill text-warning fs-1 mb-2"></i>
+                    <h4 class="mb-0">{{ stats.pending_notifications }}</h4>
+                    <small class="text-muted">Pendientes de Envío</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-percent text-info fs-1 mb-2"></i>
+                    <h4 class="mb-0">{{ "%.1f"|format(stats.notification_rate) }}%</h4>
+                    <small class="text-muted">Tasa de Envío</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">🚀 Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="sendBulkNotifications('email')">
+                                    <i class="bi bi-envelope-fill me-2"></i>
+                                    Enviar Todo por Email
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-success" onclick="sendBulkNotifications('whatsapp')">
+                                    <i class="bi bi-whatsapp me-2"></i>
+                                    Enviar Todo por WhatsApp
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-info" onclick="sendBulkNotifications('both')">
+                                    <i class="bi bi-broadcast me-2"></i>
+                                    Enviar por Ambos Métodos
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expenses List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="bi bi-list me-2"></i>
+                        Expensas Pendientes ({{ recent_expenses|length }})
+                    </h6>
+                    <div>
+                        <input type="checkbox" id="selectAll" class="form-check-input me-2">
+                        <label for="selectAll" class="form-check-label">Seleccionar todos</label>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="40"></th>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Período</th>
+                                    <th>Monto</th>
+                                    <th>Vencimiento</th>
+                                    <th>Estado Notif.</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in recent_expenses %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="form-check-input expense-checkbox" 
+                                               value="{{ expense.id }}">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <div class="avatar-circle bg-primary text-white">
+                                                    {{ expense.user.name[0].upper() if expense.user.name else expense.user.username[0].upper() }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ expense.user.name or expense.user.username }}</h6>
+                                                <small class="text-muted">{{ expense.user.address or 'Sin dirección' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{ expense.user.email }}
+                                            {% if expense.user.email_verified %}
+                                                <i class="bi bi-check-circle-fill text-success ms-1" title="Verificado"></i>
+                                            {% else %}
+                                                <i class="bi bi-exclamation-circle-fill text-warning ms-1" title="No verificado"></i>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">
+                                            {{ expense.user.phone or 'No registrado' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ expense.period or expense.month }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-primary">${{ expense.amount:,.0f }}</span>
+                                    </td>
+                                    <td>
+                                        {% if expense.due_date %}
+                                            <small class="text-muted">{{ expense.due_date.strftime('%d/%m/%Y') }}</small>
+                                            {% if expense.is_overdue() %}
+                                                <br><span class="badge bg-danger">Vencida</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">No definida</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if expense.notification_sent %}
+                                            <span class="badge bg-success">
+                                                ✅ {{ expense.notification_method|title }}
+                                            </span>
+                                            {% if expense.notification_date %}
+                                                <br><small class="text-muted">{{ expense.notification_date.strftime('%d/%m %H:%M') }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-warning">⏳ Pendiente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" 
+                                                    onclick="sendIndividualNotification({{ expense.id }}, 'email')"
+                                                    title="Enviar por Email">
+                                                <i class="bi bi-envelope"></i>
+                                            </button>
+                                            
+                                            <button class="btn btn-outline-success" 
+                                                    onclick="sendIndividualNotification({{ expense.id }}, 'whatsapp')"
+                                                    title="Enviar por WhatsApp">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </button>
+                                            
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-info dropdown-toggle" 
+                                                        data-bs-toggle="dropdown" title="Más opciones">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><button class="dropdown-item" onclick="sendIndividualNotification({{ expense.id }}, 'both')">
+                                                        <i class="bi bi-broadcast me-2"></i>Enviar por Ambos
+                                                    </button></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><button class="dropdown-item" onclick="previewNotification({{ expense.id }})">
+                                                        <i class="bi bi-eye me-2"></i>Vista Previa
+                                                    </button></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Send Modal -->
+<div class="modal fade" id="bulkSendModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-send me-2"></i>
+                    Envío Masivo de Notificaciones
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Selecciona el método de envío:</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="confirmBulkSend('email')">
+                        <i class="bi bi-envelope-fill me-2"></i>📧 Enviar por Email
+                    </button>
+                    <button class="btn btn-success" onclick="confirmBulkSend('whatsapp')">
+                        <i class="bi bi-whatsapp me-2"></i>💬 Enviar por WhatsApp
+                    </button>
+                    <button class="btn btn-info" onclick="confirmBulkSend('both')">
+                        <i class="bi bi-broadcast me-2"></i>📡 Enviar por Ambos Métodos
+                    </button>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Se enviarán notificaciones a <span id="selectedCount">0</span> usuarios seleccionados.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Config Modal -->
+<div class="modal fade" id="testConfigModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-gear me-2"></i>
+                    Probar Configuración
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="testConfig('email')">
+                        <i class="bi bi-envelope me-2"></i>Probar Email
+                    </button>
+                    <button class="btn btn-outline-success" onclick="testConfig('whatsapp')">
+                        <i class="bi bi-whatsapp me-2"></i>Probar WhatsApp
+                    </button>
+                </div>
+                <hr>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-info" onclick="sendTestNotification('email')">
+                        <i class="bi bi-envelope-paper me-2"></i>Enviar Email de Prueba
+                    </button>
+                    <button class="btn btn-success" onclick="sendTestNotification('whatsapp')">
+                        <i class="bi bi-chat-dots me-2"></i>Enviar WhatsApp de Prueba
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 35px;
+    height: 35px;
+}
+
+.avatar-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-group-sm .btn {
+    font-size: 0.8rem;
+}
+</style>
+
+<script>
+let selectedExpenses = [];
+
+// Select All functionality
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.expense-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+    updateSelectedCount();
+});
+
+// Individual checkbox handling
+document.querySelectorAll('.expense-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', updateSelectedCount);
+});
+
+function updateSelectedCount() {
+    const checkboxes = document.querySelectorAll('.expense-checkbox:checked');
+    selectedExpenses = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    document.getElementById('selectedCount').textContent = selectedExpenses.length;
+}
+
+// Send individual notification
+async function sendIndividualNotification(expenseId, method) {
+    try {
+        const response = await fetch('/admin/expense-notifications/send-notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                expense_id: expenseId,
+                method: method
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            location.reload();
+        } else {
+            alert(`❌ Error: ${data.message}`);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Bulk send
+document.getElementById('sendBulkBtn').addEventListener('click', function() {
+    updateSelectedCount();
+    const modal = new bootstrap.Modal(document.getElementById('bulkSendModal'));
+    modal.show();
+});
+
+function sendBulkNotifications(method) {
+    updateSelectedCount();
+    if (selectedExpenses.length === 0) {
+        // Si no hay seleccionados, preguntar si enviar a todos
+        if (confirm(`¿Enviar notificaciones por ${method} a TODAS las expensas pendientes?`)) {
+            confirmBulkSend(method);
+        }
+    } else {
+        confirmBulkSend(method);
+    }
+}
+
+async function confirmBulkSend(method) {
+    const methodNames = {
+        'email': 'Email',
+        'whatsapp': 'WhatsApp', 
+        'both': 'Email y WhatsApp'
+    };
+    
+    const count = selectedExpenses.length || 'todas las expensas pendientes';
+    
+    if (!confirm(`¿Confirmas enviar notificaciones por ${methodNames[method]} a ${count}?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/admin/expense-notifications/send-bulk', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                method: method,
+                expense_ids: selectedExpenses.length > 0 ? selectedExpenses : []
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            
+            // Mostrar detalles
+            if (data.results && data.results.details) {
+                const details = data.results.details.join('\n');
+                if (confirm('¿Ver detalles del envío?')) {
+                    alert(details);
+                }
+            }
+            
+            location.reload();
+        } else {
+            alert(`❌ Error: ${data.error}`);
+        }
+        
+        // Cerrar modal
+        bootstrap.Modal.getInstance(document.getElementById('bulkSendModal')).hide();
+        
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Test config
+document.getElementById('testConfigBtn').addEventListener('click', function() {
+    const modal = new bootstrap.Modal(document.getElementById('testConfigModal'));
+    modal.show();
+});
+
+async function testConfig(serviceType) {
+    try {
+        const response = await fetch('/admin/expense-notifications/test-config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                service_type: serviceType
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ ${serviceType.toUpperCase()}: ${data.message}`);
+        } else {
+            alert(`❌ ${serviceType.toUpperCase()}: ${data.message}`);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+async function sendTestNotification(method) {
+    try {
+        const response = await fetch('/admin/expense-notifications/send-test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                method: method
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ Notificación de prueba enviada por ${method}: ${data.message}`);
+        } else {
+            alert(`❌ Error enviando prueba: ${data.message}`);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

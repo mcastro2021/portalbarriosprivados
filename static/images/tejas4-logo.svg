@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" style="font-family: Arial, sans-serif;">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#E8F5E8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F0F8F0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2E7D32;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1B5E20;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="120" fill="url(#bgGradient)" rx="10"/>
+  
+  <!-- Circle background for "LOTE JOVEN" -->
+  <circle cx="80" cy="60" r="45" fill="#4CAF50" opacity="0.9"/>
+  
+  <!-- LOTE JOVEN text -->
+  <text x="80" y="50" text-anchor="middle" fill="white" font-size="10" font-weight="bold" letter-spacing="0.5px">LOTE</text>
+  <text x="80" y="65" text-anchor="middle" fill="white" font-size="10" font-weight="bold" letter-spacing="0.5px">JOVEN</text>
+  
+  <!-- Decorative leaf icon -->
+  <path d="M 70 75 Q 75 80 80 75 Q 85 80 90 75 Q 85 70 80 75 Q 75 70 70 75" fill="white" opacity="0.8"/>
+  
+  <!-- TEJAS CUATRO text -->
+  <g transform="translate(140, 45)">
+    <!-- TEJAS -->
+    <text x="0" y="0" fill="url(#textGradient)" font-size="24" font-weight="bold" letter-spacing="2px">TEJAS</text>
+    <!-- CUATRO with smaller font -->
+    <text x="0" y="25" fill="url(#textGradient)" font-size="18" font-weight="normal" letter-spacing="3px">C U A T R O</text>
+    <!-- Subtitle -->
+    <text x="0" y="40" fill="#666" font-size="9" font-weight="normal" letter-spacing="1px">BARRIO CON SEGURIDAD</text>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="350" cy="30" r="3" fill="#4CAF50" opacity="0.6"/>
+  <circle cx="365" cy="25" r="2" fill="#4CAF50" opacity="0.4"/>
+  <circle cx="355" cy="90" r="2.5" fill="#4CAF50" opacity="0.5"/>
+  
+  <!-- Small house icons -->
+  <g transform="translate(320, 70)">
+    <rect x="0" y="10" width="8" height="6" fill="#4CAF50" opacity="0.7"/>
+    <polygon points="0,10 4,6 8,10" fill="#2E7D32" opacity="0.7"/>
+    
+    <rect x="12" y="8" width="8" height="8" fill="#4CAF50" opacity="0.5"/>
+    <polygon points="12,8 16,4 20,8" fill="#2E7D32" opacity="0.5"/>
+    
+    <rect x="24" y="12" width="6" height="4" fill="#4CAF50" opacity="0.6"/>
+    <polygon points="24,12 27,9 30,12" fill="#2E7D32" opacity="0.6"/>
+  </g>
+</svg>

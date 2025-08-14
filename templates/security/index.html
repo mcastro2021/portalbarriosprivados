@@ -16,11 +16,30 @@
             <a href="{{ url_for('security.new_report') }}" class="btn btn-primary">
                 <i class="bi bi-plus-lg me-2"></i>Nuevo Reporte
             </a>
-            <button type="button" class="btn btn-danger" onclick="panicButton()">
-                <i class="bi bi-exclamation-triangle me-2"></i>Botón de Pánico
-            </button>
+            {% if current_user.is_authenticated %}
+                <button type="button" class="btn btn-danger" onclick="panicButton()">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Botón de Pánico
+                </button>
+            {% else %}
+                <button type="button" class="btn btn-danger" onclick="panicButtonAnonymous()">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Emergencia 🚨
+                </button>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                </a>
+            {% endif %}
         </div>
     </div>
+
+    {% if not current_user.is_authenticated %}
+    <!-- Mensaje para usuarios anónimos -->
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Acceso Público:</strong> Puedes crear reportes de seguridad y usar el botón de emergencia sin registrarte.
+        Para ver tus reportes anteriores y acceder a más funciones, 
+        <a href="{{ url_for('auth.register') }}" class="alert-link">regístrate aquí</a>.
+    </div>
+    {% endif %}
 
     <!-- Estadísticas de Seguridad -->
     <div class="row g-4 mb-4">
@@ -196,9 +215,59 @@ function panicButton() {
     modal.show();
 }
 
+// Función para usuarios anónimos
+function panicButtonAnonymous() {
+    const anonymousName = prompt('Tu nombre (opcional):') || 'Usuario Anónimo';
+    const anonymousPhone = prompt('Tu teléfono (para contacto de emergencia):') || '';
+    const location = prompt('Ubicación actual:') || 'Ubicación no especificada';
+    const description = prompt('Describe brevemente la emergencia:') || '';
+    
+    if (confirm('🚨 ¿Confirmas que tienes una EMERGENCIA y necesitas ayuda inmediata?')) {
+        fetch('/security/panic_button', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                anonymous_name: anonymousName,
+                anonymous_phone: anonymousPhone,
+                location: location,
+                emergency_description: description
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('🚨 ALERTA DE EMERGENCIA ENVIADA\n\nSeguridad y administración han sido notificados.\nSe contactarán contigo lo antes posible.');
+            } else {
+                alert('Error enviando alerta: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error de conexión. Llama directamente a seguridad: 911');
+        });
+    }
+}
+
 function confirmPanic() {
-    // Aquí iría la lógica para enviar la alerta de pánico
-    alert('Alerta de pánico enviada. Seguridad ha sido notificada.');
+    fetch('/security/panic_button', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('🚨 Alerta de pánico enviada. Seguridad ha sido notificada.');
+        } else {
+            alert('Error enviando alerta: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error de conexión. Llama directamente a seguridad: 911');
+    });
+    
     const modal = bootstrap.Modal.getInstance(document.getElementById('panicModal'));
     modal.hide();
     
