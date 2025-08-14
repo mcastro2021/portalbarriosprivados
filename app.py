@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from dateutil import parser
 import mercadopago
 from twilio.rest import Client
-import openai
+# OpenAI import moved to where it's used
 
 # Importar configuración y modelos
 from config import config
@@ -69,8 +69,7 @@ def create_app(config_name='default'):
     if app.config['TWILIO_ACCOUNT_SID'] and app.config['TWILIO_AUTH_TOKEN']:
         twilio_client = Client(app.config['TWILIO_ACCOUNT_SID'], app.config['TWILIO_AUTH_TOKEN'])
     
-    # Configurar OpenAI
-    openai.api_key = app.config['OPENAI_API_KEY']
+    # OpenAI configuration is now handled in chatbot.py where it's used
     
     @login_manager.user_loader
     def load_user(user_id):

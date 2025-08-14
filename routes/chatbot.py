@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from models import db, ChatbotSession, User, Visit, Reservation, News, Maintenance, Expense
-import openai
+from openai import OpenAI
 import uuid
 from datetime import datetime
 import json
@@ -210,7 +210,10 @@ def handle_general_query(message, session):
     """Manejar consultas generales usando OpenAI si está disponible"""
     try:
         # Si OpenAI está configurado, usar GPT
-        if hasattr(openai, 'api_key') and openai.api_key:
+        from flask import current_app
+        api_key = current_app.config.get('OPENAI_API_KEY')
+        if api_key:
+            client = OpenAI(api_key=api_key)
             context = session.get_context_dict()
             
             system_prompt = f"""Eres un asistente virtual para un barrio cerrado. 
@@ -218,7 +221,7 @@ def handle_general_query(message, session):
             Ayuda con consultas sobre: visitas, reservas, expensas, noticias, mantenimiento, seguridad.
             Responde de manera amigable y concisa en español."""
             
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_prompt},
