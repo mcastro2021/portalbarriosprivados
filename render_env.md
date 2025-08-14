@@ -47,9 +47,18 @@ NOTIFICATION_PUSH_ENABLED=true
 ## Configuración Recomendada en Render
 
 1. **Build Command**: `pip install -r requirements.txt`
-2. **Start Command**: `gunicorn -c gunicorn.conf.py app:app`
+2. **Start Command**: `gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --threads 2 app:app`
 3. **Environment**: Python 3.13
 4. **Plan**: Starter (512MB RAM mínimo)
+
+### Alternativa con archivo de configuración
+Si prefieres usar el archivo de configuración:
+**Start Command**: `gunicorn -c gunicorn.conf.py app:app`
+
+### Nota sobre Python 3.13
+- **eventlet** no es compatible con Python 3.13 (problema con distutils)
+- Usamos workers **sync** con threads para manejar concurrencia
+- **SocketIO** configurado en modo **threading** en lugar de eventlet
 
 ## Base de Datos
 

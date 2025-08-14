@@ -10,11 +10,12 @@ bind = "0.0.0.0:" + str(os.environ.get("PORT", 10000))
 backlog = 2048
 
 # Worker processes
-workers = min(4, (multiprocessing.cpu_count() * 2) + 1)
-worker_class = "eventlet"
+workers = min(2, multiprocessing.cpu_count() + 1)  # Menos workers para mayor estabilidad
+worker_class = "sync"
 worker_connections = 1000
 timeout = 120
 keepalive = 2
+threads = 2  # Para manejar múltiples requests por worker
 
 # Memory management
 max_requests = 1000

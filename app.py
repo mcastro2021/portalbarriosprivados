@@ -44,7 +44,7 @@ def create_app(config_name='default'):
     
     # Configurar SocketIO para producción
     socketio_config = {
-        'async_mode': 'eventlet',
+        'async_mode': 'threading',
         'cors_allowed_origins': ["https://portalbarriosprivados.onrender.com", "https://*.onrender.com"] if not app.debug else "*",
         'ping_timeout': 60,
         'ping_interval': 25,
