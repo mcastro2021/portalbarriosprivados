@@ -24,7 +24,7 @@ from config import config
 from models import db, User, Visit, Reservation, News, Maintenance, Expense, Classified, SecurityReport, Notification, NeighborhoodMap, ChatbotSession
 
 # Importar rutas
-from routes import auth, visits, reservations, news, maintenance, expenses, classifieds, security, chatbot, admin, smart_maintenance
+from routes import auth, visits, reservations, news, maintenance, expenses, classifieds, security, chatbot, admin, smart_maintenance, user_management
 
 def create_app(config_name='default'):
     """Factory function para crear la aplicación Flask"""
@@ -96,6 +96,7 @@ def create_app(config_name='default'):
     app.register_blueprint(chatbot.bp)
     app.register_blueprint(admin.bp)
     app.register_blueprint(smart_maintenance.bp)
+    app.register_blueprint(user_management.bp)
     
     # Rutas principales
     @app.route('/')
@@ -529,10 +530,63 @@ def create_sample_data():
 # Crear instancia de la aplicación para gunicorn
 app = create_app()
 
+# Función de migración automática
+def migrate_ai_columns():
+    """Migrar columnas de IA automáticamente"""
+    try:
+        from sqlalchemy import text
+        
+        # Lista de columnas a verificar/agregar
+        ai_columns = [
+            ('ai_classification', 'TEXT'),
+            ('ai_suggestions', 'TEXT'),
+            ('assigned_area', 'VARCHAR(100)'),
+            ('expected_response_time', 'VARCHAR(50)'),
+            ('ai_confidence', 'REAL'),
+            ('manual_override', 'BOOLEAN DEFAULT 0')
+        ]
+        
+        # Verificar si la tabla maintenance existe
+        with db.engine.connect() as conn:
+            result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='maintenance'"))
+            if not result.fetchone():
+                print("⚠️ Tabla maintenance no existe aún")
+                return
+            
+            # Obtener columnas existentes
+            result = conn.execute(text("PRAGMA table_info(maintenance)"))
+            existing_columns = [row[1] for row in result]
+        
+        # Agregar columnas faltantes
+        migration_count = 0
+        for column_name, column_type in ai_columns:
+            if column_name not in existing_columns:
+                try:
+                    sql = f"ALTER TABLE maintenance ADD COLUMN {column_name} {column_type}"
+                    with db.engine.connect() as conn:
+                        conn.execute(text(sql))
+                        conn.commit()
+                    migration_count += 1
+                    print(f"✅ Columna IA agregada: {column_name}")
+                except Exception as e:
+                    print(f"⚠️ No se pudo agregar {column_name}: {e}")
+        
+        if migration_count > 0:
+            db.session.commit()
+            print(f"🎉 Migración completada: {migration_count} columnas agregadas")
+        
+    except Exception as e:
+        print(f"⚠️ Error en migración automática: {e}")
+        # No fallar la aplicación por esto
+        pass
+
 # Inicializar base de datos automáticamente en producción
 with app.app_context():
     try:
         db.create_all()
+        
+        # Ejecutar migración automática para columnas de IA
+        migrate_ai_columns()
         
         # Crear usuario admin si no existe (para primera ejecución)
         admin = User.query.filter_by(username='admin').first()

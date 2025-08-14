@@ -16,13 +16,11 @@ data_analyzer = BarrioDataAnalyzer(db)
 claim_classifier = AIClaimClassifier()
 
 @bp.route('/')
-@login_required
 def index():
     """Página principal del chatbot"""
     return render_template('chatbot/index.html')
 
 @bp.route('/chat', methods=['POST'])
-@login_required
 def chat():
     """Procesar mensaje del chatbot"""
     try:
@@ -40,12 +38,18 @@ def chat():
             session = None
         
         if not session:
+            # Crear sesión para usuario autenticado o anónimo
+            user_id = current_user.id if current_user.is_authenticated else None
+            user_name = current_user.name if current_user.is_authenticated else 'Visitante'
+            user_role = current_user.role if current_user.is_authenticated else 'guest'
+            
             session = ChatbotSession(
                 session_id=str(uuid.uuid4()),
-                user_id=current_user.id,
+                user_id=user_id,
                 context=json.dumps({
-                    'user_name': current_user.name,
-                    'user_role': current_user.role,
+                    'user_name': user_name,
+                    'user_role': user_role,
+                    'is_authenticated': current_user.is_authenticated,
                     'conversation_history': []
                 })
             )
@@ -110,13 +114,22 @@ def process_message(message, session):
     
     # 2. CONSULTAS ESPECÍFICAS DE DATOS DEL USUARIO
     if any(word in message_lower for word in ['mi expensa', 'mis expensas', 'cuanto debo', 'vence', 'pagar']):
-        return data_analyzer.get_expense_info(current_user.id)
+        if current_user.is_authenticated:
+            return data_analyzer.get_expense_info(current_user.id)
+        else:
+            return "🔒 Para consultar el estado de tus expensas necesitas iniciar sesión. Puedes hacerlo desde el botón 'Ingresar' en la página principal."
     
     elif any(word in message_lower for word in ['mis visitas', 'visitas pendientes', 'quien viene']):
-        return data_analyzer.get_visits_info(current_user.id)
+        if current_user.is_authenticated:
+            return data_analyzer.get_visits_info(current_user.id)
+        else:
+            return "🔒 Para consultar el estado de tus visitas necesitas iniciar sesión. Una vez dentro podrás ver todas tus visitas pendientes y autorizadas."
     
     elif any(word in message_lower for word in ['mis reservas', 'reservas confirmadas', 'que tengo reservado']):
-        return data_analyzer.get_reservations_info(current_user.id)
+        if current_user.is_authenticated:
+            return data_analyzer.get_reservations_info(current_user.id)
+        else:
+            return "🔒 Para consultar el estado de tus reservas necesitas iniciar sesión. Podrás ver todas tus reservas del quincho y cancha de tenis."
     
     # 3. CLASIFICACIÓN INTELIGENTE DE RECLAMOS
     elif any(word in message_lower for word in ['reclamo', 'problema', 'queja', 'no funciona', 'roto', 'falla']):
@@ -124,7 +137,10 @@ def process_message(message, session):
     
     # 4. RESPUESTAS BASADAS EN PALABRAS CLAVE (funcionalidad original)
     elif any(word in message_lower for word in ['hola', 'hello', 'hi', 'buenas']):
-        return f"¡Hola {current_user.name}! 🤖 Soy tu asistente virtual inteligente. Puedo ayudarte con consultas sobre reglamentos, horarios, estados de cuenta, y clasificar reclamos automáticamente. ¿En qué puedo ayudarte?"
+        if current_user.is_authenticated:
+            return f"¡Hola {current_user.name}! 🤖 Soy tu asistente virtual inteligente. Puedo ayudarte con consultas sobre reglamentos, horarios, estados de cuenta, y clasificar reclamos automáticamente. ¿En qué puedo ayudarte?"
+        else:
+            return "¡Hola! 👋 Soy el asistente virtual del barrio. Puedo ayudarte con información sobre reglamentos, horarios, contactos y procedimientos. Para consultas personales sobre expensas, visitas o reservas, necesitarás iniciar sesión. ¿En qué puedo ayudarte?"
     
     elif any(word in message_lower for word in ['visita', 'visitor', 'invitado']):
         return handle_visits_query(message_lower, redirect_intent)

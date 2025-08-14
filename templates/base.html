@@ -189,7 +189,6 @@
     {% block extra_js %}{% endblock %}
 
     <!-- Floating Chatbot Button -->
-    {% if current_user.is_authenticated %}
     <div class="floating-chatbot">
         <a href="{{ url_for('chatbot.index') }}" class="chatbot-btn" title="Asistente Virtual IA">
             <i class="bi bi-robot"></i>
@@ -307,6 +306,5 @@
         }
     }
     </style>
-    {% endif %}
 </body>
 </html> 

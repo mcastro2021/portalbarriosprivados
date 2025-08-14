@@ -274,9 +274,14 @@
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <a href="{{ url_for('smart_maintenance.ai_dashboard') }}" class="btn btn-primary btn-lg">
-                                <i class="bi bi-bar-chart-line me-2"></i>Ver Dashboard IA
-                            </a>
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('smart_maintenance.ai_dashboard') }}" class="btn btn-primary">
+                                    <i class="bi bi-bar-chart-line me-2"></i>Dashboard IA
+                                </a>
+                                <a href="{{ url_for('user_management.index') }}" class="btn btn-success">
+                                    <i class="bi bi-people me-2"></i>Gestión de Usuarios
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

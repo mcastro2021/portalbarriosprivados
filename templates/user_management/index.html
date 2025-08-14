@@ -1,0 +1,697 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Usuarios - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">👥 Gestión Avanzada de Usuarios</h2>
+                    <p class="text-muted">Administración completa de cuentas, roles y contraseñas</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('user_management.export_users') }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-download me-2"></i>Exportar CSV
+                    </a>
+                    <button id="bulkActionsBtn" class="btn btn-primary" disabled>
+                        <i class="bi bi-gear me-2"></i>Acciones en Lote
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-people-fill text-primary fs-2 mb-2"></i>
+                    <h4 class="mb-0">{{ stats.total_users }}</h4>
+                    <small class="text-muted">Total Usuarios</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-check-circle-fill text-success fs-2 mb-2"></i>
+                    <h4 class="mb-0">{{ stats.active_users }}</h4>
+                    <small class="text-muted">Activos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-shield-fill-check text-warning fs-2 mb-2"></i>
+                    <h4 class="mb-0">{{ stats.admin_users }}</h4>
+                    <small class="text-muted">Admins</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-envelope-check-fill text-info fs-2 mb-2"></i>
+                    <h4 class="mb-0">{{ stats.verified_users }}</h4>
+                    <small class="text-muted">Verificados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-person-plus-fill text-primary fs-2 mb-2"></i>
+                    <h4 class="mb-0">{{ stats.recent_users }}</h4>
+                    <small class="text-muted">Últimos 30d</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-percent text-success fs-2 mb-2"></i>
+                    <h4 class="mb-0">{{ "%.1f"|format((stats.active_users / stats.total_users * 100) if stats.total_users > 0 else 0) }}%</h4>
+                    <small class="text-muted">Actividad</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">🔍 Buscar</label>
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Username, nombre o email..." 
+                                   value="{{ search }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">👑 Rol</label>
+                            <select name="role" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                                <option value="moderator" {% if role_filter == 'moderator' %}selected{% endif %}>Moderador</option>
+                                <option value="user" {% if role_filter == 'user' %}selected{% endif %}>Usuario</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">📊 Estado</label>
+                            <select name="status" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activos</option>
+                                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivos</option>
+                                <option value="verified" {% if status_filter == 'verified' %}selected{% endif %}>Verificados</option>
+                                <option value="unverified" {% if status_filter == 'unverified' %}selected{% endif %}>No Verificados</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <a href="{{ url_for('user_management.index') }}" class="btn btn-outline-secondary w-100">Limpiar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="bi bi-table me-2"></i>
+                            Usuarios ({{ users|length }})
+                        </h6>
+                        <div>
+                            <input type="checkbox" id="selectAll" class="form-check-input me-2">
+                            <label for="selectAll" class="form-check-label">Seleccionar todos</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="40"></th>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Último Login</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="form-check-input user-checkbox" 
+                                               value="{{ user.id }}" data-username="{{ user.username }}">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3">
+                                                <div class="avatar-circle bg-primary text-white">
+                                                    {{ user.name[0].upper() if user.name else user.username[0].upper() }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ user.name or user.username }}</h6>
+                                                <small class="text-muted">@{{ user.username }}</small>
+                                                {% if user.id == current_user.id %}
+                                                    <span class="badge bg-info ms-1">Tú</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{ user.email }}
+                                            {% if user.email_verified %}
+                                                <i class="bi bi-check-circle-fill text-success ms-1" title="Verificado"></i>
+                                            {% else %}
+                                                <i class="bi bi-exclamation-circle-fill text-warning ms-1" title="No verificado"></i>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if user.role == 'admin' %}
+                                            <span class="badge bg-danger">👑 Admin</span>
+                                        {% elif user.role == 'moderator' %}
+                                            <span class="badge bg-warning">🛡️ Moderador</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">👤 Usuario</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge bg-success">✅ Activo</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">❌ Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if user.last_login %}
+                                                {{ user.last_login.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                <em>Nunca</em>
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" 
+                                                    onclick="viewUserDetails({{ user.id }})" 
+                                                    title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            
+                                            <button class="btn btn-outline-warning" 
+                                                    onclick="resetPassword({{ user.id }}, '{{ user.username }}')" 
+                                                    title="Resetear contraseña">
+                                                <i class="bi bi-key"></i>
+                                            </button>
+                                            
+                                            {% if user.id != current_user.id %}
+                                            <button class="btn btn-outline-secondary" 
+                                                    onclick="toggleStatus({{ user.id }}, '{{ user.username }}', {{ user.is_active|lower }})" 
+                                                    title="{% if user.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                                <i class="bi bi-{% if user.is_active %}pause{% else %}play{% endif %}"></i>
+                                            </button>
+                                            {% endif %}
+                                            
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-info dropdown-toggle" 
+                                                        data-bs-toggle="dropdown" title="Más acciones">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><button class="dropdown-item" onclick="changeRole({{ user.id }}, '{{ user.username }}')">
+                                                        <i class="bi bi-person-badge me-2"></i>Cambiar Rol
+                                                    </button></li>
+                                                    {% if not user.email_verified %}
+                                                    <li><button class="dropdown-item" onclick="verifyEmail({{ user.id }}, '{{ user.username }}')">
+                                                        <i class="bi bi-check-circle me-2"></i>Verificar Email
+                                                    </button></li>
+                                                    {% endif %}
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><button class="dropdown-item text-info" onclick="generatePassword()">
+                                                        <i class="bi bi-shuffle me-2"></i>Generar Contraseña
+                                                    </button></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-circle me-2"></i>
+                    Detalles del Usuario
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailsContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-key me-2"></i>
+                    Resetear Contraseña
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres resetear la contraseña del usuario <strong id="resetUsername"></strong>?</p>
+                <div class="mb-3">
+                    <label class="form-label">Nueva Contraseña:</label>
+                    <div class="input-group">
+                        <input type="text" id="newPassword" class="form-control" value="temp123456">
+                        <button class="btn btn-outline-secondary" onclick="generatePassword()" title="Generar contraseña">
+                            <i class="bi bi-shuffle"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    El usuario recibirá esta contraseña temporal y deberá cambiarla en su próximo login.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="confirmResetBtn" class="btn btn-warning">Resetear Contraseña</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions Modal -->
+<div class="modal fade" id="bulkActionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-gear me-2"></i>
+                    Acciones en Lote
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Usuarios seleccionados: <span id="selectedCount">0</span></p>
+                <div class="mb-3">
+                    <label class="form-label">Acción a realizar:</label>
+                    <select id="bulkAction" class="form-select">
+                        <option value="">Seleccionar acción...</option>
+                        <option value="activate">Activar usuarios</option>
+                        <option value="deactivate">Desactivar usuarios</option>
+                        <option value="verify_email">Verificar emails</option>
+                        <option value="reset_password">Resetear contraseñas</option>
+                    </select>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Esta acción se aplicará a todos los usuarios seleccionados.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="executeBulkAction" class="btn btn-primary">Ejecutar Acción</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-group-sm .btn {
+    font-size: 0.8rem;
+}
+
+.card {
+    border-radius: 10px;
+}
+</style>
+
+<script>
+let selectedUsers = [];
+let currentUserId = null;
+
+// Select All functionality
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+        updateSelectedUsers();
+    });
+});
+
+// Individual checkbox handling
+document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', updateSelectedUsers);
+});
+
+function updateSelectedUsers() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    selectedUsers = Array.from(checkboxes).map(cb => ({
+        id: parseInt(cb.value),
+        username: cb.dataset.username
+    }));
+    
+    document.getElementById('bulkActionsBtn').disabled = selectedUsers.length === 0;
+    document.getElementById('selectedCount').textContent = selectedUsers.length;
+}
+
+// Bulk Actions
+document.getElementById('bulkActionsBtn').addEventListener('click', function() {
+    if (selectedUsers.length > 0) {
+        const modal = new bootstrap.Modal(document.getElementById('bulkActionsModal'));
+        modal.show();
+    }
+});
+
+document.getElementById('executeBulkAction').addEventListener('click', async function() {
+    const action = document.getElementById('bulkAction').value;
+    if (!action) {
+        alert('Selecciona una acción');
+        return;
+    }
+    
+    if (!confirm(`¿Estás seguro de aplicar "${action}" a ${selectedUsers.length} usuarios?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/admin/users/bulk-actions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_ids: selectedUsers.map(u => u.id),
+                action: action
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+});
+
+// User Details
+async function viewUserDetails(userId) {
+    const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+    const content = document.getElementById('userDetailsContent');
+    
+    content.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    modal.show();
+    
+    try {
+        const response = await fetch(`/admin/users/user-details/${userId}`);
+        const data = await response.json();
+        
+        if (data.user) {
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Información Personal</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Username:</strong></td><td>${data.user.username}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${data.user.email}</td></tr>
+                            <tr><td><strong>Nombre:</strong></td><td>${data.user.name || 'N/A'}</td></tr>
+                            <tr><td><strong>Teléfono:</strong></td><td>${data.user.phone || 'N/A'}</td></tr>
+                            <tr><td><strong>Dirección:</strong></td><td>${data.user.address || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Estado de Cuenta</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Rol:</strong></td><td><span class="badge bg-primary">${data.user.role}</span></td></tr>
+                            <tr><td><strong>Estado:</strong></td><td><span class="badge bg-${data.user.is_active ? 'success' : 'danger'}">${data.user.is_active ? 'Activo' : 'Inactivo'}</span></td></tr>
+                            <tr><td><strong>Email Verificado:</strong></td><td><span class="badge bg-${data.user.email_verified ? 'success' : 'warning'}">${data.user.email_verified ? 'Sí' : 'No'}</span></td></tr>
+                            <tr><td><strong>Creado:</strong></td><td>${data.user.created_at}</td></tr>
+                            <tr><td><strong>Último Login:</strong></td><td>${data.user.last_login}</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Estadísticas de Actividad</h6>
+                        <div class="row">
+                            <div class="col-3 text-center">
+                                <div class="border rounded p-2">
+                                    <h5>${data.stats.total_visits}</h5>
+                                    <small class="text-muted">Visitas</small>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="border rounded p-2">
+                                    <h5>${data.stats.total_reservations}</h5>
+                                    <small class="text-muted">Reservas</small>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="border rounded p-2">
+                                    <h5>${data.stats.total_maintenance}</h5>
+                                    <small class="text-muted">Reclamos</small>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="border rounded p-2">
+                                    <h5>${data.stats.total_expenses}</h5>
+                                    <small class="text-muted">Expensas</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            content.innerHTML = '<div class="alert alert-danger">Error al cargar los detalles del usuario</div>';
+        }
+    } catch (error) {
+        content.innerHTML = '<div class="alert alert-danger">Error de conexión</div>';
+    }
+}
+
+// Reset Password
+function resetPassword(userId, username) {
+    currentUserId = userId;
+    document.getElementById('resetUsername').textContent = username;
+    
+    const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+    modal.show();
+}
+
+document.getElementById('confirmResetBtn').addEventListener('click', async function() {
+    const newPassword = document.getElementById('newPassword').value;
+    
+    if (!newPassword) {
+        alert('Ingresa una nueva contraseña');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/admin/users/reset-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: currentUserId,
+                new_password: newPassword
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Contraseña resetada exitosamente.\nNueva contraseña: ${data.new_password}`);
+            bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+});
+
+// Generate Password
+async function generatePassword() {
+    try {
+        const response = await fetch('/admin/users/generate-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('newPassword').value = data.password;
+        }
+    } catch (error) {
+        console.error('Error generating password:', error);
+    }
+}
+
+// Toggle Status
+async function toggleStatus(userId, username, isActive) {
+    const action = isActive ? 'desactivar' : 'activar';
+    
+    if (!confirm(`¿Estás seguro de que quieres ${action} al usuario ${username}?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/users/toggle-status/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Change Role
+async function changeRole(userId, username) {
+    const newRole = prompt(`Cambiar rol de ${username}.\nIngresa el nuevo rol (admin/moderator/user):`);
+    
+    if (!newRole || !['admin', 'moderator', 'user'].includes(newRole)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/users/change-role/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                new_role: newRole
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Verify Email
+async function verifyEmail(userId, username) {
+    if (!confirm(`¿Verificar manualmente el email de ${username}?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/users/verify-email/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+</script>
+{% endblock %}
