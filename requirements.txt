@@ -22,11 +22,4 @@ psycopg2-binary==2.9.7
 redis==4.6.0
 celery==5.3.1
 twilio==8.5.0
-openai==1.35.0
-numpy==1.26.4
-pandas==2.2.2
-matplotlib==3.8.4
-seaborn==0.12.2
-plotly==5.15.0
-dash==2.11.1
-dash-bootstrap-components==1.4.1 
+openai==1.35.0 
