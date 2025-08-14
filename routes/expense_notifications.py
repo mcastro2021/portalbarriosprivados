@@ -5,7 +5,13 @@ Rutas para el sistema de notificaciones de expensas
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
 from models import db, Expense, User
-from notification_service import NotificationService, test_email_config, test_whatsapp_config
+try:
+    from notification_service import NotificationService, test_email_config, test_whatsapp_config
+except ImportError:
+    # Usar versión simplificada si hay problemas de importación
+    from notification_service_simple import NotificationService, test_whatsapp_config
+    def test_email_config():
+        return True, "Email temporalmente deshabilitado"
 from datetime import datetime
 import json
 

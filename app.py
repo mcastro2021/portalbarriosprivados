@@ -550,34 +550,85 @@ def migrate_ai_columns():
             ('manual_override', 'BOOLEAN DEFAULT 0')
         ]
         
-        # Verificar si la tabla maintenance existe
-        with db.engine.connect() as conn:
-            result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='maintenance'"))
-            if not result.fetchone():
-                print("⚠️ Tabla maintenance no existe aún")
-                return
-            
-            # Obtener columnas existentes
-            result = conn.execute(text("PRAGMA table_info(maintenance)"))
-            existing_columns = [row[1] for row in result]
+        # Columnas para sistema de notificaciones de expensas
+        expense_notification_columns = [
+            ('notification_sent', 'BOOLEAN DEFAULT 0'),
+            ('notification_date', 'DATETIME'),
+            ('notification_method', 'VARCHAR(20)'),
+            ('period', 'VARCHAR(20)')
+        ]
         
-        # Agregar columnas faltantes
+        # Columnas para reportes de seguridad anónimos
+        security_report_columns = [
+            ('reporter_name', 'VARCHAR(100)'),
+            ('reporter_phone', 'VARCHAR(20)'),
+            ('reporter_email', 'VARCHAR(120)')
+        ]
+        
+        # Migrar columnas de IA en tabla maintenance
         migration_count = 0
-        for column_name, column_type in ai_columns:
-            if column_name not in existing_columns:
+        with db.engine.connect() as conn:
+            # Verificar tabla maintenance
+            result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='maintenance'"))
+            if result.fetchone():
+                result = conn.execute(text("PRAGMA table_info(maintenance)"))
+                existing_columns = [row[1] for row in result]
+                
+                for column_name, column_type in ai_columns:
+                    if column_name not in existing_columns:
+                        try:
+                            sql = f"ALTER TABLE maintenance ADD COLUMN {column_name} {column_type}"
+                            conn.execute(text(sql))
+                            conn.commit()
+                            migration_count += 1
+                            print(f"✅ Columna IA agregada: {column_name}")
+                        except Exception as e:
+                            print(f"⚠️ No se pudo agregar {column_name}: {e}")
+            
+            # Migrar columnas de notificaciones en tabla expenses
+            result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='expenses'"))
+            if result.fetchone():
+                result = conn.execute(text("PRAGMA table_info(expenses)"))
+                existing_columns = [row[1] for row in result]
+                
+                for column_name, column_type in expense_notification_columns:
+                    if column_name not in existing_columns:
+                        try:
+                            sql = f"ALTER TABLE expenses ADD COLUMN {column_name} {column_type}"
+                            conn.execute(text(sql))
+                            conn.commit()
+                            migration_count += 1
+                            print(f"✅ Columna notificación agregada: {column_name}")
+                        except Exception as e:
+                            print(f"⚠️ No se pudo agregar {column_name}: {e}")
+            
+            # Migrar columnas de seguridad anónima en tabla security_reports
+            result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='security_reports'"))
+            if result.fetchone():
+                result = conn.execute(text("PRAGMA table_info(security_reports)"))
+                existing_columns = [row[1] for row in result]
+                
+                for column_name, column_type in security_report_columns:
+                    if column_name not in existing_columns:
+                        try:
+                            sql = f"ALTER TABLE security_reports ADD COLUMN {column_name} {column_type}"
+                            conn.execute(text(sql))
+                            conn.commit()
+                            migration_count += 1
+                            print(f"✅ Columna seguridad agregada: {column_name}")
+                        except Exception as e:
+                            print(f"⚠️ No se pudo agregar {column_name}: {e}")
+                
+                # También cambiar user_id a nullable para reportes anónimos
                 try:
-                    sql = f"ALTER TABLE maintenance ADD COLUMN {column_name} {column_type}"
-                    with db.engine.connect() as conn:
-                        conn.execute(text(sql))
-                        conn.commit()
-                    migration_count += 1
-                    print(f"✅ Columna IA agregada: {column_name}")
+                    # Nota: SQLite no permite modificar columnas directamente, 
+                    # pero la aplicación manejará valores NULL
+                    print("ℹ️ user_id en security_reports permitirá valores NULL")
                 except Exception as e:
-                    print(f"⚠️ No se pudo agregar {column_name}: {e}")
+                    print(f"⚠️ Nota sobre user_id: {e}")
         
         if migration_count > 0:
-            db.session.commit()
-            print(f"🎉 Migración completada: {migration_count} columnas agregadas")
+            print(f"🎉 Migración automática completada: {migration_count} columnas agregadas")
         
     except Exception as e:
         print(f"⚠️ Error en migración automática: {e}")

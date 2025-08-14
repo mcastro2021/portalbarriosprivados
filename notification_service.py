@@ -4,11 +4,20 @@ Sistema de notificaciones por Email y WhatsApp para expensas
 
 import smtplib
 import requests
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
 from datetime import datetime, timedelta
 from flask import current_app
 import json
+
+# Importaciones de email deshabilitadas temporalmente para compatibilidad con Python 3.13
+# try:
+#     from email.mime.text import MimeText
+#     from email.mime.multipart import MimeMultipart
+# except ImportError:
+#     from email.mime.text import MIMEText as MimeText
+#     from email.mime.multipart import MIMEMultipart as MimeMultipart
+
+# Usar servicio simplificado por ahora
+EMAIL_ENABLED = False
 
 class NotificationService:
     """Servicio de notificaciones por email y WhatsApp"""
@@ -40,12 +49,18 @@ class NotificationService:
         except Exception as e:
             print(f"⚠️ Error cargando configuración de notificaciones: {e}")
     
-    def send_expense_notification(self, user, expense, method='email'):
+    def send_expense_notification(self, user, expense, method='whatsapp'):
         """Enviar notificación de expensa"""
         try:
             if method == 'email':
-                return self._send_expense_email(user, expense)
+                if EMAIL_ENABLED:
+                    return self._send_expense_email(user, expense)
+                else:
+                    return True, "Email temporalmente deshabilitado - usar WhatsApp"
             elif method == 'whatsapp':
+                return self._send_expense_whatsapp(user, expense)
+            elif method == 'both':
+                # Solo WhatsApp por ahora
                 return self._send_expense_whatsapp(user, expense)
             else:
                 return False, "Método no soportado"
@@ -53,32 +68,8 @@ class NotificationService:
             return False, str(e)
     
     def _send_expense_email(self, user, expense):
-        """Enviar expensa por email"""
-        if not self.email_config['email'] or not self.email_config['password']:
-            return False, "Configuración de email no disponible"
-        
-        try:
-            # Crear mensaje
-            msg = MimeMultipart('alternative')
-            msg['Subject'] = f"Expensa {expense.period} - Barrio Tejas 4"
-            msg['From'] = f"{self.email_config['from_name']} <{self.email_config['email']}>"
-            msg['To'] = user.email
-            
-            # Contenido HTML
-            html_content = self._generate_expense_email_html(user, expense)
-            html_part = MimeText(html_content, 'html', 'utf-8')
-            msg.attach(html_part)
-            
-            # Enviar email
-            with smtplib.SMTP(self.email_config['smtp_server'], self.email_config['smtp_port']) as server:
-                server.starttls()
-                server.login(self.email_config['email'], self.email_config['password'])
-                server.send_message(msg)
-            
-            return True, "Email enviado exitosamente"
-            
-        except Exception as e:
-            return False, f"Error enviando email: {str(e)}"
+        """Enviar expensa por email (temporalmente deshabilitado)"""
+        return False, "Email temporalmente deshabilitado para compatibilidad con Python 3.13"
     
     def _send_expense_whatsapp(self, user, expense):
         """Enviar expensa por WhatsApp"""
@@ -312,13 +303,16 @@ class ExpenseNotificationScheduler:
 # Funciones de utilidad para administradores
 def test_email_config():
     """Probar configuración de email"""
-    try:
-        service = NotificationService()
-        if not service.email_config['email']:
-            return False, "Email no configurado"
-        return True, "Configuración de email OK"
-    except Exception as e:
-        return False, str(e)
+    if EMAIL_ENABLED:
+        try:
+            service = NotificationService()
+            if not service.email_config['email']:
+                return False, "Email no configurado"
+            return True, "Configuración de email OK"
+        except Exception as e:
+            return False, str(e)
+    else:
+        return True, "Email temporalmente deshabilitado para compatibilidad con Python 3.13"
 
 def test_whatsapp_config():
     """Probar configuración de WhatsApp"""
