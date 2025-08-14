@@ -76,6 +76,12 @@
                             <i class="bi bi-geo-alt me-1"></i>Mapa
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('chatbot.index') }}">
+                            <i class="bi bi-robot me-1"></i>Asistente
+                            <span class="badge bg-success ms-1">IA</span>
+                        </a>
+                    </li>
                 </ul>
                 
                 <ul class="navbar-nav">
@@ -181,5 +187,126 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     
     {% block extra_js %}{% endblock %}
+
+    <!-- Floating Chatbot Button -->
+    {% if current_user.is_authenticated %}
+    <div class="floating-chatbot">
+        <a href="{{ url_for('chatbot.index') }}" class="chatbot-btn" title="Asistente Virtual IA">
+            <i class="bi bi-robot"></i>
+            <div class="pulse-ring"></div>
+        </a>
+        <div class="chatbot-tooltip">
+            ¡Pregúntame cualquier cosa!<br>
+            <small>Con redirección automática 🚀</small>
+        </div>
+    </div>
+
+    <style>
+    .floating-chatbot {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+
+    .chatbot-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        color: white;
+        text-decoration: none;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chatbot-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+
+    .chatbot-btn:active {
+        transform: translateY(-1px);
+    }
+
+    .pulse-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(0.8);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    .chatbot-tooltip {
+        position: absolute;
+        bottom: 70px;
+        right: 0;
+        background: #333;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        text-align: center;
+    }
+
+    .chatbot-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        right: 20px;
+        border: 5px solid transparent;
+        border-top-color: #333;
+    }
+
+    .floating-chatbot:hover .chatbot-tooltip {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+        .floating-chatbot {
+            bottom: 15px;
+            right: 15px;
+        }
+
+        .chatbot-btn {
+            width: 55px;
+            height: 55px;
+            font-size: 1.3rem;
+        }
+
+        .chatbot-tooltip {
+            font-size: 0.8rem;
+            bottom: 65px;
+            right: -10px;
+        }
+    }
+    </style>
+    {% endif %}
 </body>
 </html> 

@@ -1,0 +1,612 @@
+{% extends "base.html" %}
+
+{% block title %}Asistente Virtual - Portal Barrio Privado{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <!-- Chat Container -->
+        <div class="col-lg-8 mx-auto">
+            <div class="card h-100 shadow-lg border-0">
+                <!-- Header -->
+                <div class="card-header bg-gradient-primary text-white">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar me-3">
+                            <div class="avatar-circle">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="status-indicator"></div>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">🤖 Asistente Virtual</h5>
+                            <small class="opacity-75">Con redirección inteligente automática</small>
+                        </div>
+                        <div class="ms-auto">
+                            <button id="clearChat" class="btn btn-outline-light btn-sm">
+                                <i class="bi bi-trash"></i> Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="card-body p-0 d-flex flex-column">
+                    <div id="chatMessages" class="flex-grow-1 p-4 overflow-auto">
+                        <!-- Welcome Message -->
+                        <div class="message-container bot-message">
+                            <div class="avatar-small">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="message-bubble bot">
+                                <div class="typing-animation">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <div class="message-text" style="display: none;">
+                                    ¡Hola {{ current_user.name }}! 👋<br><br>
+                                    Soy tu asistente virtual inteligente. <strong>Puedo llevarte automáticamente</strong> a cualquier sección del portal según lo que necesites.<br><br>
+                                    
+                                    <strong>Ejemplos de comandos:</strong><br>
+                                    • "Quiero hacer una reserva" → Te llevo a Reservas<br>
+                                    • "Ver mis expensas" → Te llevo a Expensas<br>
+                                    • "Registrar una visita" → Te llevo a Visitas<br>
+                                    • "Mostrar el mapa" → Te llevo al Mapa<br>
+                                    • "Ir a noticias" → Te llevo a Noticias<br><br>
+                                    
+                                    ¡Solo dime qué necesitas y te dirijo automáticamente! 🚀
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions p-3 border-top">
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <button class="btn btn-outline-primary btn-sm w-100 quick-action" data-message="ir a visitas">
+                                    <i class="bi bi-people"></i> Visitas
+                                </button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button class="btn btn-outline-success btn-sm w-100 quick-action" data-message="hacer reserva">
+                                    <i class="bi bi-calendar-check"></i> Reservar
+                                </button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button class="btn btn-outline-warning btn-sm w-100 quick-action" data-message="ver expensas">
+                                    <i class="bi bi-credit-card"></i> Expensas
+                                </button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button class="btn btn-outline-info btn-sm w-100 quick-action" data-message="mostrar mapa">
+                                    <i class="bi bi-geo-alt"></i> Mapa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="chat-input-container p-3 border-top">
+                        <form id="chatForm" class="d-flex">
+                            <div class="position-relative flex-grow-1 me-2">
+                                <input type="text" id="messageInput" class="form-control" 
+                                       placeholder="Escribe aquí... ej: 'quiero hacer una reserva'" 
+                                       autocomplete="off">
+                                <div class="voice-button">
+                                    <button type="button" id="voiceBtn" class="btn btn-link p-1">
+                                        <i class="bi bi-mic"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" id="sendBtn" class="btn btn-primary">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </form>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="bi bi-lightbulb"></i> 
+                            Usa palabras como "ir a", "mostrar", "crear", "ver" para redirección automática
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Redirect Modal -->
+<div class="modal fade" id="redirectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title">
+                    <i class="bi bi-arrow-right-circle me-2"></i>
+                    Redirección Automática
+                </h5>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="redirect-animation mb-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Redirigiendo...</span>
+                    </div>
+                </div>
+                <h6 id="redirectTitle" class="mb-2"></h6>
+                <p id="redirectMessage" class="text-muted mb-3"></p>
+                <div class="countdown-container">
+                    <span class="text-primary fw-bold">Redirigiendo en <span id="countdown">3</span> segundos...</span>
+                </div>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-primary me-2" id="redirectNow">
+                        <i class="bi bi-arrow-right"></i> Ir Ahora
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.avatar {
+    position: relative;
+}
+
+.avatar-circle {
+    width: 45px;
+    height: 45px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.status-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #00ff88;
+    border-radius: 50%;
+    border: 2px solid white;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.message-container {
+    display: flex;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.message-container.user-message {
+    justify-content: flex-end;
+}
+
+.avatar-small {
+    width: 32px;
+    height: 32px;
+    background: #667eea;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message-bubble.bot {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    margin-left: 10px;
+}
+
+.message-bubble.user {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-left: auto;
+}
+
+.typing-animation {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.typing-animation span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #667eea;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-animation span:nth-child(1) { animation-delay: -0.32s; }
+.typing-animation span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { 
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.quick-actions .btn {
+    transition: all 0.2s;
+    border-radius: 10px;
+}
+
+.quick-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.chat-input-container {
+    background: #f8f9fa;
+}
+
+.voice-button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.redirect-animation {
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.countdown-container {
+    font-size: 1.1rem;
+}
+
+#chatMessages {
+    height: 400px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.card {
+    border-radius: 15px;
+}
+
+.message-bubble.bot {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.redirect-notice {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 15px;
+    margin: 10px 0;
+    text-align: center;
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+</style>
+
+<!-- Scripts -->
+<script>
+class SmartChatbot {
+    constructor() {
+        this.sessionId = null;
+        this.isTyping = false;
+        this.redirectTimeout = null;
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.showWelcomeMessage();
+    }
+
+    bindEvents() {
+        // Form submission
+        document.getElementById('chatForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.sendMessage();
+        });
+
+        // Quick actions
+        document.querySelectorAll('.quick-action').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const message = e.target.closest('.quick-action').dataset.message;
+                document.getElementById('messageInput').value = message;
+                this.sendMessage();
+            });
+        });
+
+        // Clear chat
+        document.getElementById('clearChat').addEventListener('click', () => {
+            this.clearChat();
+        });
+
+        // Redirect modal buttons
+        document.getElementById('redirectNow').addEventListener('click', () => {
+            this.executeRedirect();
+        });
+
+        // Voice input (placeholder)
+        document.getElementById('voiceBtn').addEventListener('click', () => {
+            this.toggleVoiceInput();
+        });
+
+        // Enter key
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        });
+    }
+
+    showWelcomeMessage() {
+        setTimeout(() => {
+            const typingElement = document.querySelector('.typing-animation');
+            const messageElement = document.querySelector('.message-text');
+            
+            typingElement.style.display = 'none';
+            messageElement.style.display = 'block';
+            messageElement.style.animation = 'slideIn 0.5s ease-out';
+        }, 2000);
+    }
+
+    async sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (!message || this.isTyping) return;
+
+        // Add user message
+        this.addMessage(message, 'user');
+        input.value = '';
+        
+        // Show typing indicator
+        this.showTypingIndicator();
+        this.isTyping = true;
+
+        try {
+            const response = await fetch('/chatbot/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    session_id: this.sessionId
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            this.sessionId = data.session_id;
+            
+            // Remove typing indicator
+            this.hideTypingIndicator();
+            
+            // Add bot response
+            this.addMessage(data.response, 'bot');
+            
+            // Handle redirect if present
+            if (data.redirect) {
+                this.handleRedirect(data.redirect);
+            }
+            
+        } catch (error) {
+            this.hideTypingIndicator();
+            this.addMessage('Lo siento, ocurrió un error. Intenta de nuevo.', 'bot');
+            console.error('Error:', error);
+        }
+        
+        this.isTyping = false;
+    }
+
+    addMessage(text, sender) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message-container ${sender}-message`;
+        
+        if (sender === 'bot') {
+            messageDiv.innerHTML = `
+                <div class="avatar-small">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="message-bubble bot">
+                    <div class="message-text">${text}</div>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="message-bubble user">
+                    <div class="message-text">${text}</div>
+                </div>
+            `;
+        }
+        
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // Animation
+        messageDiv.style.opacity = '0';
+        messageDiv.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            messageDiv.style.transition = 'all 0.3s ease-out';
+            messageDiv.style.opacity = '1';
+            messageDiv.style.transform = 'translateY(0)';
+        }, 50);
+    }
+
+    showTypingIndicator() {
+        const messagesContainer = document.getElementById('chatMessages');
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message-container bot-message typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="avatar-small">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div class="message-bubble bot">
+                <div class="typing-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    hideTypingIndicator() {
+        const typingIndicator = document.querySelector('.typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    handleRedirect(redirectData) {
+        const modal = new bootstrap.Modal(document.getElementById('redirectModal'));
+        
+        document.getElementById('redirectTitle').textContent = redirectData.title;
+        document.getElementById('redirectMessage').textContent = redirectData.message || 'Preparando la redirección...';
+        
+        this.currentRedirectUrl = redirectData.url;
+        
+        modal.show();
+        
+        if (redirectData.auto_redirect) {
+            this.startCountdown(redirectData.delay || 3);
+        }
+    }
+
+    startCountdown(seconds) {
+        const countdownElement = document.getElementById('countdown');
+        let count = seconds;
+        
+        const updateCountdown = () => {
+            countdownElement.textContent = count;
+            
+            if (count <= 0) {
+                this.executeRedirect();
+                return;
+            }
+            
+            count--;
+            this.redirectTimeout = setTimeout(updateCountdown, 1000);
+        };
+        
+        updateCountdown();
+    }
+
+    executeRedirect() {
+        if (this.redirectTimeout) {
+            clearTimeout(this.redirectTimeout);
+        }
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('redirectModal'));
+        modal.hide();
+        
+        if (this.currentRedirectUrl) {
+            // Add redirect notice
+            this.addRedirectNotice();
+            
+            // Redirect after a short delay
+            setTimeout(() => {
+                window.location.href = this.currentRedirectUrl;
+            }, 1000);
+        }
+    }
+
+    addRedirectNotice() {
+        const messagesContainer = document.getElementById('chatMessages');
+        const noticeDiv = document.createElement('div');
+        noticeDiv.className = 'redirect-notice';
+        noticeDiv.innerHTML = `
+            <i class="bi bi-arrow-right-circle me-2"></i>
+            ¡Redirigiendo automáticamente! 🚀
+        `;
+        
+        messagesContainer.appendChild(noticeDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    clearChat() {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messages = messagesContainer.querySelectorAll('.message-container:not(:first-child)');
+        messages.forEach(message => message.remove());
+        
+        this.sessionId = null;
+        
+        // Clear session on server
+        if (this.sessionId) {
+            fetch('/chatbot/clear_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: this.sessionId
+                })
+            });
+        }
+    }
+
+    toggleVoiceInput() {
+        // Placeholder for voice input functionality
+        const btn = document.getElementById('voiceBtn');
+        btn.innerHTML = '<i class="bi bi-mic-mute text-danger"></i>';
+        
+        setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-mic"></i>';
+        }, 2000);
+    }
+}
+
+// Initialize chatbot when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    new SmartChatbot();
+});
+</script>
+{% endblock %}
