@@ -516,7 +516,9 @@ def create_sample_data():
             map_item.set_coordinates(-34.6037, -58.3816)  # Coordenadas de ejemplo (Buenos Aires)
             db.session.add(map_item)
 
+# Crear instancia de la aplicación para gunicorn
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     socketio = SocketIO(app)
     socketio.run(app, debug=True, host='0.0.0.0', port=5000) 
