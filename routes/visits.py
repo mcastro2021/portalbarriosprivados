@@ -8,6 +8,30 @@ import io
 import base64
 import uuid
 
+def get_status_class(status):
+    """Obtener clase CSS para el estado de la visita"""
+    status_classes = {
+        'pending': 'bg-warning',
+        'approved': 'bg-success',
+        'rejected': 'bg-danger',
+        'active': 'bg-info',
+        'completed': 'bg-secondary',
+        'cancelled': 'bg-dark'
+    }
+    return status_classes.get(status, 'bg-secondary')
+
+def get_status_label(status):
+    """Obtener etiqueta legible para el estado de la visita"""
+    status_labels = {
+        'pending': 'Pendiente',
+        'approved': 'Aprobado',
+        'rejected': 'Rechazado',
+        'active': 'Activo',
+        'completed': 'Completado',
+        'cancelled': 'Cancelado'
+    }
+    return status_labels.get(status, status.title())
+
 bp = Blueprint('visits', __name__, url_prefix='/visits')
 
 @bp.route('/')
@@ -21,7 +45,7 @@ def index():
     
     # Si es administrador, mostrar todas las visitas
     if current_user.role == 'admin':
-        visits = Visit.query.order_by(Visit.created_at.desc()).paginate(
+        visits = Visit.query.join(User, Visit.resident_id == User.id).order_by(Visit.created_at.desc()).paginate(
             page=page, per_page=20, error_out=False)
         
         # Calcular estadísticas para admin
@@ -47,7 +71,11 @@ def index():
         'active_visits': active_visits
     }
     
-    return render_template('visits/index.html', visits=visits, stats=stats)
+    return render_template('visits/index.html', 
+                         visits=visits, 
+                         stats=stats,
+                         get_status_class=get_status_class,
+                         get_status_label=get_status_label)
 
 @bp.route('/new', methods=['GET', 'POST'])
 @login_required

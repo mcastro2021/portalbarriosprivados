@@ -21,21 +21,29 @@ def admin_required(f):
 @admin_required
 def dashboard():
     """Panel de administración principal"""
+    # Fechas para cálculos
+    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_of_month = today.replace(day=1)
+    
     # Estadísticas generales
     stats = {
         'total_users': User.query.filter_by(is_active=True).count(),
-        'total_visits_today': Visit.query.filter(
-            Visit.created_at >= datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        ).count(),
+        'total_visits': Visit.query.count(),
+        'total_visits_today': Visit.query.filter(Visit.created_at >= today).count(),
+        'total_reservations': Reservation.query.count(),
         'pending_reservations': Reservation.query.filter_by(status='pending').count(),
+        'total_maintenance': Maintenance.query.count(),
         'pending_maintenance': Maintenance.query.filter_by(status='pending').count(),
-        'active_news': News.query.filter_by(is_published=True).count()
+        'active_news': News.query.filter_by(is_published=True).count(),
+        'monthly_visits': Visit.query.filter(Visit.created_at >= start_of_month).count(),
+        'monthly_reservations': Reservation.query.filter(Reservation.created_at >= start_of_month).count(),
+        'monthly_maintenance': Maintenance.query.filter(Maintenance.created_at >= start_of_month).count()
     }
     
     # Actividad reciente
-    recent_visits = Visit.query.order_by(Visit.created_at.desc()).limit(5).all()
-    recent_reservations = Reservation.query.order_by(Reservation.created_at.desc()).limit(5).all()
-    recent_maintenance = Maintenance.query.order_by(Maintenance.created_at.desc()).limit(5).all()
+    recent_visits = Visit.query.join(User, Visit.resident_id == User.id).order_by(Visit.created_at.desc()).limit(5).all()
+    recent_reservations = Reservation.query.join(User, Reservation.user_id == User.id).order_by(Reservation.created_at.desc()).limit(5).all()
+    recent_maintenance = Maintenance.query.join(User, Maintenance.user_id == User.id).order_by(Maintenance.created_at.desc()).limit(5).all()
     
     return render_template('admin/dashboard.html', 
                          stats=stats,

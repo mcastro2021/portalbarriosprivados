@@ -146,30 +146,37 @@
                                     <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
                                         {{ visit.visitor_name[0].upper() }}
                                     </div>
-                                    <div>
-                                        <h6 class="mb-0">{{ visit.visitor_name }}</h6>
-                                        <small class="text-muted">{{ visit.visitor_email }}</small>
-                                    </div>
+                                                                         <div>
+                                         <h6 class="mb-0">{{ visit.visitor_name }}</h6>
+                                         <small class="text-muted">{{ visit.visitor_phone or 'Sin teléfono' }}</small>
+                                     </div>
                                 </div>
                             </td>
+                                                         <td>
+                                 <div>
+                                     <h6 class="mb-0">{{ visit.resident.name if visit.resident else 'Residente no encontrado' }}</h6>
+                                     <small class="text-muted">{{ visit.resident.address if visit.resident else 'Sin dirección' }}</small>
+                                 </div>
+                             </td>
                             <td>
                                 <div>
-                                    <h6 class="mb-0">{{ visit.resident.name }}</h6>
-                                    <small class="text-muted">{{ visit.resident.address }}</small>
-                                </div>
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>{{ visit.visit_date.strftime('%d/%m/%Y') }}</strong>
+                                    <strong>{{ visit.created_at.strftime('%d/%m/%Y') }}</strong>
                                     <br>
-                                    <small class="text-muted">{{ visit.visit_date.strftime('%A') }}</small>
+                                    <small class="text-muted">{{ visit.created_at.strftime('%A') }}</small>
                                 </div>
                             </td>
                             <td>
                                 <div>
-                                    <strong>{{ visit.start_time.strftime('%H:%M') }} - {{ visit.end_time.strftime('%H:%M') }}</strong>
+                                    {% if visit.entry_time %}
+                                        <strong>{{ visit.entry_time.strftime('%H:%M') }}</strong>
+                                        {% if visit.exit_time %}
+                                            - {{ visit.exit_time.strftime('%H:%M') }}
+                                        {% endif %}
+                                    {% else %}
+                                        <strong>Pendiente</strong>
+                                    {% endif %}
                                     <br>
-                                    <small class="text-muted">{{ visit.duration }} horas</small>
+                                    <small class="text-muted">{{ visit.estimated_duration }} horas estimadas</small>
                                 </div>
                             </td>
                             <td>
@@ -209,13 +216,13 @@
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                     {% endif %}
-                                    {% if visit.status == 'approved' and not visit.check_in_time %}
+                                    {% if visit.status == 'approved' and not visit.entry_time %}
                                     <button class="btn btn-sm btn-outline-info" 
                                             onclick="checkInVisit({{ visit.id }})" title="Check-in">
                                         <i class="bi bi-box-arrow-in-right"></i>
                                     </button>
                                     {% endif %}
-                                    {% if visit.check_in_time and not visit.check_out_time %}
+                                    {% if visit.entry_time and not visit.exit_time %}
                                     <button class="btn btn-sm btn-outline-warning" 
                                             onclick="checkOutVisit({{ visit.id }})" title="Check-out">
                                         <i class="bi bi-box-arrow-left"></i>

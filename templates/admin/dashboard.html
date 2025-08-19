@@ -358,7 +358,7 @@
                                     <div>
                                         <h6 class="mb-1">{{ reservation.space_name or reservation.space_type.title() }}</h6>
                                         <p class="mb-1 text-muted small">
-                                            <i class="bi bi-person me-1"></i>{{ reservation.user.name }}
+                                            <i class="bi bi-person me-1"></i>{{ reservation.user.name if reservation.user else 'Usuario no encontrado' }}
                                         </p>
                                         <small class="text-muted">{{ reservation.start_time.strftime('%d/%m/%Y %H:%M') }}</small>
                                     </div>
