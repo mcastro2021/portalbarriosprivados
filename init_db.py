@@ -1,224 +1,336 @@
 #!/usr/bin/env python3
 """
-Script para inicializar la base de datos del Portal de Barrio Cerrado
+Script para inicializar la base de datos con datos permanentes
 """
 
 import os
 import sys
-from app import create_app, init_db, create_sample_data
-from models import db, User, News, NeighborhoodMap
+from datetime import datetime, timedelta
 
-def main():
-    """Función principal para inicializar la base de datos"""
-    print("🚀 Inicializando Portal de Barrio Cerrado...")
-    
-    # Crear aplicación
+# Agregar el directorio actual al path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from app import create_app, db
+from models import User, Visit, Reservation, News, Maintenance, Expense, Classified, SecurityReport, Notification, NeighborhoodMap, ChatbotSession
+
+def init_permanent_db():
+    """Inicializar base de datos con datos permanentes"""
     app = create_app()
     
     with app.app_context():
-        try:
-            # Crear todas las tablas
-            print("📊 Creando tablas de la base de datos...")
-            db.create_all()
-            print("✅ Tablas creadas exitosamente")
-            
-            # Verificar si ya existe un administrador
-            admin = User.query.filter_by(username='admin').first()
-            
-            if not admin:
-                print("👤 Creando usuario administrador...")
-                
-                # Crear usuario administrador
-                admin = User(
-                    username='admin',
-                    email='admin@barrioprivado.com',
-                    name='Administrador del Sistema',
-                    role='admin',
-                    is_active=True,
-                    email_verified=True
-                )
-                admin.set_password('admin123')
-                db.session.add(admin)
-                db.session.commit()
-                
-                print("✅ Usuario administrador creado:")
-                print("   Usuario: admin")
-                print("   Contraseña: admin123")
-                print("   Email: admin@barrioprivado.com")
-                
-                # Crear datos de ejemplo
-                print("📝 Creando datos de ejemplo...")
-                create_sample_data()
-                print("✅ Datos de ejemplo creados")
-                
-            else:
-                print("ℹ️  El usuario administrador ya existe")
-            
-            # Mostrar estadísticas
-            total_users = User.query.count()
-            total_news = News.query.count()
-            total_blocks = NeighborhoodMap.query.count()
-            
-            print("\n📈 Estadísticas de la base de datos:")
-            print(f"   Usuarios: {total_users}")
-            print(f"   Noticias: {total_news}")
-            print(f"   Manzanas: {total_blocks}")
-            
-            print("\n🎉 ¡Inicialización completada exitosamente!")
-            print("\n📋 Próximos pasos:")
-            print("   1. Ejecuta: python app.py")
-            print("   2. Abre tu navegador en: http://localhost:5000")
-            print("   3. Inicia sesión con admin/admin123")
-            print("   4. Configura las variables de entorno para producción")
-            
-        except Exception as e:
-            print(f"❌ Error durante la inicialización: {str(e)}")
-            db.session.rollback()
-            sys.exit(1)
+        print("🗄️ Inicializando base de datos permanente...")
+        
+        # Crear tablas
+        db.create_all()
+        print("✅ Tablas creadas")
+        
+        # Crear usuario administrador si no existe
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin = User(
+                username='admin',
+                email='admin@barrioprivado.com',
+                name='Administrador del Sistema',
+                role='admin',
+                is_active=True,
+                email_verified=True
+            )
+            admin.set_password('admin123')
+            db.session.add(admin)
+            print("✅ Usuario administrador creado (admin/admin123)")
+        
+        # Crear datos del mapa de Tejas 4
+        create_tejas4_map_data()
+        
+        # Crear noticias de ejemplo
+        create_sample_news(admin)
+        
+        # Commit todos los cambios
+        db.session.commit()
+        print("✅ Base de datos inicializada correctamente")
 
-def create_sample_data():
-    """Crear datos de ejemplo para el sistema"""
+def create_tejas4_map_data():
+    """Crear datos específicos del mapa de Tejas 4"""
+    print("🗺️ Creando datos del mapa de Tejas 4...")
     
-    # NOTA: No se crean usuarios de prueba automáticamente
-    # Los usuarios deben ser creados manualmente por el administrador
+    # Limpiar datos existentes
+    NeighborhoodMap.query.delete()
     
-    admin = User.query.filter_by(username='admin').first()
+    # Datos de las etapas basados en la imagen
+    map_data = [
+        # Etapa 1 - Vendida (Manzanas 40-57)
+        {
+            'block_name': 'Etapa 1 - Manzana 40',
+            'street_name': 'Calle Principal',
+            'block_number': 40,
+            'total_houses': 12,
+            'occupied_houses': 12,
+            'description': 'Primera etapa del desarrollo - Completamente vendida',
+            'stage': '1',
+            'status': 'vendida',
+            'block_type': 'residential',
+            'coordinates_lat': -34.6037,
+            'coordinates_lng': -58.3816
+        },
+        {
+            'block_name': 'Etapa 1 - Manzana 41',
+            'street_name': 'Calle Secundaria',
+            'block_number': 41,
+            'total_houses': 15,
+            'occupied_houses': 15,
+            'description': 'Primera etapa del desarrollo - Completamente vendida',
+            'stage': '1',
+            'status': 'vendida',
+            'block_type': 'residential',
+            'coordinates_lat': -34.6038,
+            'coordinates_lng': -58.3817
+        },
+        
+        # Etapa 2A - En Venta (Manzanas 20-39)
+        {
+            'block_name': 'Etapa 2A - Manzana 20',
+            'street_name': 'Avenida Central',
+            'block_number': 20,
+            'total_houses': 18,
+            'occupied_houses': 8,
+            'description': 'Segunda etapa - Lotes disponibles para compra',
+            'stage': '2A',
+            'status': 'en_venta',
+            'block_type': 'residential',
+            'coordinates_lat': -34.6039,
+            'coordinates_lng': -58.3818
+        },
+        {
+            'block_name': 'Etapa 2A - Manzana 21',
+            'street_name': 'Calle Norte',
+            'block_number': 21,
+            'total_houses': 16,
+            'occupied_houses': 6,
+            'description': 'Segunda etapa - Lotes disponibles para compra',
+            'stage': '2A',
+            'status': 'en_venta',
+            'block_type': 'residential',
+            'coordinates_lat': -34.6040,
+            'coordinates_lng': -58.3819
+        },
+        
+        # Etapa 2B - Desarrollo (Manzanas 1-19)
+        {
+            'block_name': 'Etapa 2B - Manzana 1',
+            'street_name': 'Calle Sur',
+            'block_number': 1,
+            'total_houses': 14,
+            'occupied_houses': 0,
+            'description': 'Tercera etapa - En desarrollo, próximamente disponible',
+            'stage': '2B',
+            'status': 'desarrollo',
+            'block_type': 'residential',
+            'coordinates_lat': -34.6041,
+            'coordinates_lng': -58.3820
+        },
+        {
+            'block_name': 'Etapa 2B - Manzana 2',
+            'street_name': 'Calle Este',
+            'block_number': 2,
+            'total_houses': 12,
+            'occupied_houses': 0,
+            'description': 'Tercera etapa - En desarrollo, próximamente disponible',
+            'stage': '2B',
+            'status': 'desarrollo',
+            'block_type': 'residential',
+            'coordinates_lat': -34.6042,
+            'coordinates_lng': -58.3821
+        },
+        
+        # Etapa 3 - Futuro (Manzanas 58-70)
+        {
+            'block_name': 'Etapa 3 - Manzana 58',
+            'street_name': 'Calle Oeste',
+            'block_number': 58,
+            'total_houses': 10,
+            'occupied_houses': 0,
+            'description': 'Cuarta etapa - Planificada para futuras expansiones',
+            'stage': '3',
+            'status': 'futuro',
+            'block_type': 'residential',
+            'coordinates_lat': -34.6043,
+            'coordinates_lng': -58.3822
+        },
+        
+        # Espacios Verdes
+        {
+            'block_name': 'Espacio Verde 1',
+            'street_name': 'Área Recreativa',
+            'block_number': 100,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Espacio verde común - 8121.0m² - Plaza central',
+            'stage': 'EV',
+            'status': 'publico',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6044,
+            'coordinates_lng': -58.3823
+        },
+        {
+            'block_name': 'Espacio Verde 2',
+            'street_name': 'Parque Norte',
+            'block_number': 101,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Espacio verde común - 2333.7m² - Parque recreativo',
+            'stage': 'EV',
+            'status': 'publico',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6045,
+            'coordinates_lng': -58.3824
+        },
+        {
+            'block_name': 'Espacio Verde 3',
+            'street_name': 'Reserva Natural',
+            'block_number': 102,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Espacio verde común - 2093.91m² - Reserva natural',
+            'stage': 'EV',
+            'status': 'publico',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6046,
+            'coordinates_lng': -58.3825
+        },
+        {
+            'block_name': 'Espacio Verde 4',
+            'street_name': 'Plaza Sur',
+            'block_number': 103,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Espacio verde común - 314.16m² - Plaza de barrio',
+            'stage': 'EV',
+            'status': 'publico',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6047,
+            'coordinates_lng': -58.3826
+        },
+        {
+            'block_name': 'Espacio Verde 5',
+            'street_name': 'Jardín Central',
+            'block_number': 104,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Espacio verde común - 295.73m² - Jardín central',
+            'stage': 'EV',
+            'status': 'publico',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6048,
+            'coordinates_lng': -58.3827
+        },
+        {
+            'block_name': 'Espacio Verde 6',
+            'street_name': 'Parque Grande',
+            'block_number': 105,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Espacio verde común - 5342.93m² - Parque principal',
+            'stage': 'EV',
+            'status': 'publico',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6049,
+            'coordinates_lng': -58.3828
+        },
+        {
+            'block_name': 'Espacio Verde 7',
+            'street_name': 'Jardín Este',
+            'block_number': 106,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Espacio verde común - 350.40m² - Jardín oriental',
+            'stage': 'EV',
+            'status': 'publico',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6050,
+            'coordinates_lng': -58.3829
+        },
+        
+        # Amenities
+        {
+            'block_name': 'Club House',
+            'street_name': 'Centro Comunitario',
+            'block_number': 200,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Club house con piscina, quincho y SUM',
+            'stage': 'AM',
+            'status': 'activo',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6051,
+            'coordinates_lng': -58.3830
+        },
+        {
+            'block_name': 'Seguridad',
+            'street_name': 'Puesto de Control',
+            'block_number': 201,
+            'total_houses': 0,
+            'occupied_houses': 0,
+            'description': 'Puesto de seguridad 24hs con CCTV',
+            'stage': 'AM',
+            'status': 'activo',
+            'block_type': 'amenity',
+            'coordinates_lat': -34.6052,
+            'coordinates_lng': -58.3831
+        }
+    ]
     
-    # Crear noticias de ejemplo
+    # Crear registros del mapa
+    for data in map_data:
+        map_item = NeighborhoodMap(**data)
+        db.session.add(map_item)
+    
+    print(f"✅ {len(map_data)} registros del mapa creados")
+
+def create_sample_news(admin):
+    """Crear noticias de ejemplo"""
+    print("📰 Creando noticias de ejemplo...")
+    
+    # Verificar si ya existen noticias
+    if News.query.count() > 0:
+        print("ℹ️ Las noticias ya existen, saltando...")
+        return
+    
     news_data = [
         {
-            'title': 'Bienvenidos al Portal del Barrio',
-            'content': '''¡Bienvenidos al portal oficial de nuestro barrio cerrado!
-
-Este sistema les permitirá:
-• Registrar visitas de manera anticipada
-• Reservar espacios comunes (quinchos, SUM, canchas)
-• Consultar y pagar expensas
-• Reportar problemas de mantenimiento
-• Publicar y ver anuncios clasificados
-• Recibir notificaciones importantes
-• Y mucho más...
-
-Para comenzar, les recomendamos:
-1. Completar su perfil con información actualizada
-2. Revisar las noticias y comunicaciones
-3. Explorar las diferentes funcionalidades disponibles
-
-¡Esperamos que este portal mejore la comunicación y organización de nuestro barrio!''',
+            'title': 'Bienvenidos al Portal de Tejas Cuatro',
+            'content': 'Este es el portal oficial de nuestro barrio cerrado Tejas Cuatro. Aquí podrán gestionar visitas, reservar espacios, consultar expensas y explorar nuestro mapa interactivo.',
             'category': 'general',
-            'is_important': True
+            'is_important': True,
+            'is_published': True
         },
         {
-            'title': 'Mantenimiento Programado - Piscina',
-            'content': '''Se informa a todos los residentes que el próximo lunes 15 de enero se realizará mantenimiento en la piscina.
-
-Detalles del mantenimiento:
-• Fecha: Lunes 15 de enero
-• Horario: 8:00 a 16:00 hs
-• Motivo: Limpieza profunda y revisión de filtros
-• Duración estimada: 8 horas
-
-La piscina permanecerá cerrada durante este período por seguridad. Agradecemos su comprensión.
-
-Para consultas, contactar a mantenimiento@barrioprivado.com''',
+            'title': 'Mapa Interactivo Disponible',
+            'content': 'Ya está disponible nuestro mapa interactivo donde podrán explorar todas las etapas del desarrollo, lotes disponibles y espacios verdes. ¡Exploren las diferentes secciones!',
+            'category': 'general',
+            'is_important': True,
+            'is_published': True
+        },
+        {
+            'title': 'Etapa 2A - Lotes Disponibles',
+            'content': 'Tenemos lotes disponibles en la Etapa 2A del desarrollo. Infraestructura completa, seguridad 24hs y todos los servicios incluidos. ¡Consulten por precios y financiación!',
+            'category': 'ventas',
+            'is_important': True,
+            'is_published': True
+        },
+        {
+            'title': 'Mantenimiento Programado - Espacios Verdes',
+            'content': 'El próximo lunes se realizará mantenimiento en los espacios verdes del barrio. Los parques estarán cerrados de 8:00 a 16:00 hs.',
             'category': 'mantenimiento',
-            'is_important': True
-        },
-        {
-            'title': 'Nuevo Sistema de Seguridad',
-            'content': '''Se ha implementado un nuevo sistema de seguridad en el barrio que incluye:
-
-• Cámaras de vigilancia adicionales
-• Control de acceso mejorado
-• Sistema de alarmas comunitarias
-• Botón de pánico en el portal
-
-Todos los residentes pueden acceder a las cámaras desde el portal web (según permisos). Para activar su acceso, contacten a seguridad@barrioprivado.com''',
-            'category': 'seguridad',
-            'is_important': False
-        },
-        {
-            'title': 'Evento Comunitario - Fiesta de Verano',
-            'content': '''¡Los invitamos a la Fiesta de Verano del barrio!
-
-• Fecha: Sábado 20 de enero
-• Horario: 19:00 a 02:00 hs
-• Lugar: Quincho Principal
-• Incluye: Cena, música en vivo, actividades para niños
-
-Para reservar su lugar, utilicen el sistema de reservas del portal. Cupos limitados.
-
-¡Los esperamos para celebrar juntos!''',
-            'category': 'eventos',
-            'is_important': False
-        },
-        {
-            'title': 'Corte Programado de Agua',
-            'content': '''Se informa que habrá un corte programado de agua el próximo miércoles 17 de enero.
-
-Detalles:
-• Fecha: Miércoles 17 de enero
-• Horario: 9:00 a 17:00 hs
-• Motivo: Reparación de cañería principal
-• Zona afectada: Manzanas A y B
-
-Se recomienda almacenar agua para uso esencial durante este período.
-
-Disculpen las molestias ocasionadas.''',
-            'category': 'cortes',
-            'is_important': True
+            'is_important': False,
+            'is_published': True
         }
     ]
     
     for news_item_data in news_data:
-        if not News.query.filter_by(title=news_item_data['title']).first():
-            news_item = News(**news_item_data, author_id=admin.id)
-            db.session.add(news_item)
+        news_item = News(**news_item_data, author_id=admin.id)
+        db.session.add(news_item)
     
-    # Crear datos del mapa del barrio
-    map_data = [
-        {
-            'block_name': 'Manzana A',
-            'street_name': 'Calle Principal',
-            'block_number': 1,
-            'total_houses': 12,
-            'occupied_houses': 10,
-            'description': 'Primera manzana del barrio, ubicada en la entrada principal'
-        },
-        {
-            'block_name': 'Manzana B',
-            'street_name': 'Calle Secundaria',
-            'block_number': 2,
-            'total_houses': 15,
-            'occupied_houses': 12,
-            'description': 'Segunda manzana, con vista al parque central'
-        },
-        {
-            'block_name': 'Manzana C',
-            'street_name': 'Calle de los Pinos',
-            'block_number': 3,
-            'total_houses': 18,
-            'occupied_houses': 16,
-            'description': 'Manzana más grande, con acceso directo a las canchas'
-        },
-        {
-            'block_name': 'Manzana D',
-            'street_name': 'Calle del Lago',
-            'block_number': 4,
-            'total_houses': 10,
-            'occupied_houses': 8,
-            'description': 'Manzana premium con vista al lago artificial'
-        }
-    ]
-    
-    for map_item_data in map_data:
-        if not NeighborhoodMap.query.filter_by(block_name=map_item_data['block_name']).first():
-            map_item = NeighborhoodMap(**map_item_data)
-            # Coordenadas de ejemplo (Buenos Aires)
-            map_item.set_coordinates(-34.6037, -58.3816)
-            db.session.add(map_item)
-    
-    db.session.commit()
+    print(f"✅ {len(news_data)} noticias creadas")
 
 if __name__ == '__main__':
-    main() 
+    init_permanent_db() 
