@@ -21,7 +21,9 @@ def index():
         reservations = Reservation.query.filter_by(user_id=current_user.id).order_by(Reservation.created_at.desc()).paginate(
             page=page, per_page=20, error_out=False)
     
-    return render_template('reservations/index.html', reservations=reservations)
+    return render_template('reservations/index.html', 
+                         reservations=reservations,
+                         current_datetime=datetime.utcnow())
 
 @bp.route('/new', methods=['GET', 'POST'])
 @login_required
