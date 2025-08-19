@@ -42,6 +42,13 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
+                    <!-- Mensaje informativo -->
+                    <div class="alert alert-info m-3 mb-0" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>¡Mapa Interactivo!</strong> Haz clic en las áreas de colores para ver información detallada. 
+                        Usa los controles de zoom para navegar por el mapa.
+                    </div>
+                    
                     <div id="mapContainer" class="position-relative" style="height: 600px; overflow: hidden;">
                         <canvas id="mapCanvas" width="1200" height="800" style="cursor: crosshair;"></canvas>
                         
@@ -71,24 +78,24 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-2">
-                        <div class="bg-success rounded me-2" style="width: 20px; height: 20px;"></div>
-                        <small>Etapa 1 - Vendida</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #FF0000;"></div>
+                        <small>Etapa 1 - Vendida (Rojo)</small>
                     </div>
                     <div class="d-flex align-items-center mb-2">
-                        <div class="bg-primary rounded me-2" style="width: 20px; height: 20px;"></div>
-                        <small>Etapa 2A - En Venta</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #00FF00;"></div>
+                        <small>Etapa 2A - En Venta (Verde)</small>
                     </div>
                     <div class="d-flex align-items-center mb-2">
-                        <div class="bg-warning rounded me-2" style="width: 20px; height: 20px;"></div>
-                        <small>Etapa 2B - Desarrollo</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #0000FF;"></div>
+                        <small>Etapa 2B - Desarrollo (Azul)</small>
                     </div>
                     <div class="d-flex align-items-center mb-2">
-                        <div class="bg-purple rounded me-2" style="width: 20px; height: 20px;"></div>
-                        <small>Etapa 3 - Futuro</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #FFFF00;"></div>
+                        <small>Etapa 3 - Futuro (Amarillo)</small>
                     </div>
                     <div class="d-flex align-items-center mb-2">
-                        <div class="bg-info rounded me-2" style="width: 20px; height: 20px;"></div>
-                        <small>Espacios Verdes</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #00FF00;"></div>
+                        <small>Espacios Verdes (Verde)</small>
                     </div>
                 </div>
             </div>
@@ -200,10 +207,10 @@ const mapConfig = {
 
 // Coordenadas de las etapas (basadas en la imagen)
 const stageCoordinates = {
-    'ETAPA_1': { x: 600, y: 400, width: 300, height: 200, color: '#4CAF50' },
-    'ETAPA_2A': { x: 400, y: 200, width: 250, height: 150, color: '#2196F3' },
-    'ETAPA_2B': { x: 200, y: 350, width: 200, height: 180, color: '#FF9800' },
-    'ETAPA_3': { x: 500, y: 600, width: 280, height: 150, color: '#9C27B0' }
+    'ETAPA_1': { x: 600, y: 400, width: 300, height: 200, color: '#FF0000' }, // Rojo brillante
+    'ETAPA_2A': { x: 400, y: 200, width: 250, height: 150, color: '#00FF00' }, // Verde brillante
+    'ETAPA_2B': { x: 200, y: 350, width: 200, height: 180, color: '#0000FF' }, // Azul brillante
+    'ETAPA_3': { x: 500, y: 600, width: 280, height: 150, color: '#FFFF00' }  // Amarillo brillante
 };
 
 // Espacios verdes
@@ -249,16 +256,43 @@ function drawMap() {
     // Limpiar canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Dibujar fondo de prueba para verificar que el canvas funciona
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Dibujar borde del canvas
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+    
     // Aplicar transformaciones
     ctx.save();
     ctx.translate(canvas.width/2, canvas.height/2);
     ctx.scale(currentZoom, currentZoom);
     ctx.translate(-canvas.width/2, -canvas.height/2);
     
-    // Dibujar imagen base
+    // Dibujar imagen base (si existe)
     const mapImage = new Image();
     mapImage.onload = function() {
         ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+        
+        // Dibujar áreas interactivas
+        drawInteractiveAreas(ctx);
+        
+        // Dibujar tooltips si hay hover
+        if (selectedLot) {
+            drawTooltip(ctx, selectedLot);
+        }
+    };
+    mapImage.onerror = function() {
+        // Si la imagen no carga, dibujar un mensaje
+        ctx.fillStyle = '#666';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Mapa de Tejas Cuatro', canvas.width/2, canvas.height/2 - 50);
+        ctx.font = '16px Arial';
+        ctx.fillText('(Imagen del mapa no disponible)', canvas.width/2, canvas.height/2);
+        ctx.fillText('Haz clic en las áreas de colores para interactuar', canvas.width/2, canvas.height/2 + 30);
         
         // Dibujar áreas interactivas
         drawInteractiveAreas(ctx);
@@ -277,26 +311,36 @@ function drawInteractiveAreas(ctx) {
     // Dibujar etapas
     Object.keys(stageCoordinates).forEach(stage => {
         const coords = stageCoordinates[stage];
-        ctx.fillStyle = coords.color + '40'; // Transparente
+        ctx.fillStyle = coords.color + '80'; // Más opaco para mejor visibilidad
         ctx.strokeStyle = coords.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 4; // Línea más gruesa
         ctx.fillRect(coords.x, coords.y, coords.width, coords.height);
         ctx.strokeRect(coords.x, coords.y, coords.width, coords.height);
         
-        // Texto de la etapa
+        // Texto de la etapa con fondo blanco para mejor legibilidad
+        ctx.fillStyle = 'white';
+        ctx.fillRect(coords.x + coords.width/2 - 60, coords.y + coords.height/2 - 15, 120, 30);
         ctx.fillStyle = coords.color;
-        ctx.font = 'bold 16px Arial';
+        ctx.font = 'bold 18px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(stage.replace('_', ' '), coords.x + coords.width/2, coords.y + coords.height/2);
+        ctx.fillText(stage.replace('_', ' '), coords.x + coords.width/2, coords.y + coords.height/2 + 5);
     });
     
     // Dibujar espacios verdes
     greenAreas.forEach(area => {
-        ctx.fillStyle = '#4CAF5040';
-        ctx.strokeStyle = '#4CAF50';
-        ctx.lineWidth = 1;
+        ctx.fillStyle = '#00FF0080'; // Verde brillante más opaco
+        ctx.strokeStyle = '#00FF00';
+        ctx.lineWidth = 3; // Línea más gruesa
         ctx.fillRect(area.x, area.y, area.width, area.height);
         ctx.strokeRect(area.x, area.y, area.width, area.height);
+        
+        // Texto del área verde
+        ctx.fillStyle = 'white';
+        ctx.fillRect(area.x + area.width/2 - 40, area.y + area.height/2 - 10, 80, 20);
+        ctx.fillStyle = '#00FF00';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(area.name, area.x + area.width/2, area.y + area.height/2 + 3);
     });
 }
 
