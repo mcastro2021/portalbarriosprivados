@@ -354,16 +354,43 @@
                         <option value="deactivate">Desactivar usuarios</option>
                         <option value="verify_email">Verificar emails</option>
                         <option value="reset_password">Resetear contraseñas</option>
+                        <option value="delete" class="text-danger">⚠️ Eliminar usuarios</option>
                     </select>
                 </div>
-                <div class="alert alert-info">
+                <div class="alert alert-info" id="bulkActionInfo">
                     <i class="bi bi-info-circle me-2"></i>
                     Esta acción se aplicará a todos los usuarios seleccionados.
+                </div>
+                <div class="alert alert-danger d-none" id="deleteWarning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>⚠️ ADVERTENCIA:</strong> Esta acción eliminará permanentemente los usuarios seleccionados. 
+                    Esta acción no se puede deshacer. Los usuarios protegidos del sistema no serán eliminados.
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" id="executeBulkAction" class="btn btn-primary">Ejecutar Acción</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Modal -->
+<div class="modal fade" id="resultsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Resultados de la Acción
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="resultsContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="location.reload()">Cerrar y Recargar</button>
             </div>
         </div>
     </div>
@@ -440,6 +467,28 @@ document.getElementById('bulkActionsBtn').addEventListener('click', function() {
     }
 });
 
+// Mostrar/ocultar advertencia de eliminación
+document.getElementById('bulkAction').addEventListener('change', function() {
+    const action = this.value;
+    const infoAlert = document.getElementById('bulkActionInfo');
+    const deleteWarning = document.getElementById('deleteWarning');
+    
+    if (action === 'delete') {
+        infoAlert.classList.add('d-none');
+        deleteWarning.classList.remove('d-none');
+    } else {
+        infoAlert.classList.remove('d-none');
+        deleteWarning.classList.add('d-none');
+    }
+});
+
+// Limpiar modal de acciones en lote cuando se cierre
+document.getElementById('bulkActionsModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('bulkAction').value = '';
+    document.getElementById('bulkActionInfo').classList.remove('d-none');
+    document.getElementById('deleteWarning').classList.add('d-none');
+});
+
 document.getElementById('executeBulkAction').addEventListener('click', async function() {
     const action = document.getElementById('bulkAction').value;
     if (!action) {
@@ -447,7 +496,23 @@ document.getElementById('executeBulkAction').addEventListener('click', async fun
         return;
     }
     
-    if (!confirm(`¿Estás seguro de aplicar "${action}" a ${selectedUsers.length} usuarios?`)) {
+    let confirmMessage = `¿Estás seguro de aplicar "${action}" a ${selectedUsers.length} usuarios?`;
+    if (action === 'delete') {
+        // Verificar si hay usuarios protegidos seleccionados
+        const protectedUsers = ['admin', 'mcastro2025'];
+        const selectedProtectedUsers = selectedUsers.filter(user => 
+            protectedUsers.includes(user.username)
+        );
+        
+        let protectedWarning = '';
+        if (selectedProtectedUsers.length > 0) {
+            protectedWarning = `\n\n⚠️ Usuarios protegidos que NO serán eliminados:\n${selectedProtectedUsers.map(u => `- ${u.username}`).join('\n')}`;
+        }
+        
+        confirmMessage = `⚠️ ADVERTENCIA: ¿Estás seguro de ELIMINAR PERMANENTEMENTE ${selectedUsers.length} usuarios?\n\nEsta acción no se puede deshacer.${protectedWarning}`;
+    }
+    
+    if (!confirm(confirmMessage)) {
         return;
     }
     
@@ -466,8 +531,26 @@ document.getElementById('executeBulkAction').addEventListener('click', async fun
         const data = await response.json();
         
         if (data.success) {
-            alert(data.message);
-            location.reload();
+            if (action === 'delete' && data.results) {
+                // Mostrar resultados detallados en modal
+                const resultsContent = document.getElementById('resultsContent');
+                let html = `<h6>${data.message}</h6><hr>`;
+                html += '<div class="row"><div class="col-12"><h6>Detalles:</h6><ul>';
+                data.results.forEach(result => {
+                    const isError = result.includes('error');
+                    const icon = isError ? '❌' : '✅';
+                    const color = isError ? 'text-danger' : 'text-success';
+                    html += `<li class="${color}">${icon} ${result}</li>`;
+                });
+                html += '</ul></div></div>';
+                resultsContent.innerHTML = html;
+                
+                const resultsModal = new bootstrap.Modal(document.getElementById('resultsModal'));
+                resultsModal.show();
+            } else {
+                alert(data.message);
+                location.reload();
+            }
         } else {
             alert('Error: ' + data.error);
         }

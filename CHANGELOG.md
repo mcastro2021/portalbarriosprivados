@@ -1,6 +1,17 @@
 # Changelog - Portal de Barrios Privados
 
-## [2024-12-19] - Prevención de creación automática de usuarios de prueba
+## [2024-12-19] - Eliminación masiva de usuarios y prevención de creación automática
+
+### ✅ Nuevas Funcionalidades
+
+#### **Eliminación Masiva de Usuarios**
+- **Acción en lote**: Eliminar múltiples usuarios seleccionados
+- **Protección de usuarios**: Usuarios protegidos del sistema no se pueden eliminar
+- **Confirmación avanzada**: Advertencias específicas para eliminación masiva
+- **Resultados detallados**: Modal con resultados de cada eliminación
+- **Validaciones**: No permite eliminar la cuenta propia del administrador
+
+### ✅ Cambios Realizados
 
 ### ✅ Cambios Realizados
 
@@ -18,8 +29,11 @@
 - **`reset_db.py`**: Script para resetear completamente la base de datos (solo desarrollo)
 - **`check_db.py`**: Script para verificar el estado de la base de datos sin modificarla
 
-#### 4. **Documentación Actualizada**
-- **`README.md`**: Agregadas instrucciones para los nuevos scripts
+#### 4. **Nuevos Scripts Creados**
+- **`test_bulk_delete.py`**: Script de prueba para la funcionalidad de eliminación masiva
+
+#### 5. **Documentación Actualizada**
+- **`README.md`**: Agregadas instrucciones para los nuevos scripts y funcionalidad de eliminación masiva
 - **Estructura del proyecto**: Incluidos los nuevos archivos
 
 ### 🔧 Comportamiento Actual
@@ -49,6 +63,8 @@
 3. **Flexibilidad**: Opción de resetear cuando sea necesario
 4. **Transparencia**: Scripts de verificación para monitorear el estado
 5. **Desarrollo**: Herramientas para testing sin afectar producción
+6. **Gestión eficiente**: Eliminación masiva de usuarios con validaciones de seguridad
+7. **Interfaz intuitiva**: Confirmaciones y resultados detallados para acciones críticas
 
 ### 📋 Uso Recomendado
 

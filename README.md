@@ -185,6 +185,7 @@ portalbarriosprivados/
 ├── init_db.py         # Inicialización de BD
 ├── reset_db.py        # Reset completo de BD (solo desarrollo)
 ├── check_db.py        # Verificar estado de BD
+├── test_bulk_delete.py # Prueba eliminación masiva
 └── README.md          # Este archivo
 ```
 
@@ -195,6 +196,7 @@ portalbarriosprivados/
 - **Registro** con validación de email
 - **Perfiles** personalizables
 - **Gestión de permisos** por rol
+- **Acciones en lote**: Activar, desactivar, verificar emails, resetear contraseñas, eliminar múltiples usuarios
 
 ### 2. Gestión de Visitas
 - **Registro anticipado** con validación

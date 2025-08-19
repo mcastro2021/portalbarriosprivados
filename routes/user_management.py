@@ -263,6 +263,8 @@ def bulk_actions():
         
         users = User.query.filter(User.id.in_(user_ids)).all()
         results = []
+        deleted_count = 0
+        protected_users = ['admin', 'mcastro2025']
         
         for user in users:
             try:
@@ -284,6 +286,23 @@ def bulk_actions():
                     temp_password = 'temp123456'
                     user.set_password(temp_password)
                     results.append(f'{user.username}: contraseña resetada')
+                
+                elif action == 'delete':
+                    # Verificar que no sea el mismo admin
+                    if user.id == current_user.id:
+                        results.append(f'{user.username}: error - No puedes eliminar tu propia cuenta')
+                        continue
+                    
+                    # Verificar que no sea un usuario protegido
+                    if user.username in protected_users:
+                        results.append(f'{user.username}: error - Usuario protegido del sistema')
+                        continue
+                    
+                    username = user.username
+                    db.session.delete(user)
+                    deleted_count += 1
+                    results.append(f'{user.username}: eliminado')
+                    continue  # No actualizar updated_at para usuarios eliminados
                     
                 user.updated_at = datetime.utcnow()
                 
@@ -292,11 +311,18 @@ def bulk_actions():
         
         db.session.commit()
         
-        return jsonify({
-            'success': True,
-            'message': f'Acción {action} aplicada a {len(users)} usuarios',
-            'results': results
-        })
+        if action == 'delete':
+            return jsonify({
+                'success': True,
+                'message': f'{deleted_count} usuarios eliminados exitosamente',
+                'results': results
+            })
+        else:
+            return jsonify({
+                'success': True,
+                'message': f'Acción {action} aplicada a {len(users)} usuarios',
+                'results': results
+            })
         
     except Exception as e:
         db.session.rollback()
