@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mapa Interactivo - Portal Tejas 4{% endblock %}
+{% block title %}Mapa del Barrio - Tejas Cuatro{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -8,183 +8,147 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-1">
-                <i class="bi bi-map me-2"></i>Mapa Interactivo Tejas 4
+                <i class="bi bi-map me-2"></i>Mapa Interactivo - Tejas Cuatro
             </h2>
-            <p class="text-muted mb-0">Explora nuestro barrio con datos en tiempo real</p>
+            <p class="text-muted mb-0">Explora las diferentes etapas y lotes del barrio</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary" onclick="showStats()">
-                <i class="bi bi-bar-chart me-2"></i>Estadísticas
+            <button class="btn btn-outline-primary" onclick="resetZoom()">
+                <i class="bi bi-arrows-fullscreen me-2"></i>Vista Completa
             </button>
-            <button class="btn btn-outline-success" onclick="toggleView()">
-                <i class="bi bi-layers me-2"></i>Cambiar Vista
+            <button class="btn btn-outline-info" onclick="toggleLegend()">
+                <i class="bi bi-info-circle me-2"></i>Leyenda
             </button>
         </div>
     </div>
 
-    <!-- Map Info Cards -->
+    <!-- Controles del Mapa -->
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <i class="bi bi-houses-fill text-success fs-1 mb-2"></i>
-                    <h4 class="mb-0" id="total-lots">{{ blocks|length }}</h4>
-                    <small class="text-muted">Lotes Totales</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <i class="bi bi-grid-3x3-gap-fill text-primary fs-1 mb-2"></i>
-                    <h4 class="mb-0" id="total-blocks">{{ blocks|selectattr('block_type', 'equalto', 'residential')|list|length }}</h4>
-                    <small class="text-muted">Manzanas</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <i class="bi bi-diagram-3-fill text-info fs-1 mb-2"></i>
-                    <h4 class="mb-0" id="total-stages">{{ blocks|map(attribute='stage')|unique|list|length }}</h4>
-                    <small class="text-muted">Etapas</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <i class="bi bi-tree-fill text-warning fs-1 mb-2"></i>
-                    <h4 class="mb-0" id="total-amenities">{{ blocks|selectattr('block_type', 'equalto', 'amenity')|list|length }}</h4>
-                    <small class="text-muted">Amenities</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Map Container -->
-    <div class="row">
-        <div class="col-lg-9">
-            <div class="card border-0 shadow-sm" style="height: 600px;">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
-                    <h6 class="mb-0">
-                        <i class="bi bi-geo-alt me-2"></i>
-                        Mapa Interactivo - Tejas 4
-                    </h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="bi bi-geo-alt me-2"></i>Mapa del Barrio
+                        </h6>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary" onclick="zoomIn()">
+                                <i class="bi bi-zoom-in"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="zoomOut()">
+                                <i class="bi bi-zoom-out"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body p-2">
-                    <!-- Interactive Map Canvas -->
-                    <div id="map-container" style="position: relative; width: 100%; height: 100%; background: #f8f9fa; border-radius: 5px; overflow: hidden;">
-                        <!-- Legend -->
-                        <div style="position: absolute; top: 10px; left: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; max-width: 200px;">
-                            <h6 class="mb-2">📍 Leyenda</h6>
-                            <div class="small">
-                                <div class="d-flex align-items-center mb-1">
-                                    <div style="width: 12px; height: 12px; background: #4CAF50; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Etapa 1 - Vendida</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-1">
-                                    <div style="width: 12px; height: 12px; background: #2196F3; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Etapa 2A - En venta</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-1">
-                                    <div style="width: 12px; height: 12px; background: #FF9800; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Etapa 2B - Desarrollo</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-1">
-                                    <div style="width: 12px; height: 12px; background: #9C27B0; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Etapa 3 - Futuro</span>
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <div style="width: 12px; height: 12px; background: #e74c3c; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Amenities</span>
+                <div class="card-body p-0">
+                    <div id="mapContainer" class="position-relative" style="height: 600px; overflow: hidden;">
+                        <canvas id="mapCanvas" width="1200" height="800" style="cursor: crosshair;"></canvas>
+                        
+                        <!-- Overlay para información -->
+                        <div id="mapInfo" class="position-absolute top-0 start-0 p-3" style="display: none;">
+                            <div class="card bg-white shadow-sm">
+                                <div class="card-body p-3">
+                                    <h6 id="infoTitle" class="mb-2"></h6>
+                                    <p id="infoDescription" class="mb-2 small"></p>
+                                    <div id="infoDetails" class="small text-muted"></div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Interactive Map -->
-                        <canvas id="mapCanvas" width="800" height="600" style="width: 100%; height: 100%; cursor: pointer;"></canvas>
-                        
-                        <!-- Tooltip -->
-                        <div id="mapTooltip" style="position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 5px; font-size: 12px; pointer-events: none; display: none; z-index: 100;"></div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Side Panel -->
-        <div class="col-lg-3">
+
+        <!-- Panel de Información -->
+        <div class="col-md-4">
+            <!-- Leyenda -->
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-header bg-white">
                     <h6 class="mb-0">
-                        <i class="bi bi-diagram-3 me-2"></i>
-                        Análisis por Etapas
-                    </h6>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush" id="stages-list">
-                        {% for stage in blocks|groupby('stage') %}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="d-flex align-items-center mb-1">
-                                        <div style="width: 12px; height: 12px; background: {{ stage.grouper|stage_color }}; border-radius: 2px; margin-right: 8px;"></div>
-                                        <strong>{{ stage.grouper|title }}</strong>
-                                    </div>
-                                    <small class="text-muted">{{ stage.list|length }} manzanas • {{ stage.grouper|stage_status }}</small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="badge" style="background: {{ stage.grouper|stage_color }};">{{ stage.list|sum(attribute='total_houses') }}</div>
-                                    <small class="d-block text-muted">lotes</small>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h6 class="mb-0">
-                        <i class="bi bi-star me-2"></i>
-                        Amenities Destacados
+                        <i class="bi bi-legend me-2"></i>Leyenda
                     </h6>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div style="width: 40px; height: 40px; background: #e74c3c; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                            <i class="bi bi-building text-white"></i>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-success rounded me-2" style="width: 20px; height: 20px;"></div>
+                        <small>Etapa 1 - Vendida</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-primary rounded me-2" style="width: 20px; height: 20px;"></div>
+                        <small>Etapa 2A - En Venta</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-warning rounded me-2" style="width: 20px; height: 20px;"></div>
+                        <small>Etapa 2B - Desarrollo</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-purple rounded me-2" style="width: 20px; height: 20px;"></div>
+                        <small>Etapa 3 - Futuro</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-info rounded me-2" style="width: 20px; height: 20px;"></div>
+                        <small>Espacios Verdes</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Estadísticas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-2">
+                            <div class="h5 text-primary mb-0" id="totalLots">0</div>
+                            <small class="text-muted">Total Lotes</small>
                         </div>
-                        <div>
-                            <strong>Club House</strong>
-                            <small class="d-block text-muted">Piscina, quincho, SUM</small>
+                        <div class="col-6 mb-2">
+                            <div class="h5 text-success mb-0" id="soldLots">0</div>
+                            <small class="text-muted">Vendidos</small>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <div class="h5 text-warning mb-0" id="availableLots">0</div>
+                            <small class="text-muted">Disponibles</small>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <div class="h5 text-info mb-0" id="greenAreas">0</div>
+                            <small class="text-muted">Espacios Verdes</small>
                         </div>
                     </div>
-                    
-                    <div class="d-flex align-items-center mb-3">
-                        <div style="width: 40px; height: 40px; background: #f39c12; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                            <i class="bi bi-shield-check text-white"></i>
-                        </div>
-                        <div>
-                            <strong>Seguridad 24hs</strong>
-                            <small class="d-block text-muted">Control de acceso, CCTV</small>
-                        </div>
+                </div>
+            </div>
+
+            <!-- Información del Lote Seleccionado -->
+            <div class="card border-0 shadow-sm" id="lotInfoCard" style="display: none;">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-house me-2"></i>Información del Lote
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h6 id="lotTitle" class="mb-2"></h6>
+                    <div class="mb-2">
+                        <strong>Etapa:</strong> <span id="lotStage"></span>
                     </div>
-                    
-                    <div class="d-flex align-items-center mb-3">
-                        <div style="width: 40px; height: 40px; background: #27ae60; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                            <i class="bi bi-tree text-white"></i>
-                        </div>
-                        <div>
-                            <strong>Espacios Verdes</strong>
-                            <small class="d-block text-muted">Plazas, senderos, reserva</small>
-                        </div>
+                    <div class="mb-2">
+                        <strong>Área:</strong> <span id="lotArea"></span>
                     </div>
-                    
-                    <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-outline-success btn-sm" onclick="contactSales()">
-                            <i class="bi bi-whatsapp me-2"></i>Consultar Disponibilidad
+                    <div class="mb-2">
+                        <strong>Estado:</strong> <span id="lotStatus"></span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Descripción:</strong> <span id="lotDescription"></span>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-primary" onclick="showLotDetails()">
+                            <i class="bi bi-info-circle me-1"></i>Ver Detalles
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="contactAboutLot()">
+                            <i class="bi bi-envelope me-1"></i>Consultar
                         </button>
                     </div>
                 </div>
@@ -193,398 +157,297 @@
     </div>
 </div>
 
-<!-- Block Details Modal -->
-<div class="modal fade" id="blockModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="blockTitle">Detalles del Bloque</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="blockDetails">
-                <!-- Content will be populated by JavaScript -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Statistics Modal -->
-<div class="modal fade" id="statsModal" tabindex="-1">
+<!-- Modal para detalles del lote -->
+<div class="modal fade" id="lotDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-bar-chart me-2"></i>
-                    Análisis Detallado - Tejas 4
-                </h5>
+                <h5 class="modal-title" id="lotModalTitle">Detalles del Lote</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>📊 Conteo de Manzanas (Basado en imagen oficial)</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Etapa</th>
-                                        <th>Manzanas</th>
-                                        <th>Lotes Est.</th>
-                                        <th>%</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span class="badge bg-success">Etapa 1</span></td>
-                                        <td>18</td>
-                                        <td>180</td>
-                                        <td>24%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="badge bg-primary">Etapa 2A</span></td>
-                                        <td>20</td>
-                                        <td>220</td>
-                                        <td>29%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="badge bg-warning">Etapa 2B</span></td>
-                                        <td>19</td>
-                                        <td>195</td>
-                                        <td>26%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="badge" style="background: #9C27B0;">Etapa 3</span></td>
-                                        <td>13</td>
-                                        <td>160</td>
-                                        <td>21%</td>
-                                    </tr>
-                                    <tr class="table-info">
-                                        <td><strong>TOTAL</strong></td>
-                                        <td><strong>71</strong></td>
-                                        <td><strong>755</strong></td>
-                                        <td><strong>100%</strong></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <h6 class="mt-3">🏠 Numeración de Manzanas</h6>
-                        <ul class="list-unstyled small">
-                            <li><strong>Etapa 1:</strong> Manzanas 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57</li>
-                            <li><strong>Etapa 2A:</strong> Manzanas 20-39 (consecutivas)</li>
-                            <li><strong>Etapa 2B:</strong> Manzanas 1-19 (consecutivas)</li>
-                            <li><strong>Etapa 3:</strong> Manzanas 58-70 (consecutivas)</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>📈 Distribución y Características</h6>
-                        
-                        <div class="progress mb-3" style="height: 20px;">
-                            <div class="progress-bar bg-success" style="width: 24%" title="Etapa 1">24%</div>
-                            <div class="progress-bar bg-primary" style="width: 29%" title="Etapa 2A">29%</div>
-                            <div class="progress-bar bg-warning" style="width: 26%" title="Etapa 2B">26%</div>
-                            <div class="progress-bar" style="background: #9C27B0; width: 21%" title="Etapa 3">21%</div>
-                        </div>
-                        
-                        <h6>🏗️ Estado de Desarrollo</h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <span class="badge bg-success me-2">VENDIDA</span>
-                                Etapa 1 - Infraestructura completa
-                            </li>
-                            <li class="mb-2">
-                                <span class="badge bg-primary me-2">EN VENTA</span>
-                                Etapa 2A - Lotes disponibles
-                            </li>
-                            <li class="mb-2">
-                                <span class="badge bg-warning me-2">DESARROLLO</span>
-                                Etapa 2B - En construcción
-                            </li>
-                            <li class="mb-2">
-                                <span class="badge" style="background: #9C27B0; color: white;">FUTURO</span>
-                                Etapa 3 - Próximamente
-                            </li>
-                        </ul>
-                        
-                        <h6>🎯 Servicios Incluidos</h6>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="card border-0 bg-light text-center p-2">
-                                    <i class="bi bi-shield-check text-success"></i>
-                                    <small>Seguridad 24hs</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="card border-0 bg-light text-center p-2">
-                                    <i class="bi bi-building text-primary"></i>
-                                    <small>Club House</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="card border-0 bg-light text-center p-2">
-                                    <i class="bi bi-tree text-success"></i>
-                                    <small>Espacios Verdes</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="card border-0 bg-light text-center p-2">
-                                    <i class="bi bi-road text-secondary"></i>
-                                    <small>Vías Pavimentadas</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="modal-body" id="lotModalBody">
+                <!-- Contenido dinámico -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-success" onclick="contactSales()">
-                    <i class="bi bi-whatsapp me-2"></i>Contactar Ventas
-                </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="contactAboutLot()">Consultar Disponibilidad</button>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-// Map data from backend
-const mapData = {{ blocks|map('to_dict')|list|tojson }};
+// Variables globales
+let mapData = {{ blocks|map('to_dict')|list|tojson }};
+let currentZoom = 1;
+let isDragging = false;
+let lastMousePos = { x: 0, y: 0 };
+let selectedLot = null;
 
-// Stage colors
-const stageColors = {
-    '1': '#4CAF50',
-    '2A': '#2196F3', 
-    '2B': '#FF9800',
-    '3': '#9C27B0'
+// Configuración del mapa
+const mapConfig = {
+    imageSrc: '{{ url_for("static", filename="images/tejas4-map.png") }}',
+    width: 1200,
+    height: 800,
+    zoomLevels: {
+        min: 0.5,
+        max: 3,
+        step: 0.2
+    }
 };
 
-// Canvas setup
-const canvas = document.getElementById('mapCanvas');
-const ctx = canvas.getContext('2d');
-const tooltip = document.getElementById('mapTooltip');
+// Coordenadas de las etapas (basadas en la imagen)
+const stageCoordinates = {
+    'ETAPA_1': { x: 600, y: 400, width: 300, height: 200, color: '#4CAF50' },
+    'ETAPA_2A': { x: 400, y: 200, width: 250, height: 150, color: '#2196F3' },
+    'ETAPA_2B': { x: 200, y: 350, width: 200, height: 180, color: '#FF9800' },
+    'ETAPA_3': { x: 500, y: 600, width: 280, height: 150, color: '#9C27B0' }
+};
 
-// Responsive canvas
-function resizeCanvas() {
-    const container = document.getElementById('map-container');
-    canvas.width = container.offsetWidth;
-    canvas.height = container.offsetHeight;
+// Espacios verdes
+const greenAreas = [
+    { id: 'EV1', x: 800, y: 100, width: 100, height: 80, area: '8121.0m²', name: 'Espacio Verde 1' },
+    { id: 'EV2', x: 750, y: 300, width: 80, height: 60, area: '2333.7m²', name: 'Espacio Verde 2' },
+    { id: 'EV3', x: 500, y: 150, width: 90, height: 70, area: '2093.91m²', name: 'Espacio Verde 3' },
+    { id: 'EV4', x: 150, y: 250, width: 40, height: 30, area: '314.16m²', name: 'Espacio Verde 4' },
+    { id: 'EV5', x: 400, y: 500, width: 35, height: 25, area: '295.73m²', name: 'Espacio Verde 5' },
+    { id: 'EV6', x: 100, y: 550, width: 120, height: 90, area: '5342.93m²', name: 'Espacio Verde 6' },
+    { id: 'EV7', x: 450, y: 650, width: 30, height: 25, area: '350.40m²', name: 'Espacio Verde 7' }
+];
+
+// Inicializar mapa
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+    updateStatistics();
+});
+
+function initializeMap() {
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Cargar imagen del mapa
+    const mapImage = new Image();
+    mapImage.onload = function() {
+        drawMap();
+    };
+    mapImage.src = mapConfig.imageSrc;
+    
+    // Event listeners
+    canvas.addEventListener('mousedown', startDrag);
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseup', stopDrag);
+    canvas.addEventListener('wheel', handleZoom);
+    canvas.addEventListener('click', handleClick);
+}
+
+function drawMap() {
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Limpiar canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Aplicar transformaciones
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.scale(currentZoom, currentZoom);
+    ctx.translate(-canvas.width/2, -canvas.height/2);
+    
+    // Dibujar imagen base
+    const mapImage = new Image();
+    mapImage.onload = function() {
+        ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+        
+        // Dibujar áreas interactivas
+        drawInteractiveAreas(ctx);
+        
+        // Dibujar tooltips si hay hover
+        if (selectedLot) {
+            drawTooltip(ctx, selectedLot);
+        }
+    };
+    mapImage.src = mapConfig.imageSrc;
+    
+    ctx.restore();
+}
+
+function drawInteractiveAreas(ctx) {
+    // Dibujar etapas
+    Object.keys(stageCoordinates).forEach(stage => {
+        const coords = stageCoordinates[stage];
+        ctx.fillStyle = coords.color + '40'; // Transparente
+        ctx.strokeStyle = coords.color;
+        ctx.lineWidth = 2;
+        ctx.fillRect(coords.x, coords.y, coords.width, coords.height);
+        ctx.strokeRect(coords.x, coords.y, coords.width, coords.height);
+        
+        // Texto de la etapa
+        ctx.fillStyle = coords.color;
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(stage.replace('_', ' '), coords.x + coords.width/2, coords.y + coords.height/2);
+    });
+    
+    // Dibujar espacios verdes
+    greenAreas.forEach(area => {
+        ctx.fillStyle = '#4CAF5040';
+        ctx.strokeStyle = '#4CAF50';
+        ctx.lineWidth = 1;
+        ctx.fillRect(area.x, area.y, area.width, area.height);
+        ctx.strokeRect(area.x, area.y, area.width, area.height);
+    });
+}
+
+function drawTooltip(ctx, lot) {
+    const tooltipX = lot.x + lot.width/2;
+    const tooltipY = lot.y - 10;
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(tooltipX - 50, tooltipY - 30, 100, 25);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(lot.name, tooltipX, tooltipY - 15);
+}
+
+function handleClick(event) {
+    const rect = event.target.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / currentZoom;
+    const y = (event.clientY - rect.top) / currentZoom;
+    
+    // Verificar clic en etapas
+    Object.keys(stageCoordinates).forEach(stage => {
+        const coords = stageCoordinates[stage];
+        if (x >= coords.x && x <= coords.x + coords.width &&
+            y >= coords.y && y <= coords.y + coords.height) {
+            showStageInfo(stage);
+            return;
+        }
+    });
+    
+    // Verificar clic en espacios verdes
+    greenAreas.forEach(area => {
+        if (x >= area.x && x <= area.x + area.width &&
+            y >= area.y && y <= area.y + area.height) {
+            showGreenAreaInfo(area);
+            return;
+        }
+    });
+}
+
+function showStageInfo(stage) {
+    const stageInfo = {
+        'ETAPA_1': { name: 'Etapa 1', status: 'Vendida', lots: 45, description: 'Primera etapa del desarrollo, completamente vendida' },
+        'ETAPA_2A': { name: 'Etapa 2A', status: 'En Venta', lots: 38, description: 'Segunda etapa, lotes disponibles para compra' },
+        'ETAPA_2B': { name: 'Etapa 2B', status: 'Desarrollo', lots: 42, description: 'En desarrollo, próximamente disponible' },
+        'ETAPA_3': { name: 'Etapa 3', status: 'Futuro', lots: 35, description: 'Planificada para futuras expansiones' }
+    };
+    
+    const info = stageInfo[stage];
+    document.getElementById('lotTitle').textContent = info.name;
+    document.getElementById('lotStage').textContent = info.name;
+    document.getElementById('lotArea').textContent = `${info.lots} lotes`;
+    document.getElementById('lotStatus').textContent = info.status;
+    document.getElementById('lotDescription').textContent = info.description;
+    document.getElementById('lotInfoCard').style.display = 'block';
+}
+
+function showGreenAreaInfo(area) {
+    document.getElementById('lotTitle').textContent = area.name;
+    document.getElementById('lotStage').textContent = 'Espacio Verde';
+    document.getElementById('lotArea').textContent = area.area;
+    document.getElementById('lotStatus').textContent = 'Público';
+    document.getElementById('lotDescription').textContent = 'Área verde común para recreación y esparcimiento';
+    document.getElementById('lotInfoCard').style.display = 'block';
+}
+
+function updateStatistics() {
+    document.getElementById('totalLots').textContent = '160';
+    document.getElementById('soldLots').textContent = '45';
+    document.getElementById('availableLots').textContent = '115';
+    document.getElementById('greenAreas').textContent = '7';
+}
+
+// Funciones de zoom y navegación
+function zoomIn() {
+    if (currentZoom < mapConfig.zoomLevels.max) {
+        currentZoom += mapConfig.zoomLevels.step;
+        drawMap();
+    }
+}
+
+function zoomOut() {
+    if (currentZoom > mapConfig.zoomLevels.min) {
+        currentZoom -= mapConfig.zoomLevels.step;
+        drawMap();
+    }
+}
+
+function resetZoom() {
+    currentZoom = 1;
     drawMap();
 }
 
-// Draw the interactive map
-function drawMap() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Background
-    ctx.fillStyle = '#f8f9fa';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Calculate grid
-    const gridSize = Math.min(canvas.width, canvas.height) / 12;
-    const startX = (canvas.width - gridSize * 10) / 2;
-    const startY = (canvas.height - gridSize * 8) / 2;
-    
-    // Draw blocks
-    mapData.forEach((block, index) => {
-        const x = startX + (index % 10) * gridSize;
-        const y = startY + Math.floor(index / 10) * gridSize;
-        
-        // Color based on stage
-        let color = '#e74c3c'; // Default for amenities
-        if (block.block_type === 'residential') {
-            color = stageColors[block.stage] || '#6c757d';
-        }
-        
-        // Draw block
-        ctx.fillStyle = color;
-        ctx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
-        
-        // Border
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
-        
-        // Text
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 10px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(block.block_name || block.stage, x + gridSize/2, y + gridSize/2);
-        
-        // Store block data for interaction
-        block.x = x;
-        block.y = y;
-        block.width = gridSize - 4;
-        block.height = gridSize - 4;
-    });
-    
-    // Draw amenities
-    const amenities = mapData.filter(b => b.block_type === 'amenity');
-    amenities.forEach((amenity, index) => {
-        const x = startX + (index % 3) * gridSize * 2;
-        const y = startY + Math.floor(index / 3) * gridSize * 2 + gridSize * 6;
-        
-        // Draw amenity icon
-        ctx.fillStyle = '#e74c3c';
-        ctx.beginPath();
-        ctx.arc(x + gridSize, y + gridSize, gridSize * 0.8, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Text
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText(amenity.block_name, x + gridSize, y + gridSize);
-        
-        // Store amenity data
-        amenity.x = x;
-        amenity.y = y;
-        amenity.width = gridSize * 2;
-        amenity.height = gridSize * 2;
-    });
+function handleZoom(event) {
+    event.preventDefault();
+    if (event.deltaY < 0) {
+        zoomIn();
+    } else {
+        zoomOut();
+    }
 }
 
-// Mouse interaction
-canvas.addEventListener('mousemove', function(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Check if mouse is over any block
-    const block = mapData.find(b => 
-        x >= b.x && x <= b.x + b.width &&
-        y >= b.y && y <= b.y + b.height
-    );
-    
-    if (block) {
-        tooltip.style.display = 'block';
-        tooltip.style.left = e.clientX + 10 + 'px';
-        tooltip.style.top = e.clientY - 10 + 'px';
-        
-        let tooltipText = `<strong>${block.block_name || block.stage}</strong><br>`;
-        if (block.block_type === 'residential') {
-            tooltipText += `Etapa: ${block.stage}<br>`;
-            tooltipText += `Estado: ${block.status}<br>`;
-            tooltipText += `Lotes: ${block.total_houses}<br>`;
-            tooltipText += `Ocupados: ${block.occupied_houses}`;
-        } else {
-            tooltipText += `Tipo: ${block.block_type}<br>`;
-            tooltipText += `Descripción: ${block.description || 'N/A'}`;
-        }
-        
-        tooltip.innerHTML = tooltipText;
-    } else {
-        tooltip.style.display = 'none';
-    }
-});
+function startDrag(event) {
+    isDragging = true;
+    lastMousePos = { x: event.clientX, y: event.clientY };
+}
 
-canvas.addEventListener('click', function(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const block = mapData.find(b => 
-        x >= b.x && x <= b.x + b.width &&
-        y >= b.y && y <= b.y + b.height
-    );
-    
-    if (block) {
-        showBlockDetails(block);
+function onMouseMove(event) {
+    if (isDragging) {
+        const deltaX = event.clientX - lastMousePos.x;
+        const deltaY = event.clientY - lastMousePos.y;
+        
+        // Implementar pan del mapa aquí
+        lastMousePos = { x: event.clientX, y: event.clientY };
+        drawMap();
     }
-});
+}
 
-function showBlockDetails(block) {
-    const modal = new bootstrap.Modal(document.getElementById('blockModal'));
-    document.getElementById('blockTitle').textContent = block.block_name || block.stage;
-    document.getElementById('blockDetails').innerHTML = `
+function stopDrag() {
+    isDragging = false;
+}
+
+function toggleLegend() {
+    const legend = document.querySelector('.card-body');
+    legend.style.display = legend.style.display === 'none' ? 'block' : 'none';
+}
+
+function showLotDetails() {
+    const modal = new bootstrap.Modal(document.getElementById('lotDetailsModal'));
+    document.getElementById('lotModalTitle').textContent = document.getElementById('lotTitle').textContent;
+    document.getElementById('lotModalBody').innerHTML = `
         <div class="row">
             <div class="col-md-6">
-                <p><strong>Tipo:</strong> ${block.block_type}</p>
-                <p><strong>Etapa:</strong> ${block.stage}</p>
-                <p><strong>Estado:</strong> ${block.status}</p>
+                <h6>Información General</h6>
+                <p><strong>Etapa:</strong> ${document.getElementById('lotStage').textContent}</p>
+                <p><strong>Área:</strong> ${document.getElementById('lotArea').textContent}</p>
+                <p><strong>Estado:</strong> ${document.getElementById('lotStatus').textContent}</p>
             </div>
             <div class="col-md-6">
-                <p><strong>Lotes totales:</strong> ${block.total_houses}</p>
-                <p><strong>Lotes ocupados:</strong> ${block.occupied_houses}</p>
-                <p><strong>Descripción:</strong> ${block.description || 'N/A'}</p>
+                <h6>Descripción</h6>
+                <p>${document.getElementById('lotDescription').textContent}</p>
             </div>
         </div>
     `;
     modal.show();
 }
 
-function showStats() {
-    const modal = new bootstrap.Modal(document.getElementById('statsModal'));
-    modal.show();
+function contactAboutLot() {
+    // Implementar formulario de contacto
+    alert('Función de contacto en desarrollo');
 }
-
-function toggleView() {
-    // Toggle between different view modes
-    const viewModes = ['default', 'stages', 'occupancy'];
-    const currentMode = canvas.dataset.viewMode || 'default';
-    const nextIndex = (viewModes.indexOf(currentMode) + 1) % viewModes.length;
-    canvas.dataset.viewMode = viewModes[nextIndex];
-    
-    drawMap();
-}
-
-function contactSales() {
-    const message = "Hola! Me interesa conocer más sobre los lotes disponibles en Tejas 4. ¿Podrían enviarme información sobre precios y condiciones?";
-    const whatsappUrl = `https://wa.me/5491144445555?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-}
-
-// Initialize
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-// Add some interactivity to the cards
-document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-2px)';
-        this.style.transition = 'transform 0.2s ease';
-    });
-    
-    card.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0)';
-    });
-});
 </script>
-
-<style>
-.card {
-    transition: all 0.2s ease;
-}
-
-.progress {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.progress-bar {
-    transition: width 0.6s ease;
-}
-
-.list-group-item {
-    border-left: none;
-    border-right: none;
-}
-
-.badge {
-    font-size: 0.75rem;
-}
-
-@media (max-width: 768px) {
-    .container-fluid {
-        padding: 1rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
-}
-</style>
 {% endblock %}

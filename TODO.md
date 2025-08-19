@@ -27,6 +27,7 @@
 - [x] Fix expenses API config route with error handling
 - [x] Fix admin email-config route with error handling
 - [x] Add missing API endpoints (/admin/api/save-setting, /admin/api/restart)
+- [x] Fix CSRF token undefined error in admin email-config template
 
 ### New Features
 - [x] Interactive map with dynamic data
@@ -62,6 +63,7 @@
 - [x] 500 error on /admin/email-config  
 - [x] 404 error on /admin/api/save-setting
 - [x] 404 error on /admin/api/restart
+- [x] CSRF token undefined error in admin email-config
 
 ### Local Development
 - [x] All routes working correctly locally

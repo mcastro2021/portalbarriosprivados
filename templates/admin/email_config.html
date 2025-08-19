@@ -31,6 +31,7 @@
                         </div>
                         <div class="card-body">
                             <form method="POST" action="{{ url_for('admin.save_email_config') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Servidor SMTP</label>
@@ -104,6 +105,7 @@
                         </div>
                         <div class="card-body">
                             <form method="POST" action="{{ url_for('admin.save_whatsapp_config') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">API Key</label>

@@ -75,6 +75,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nombre Completo</label>
@@ -142,6 +143,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
                             <label class="form-label">Contraseña Actual</label>
                             <input type="password" class="form-control" name="current_password" required>

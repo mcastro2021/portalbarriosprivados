@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_from_directory
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_wtf.csrf import CSRFProtect
 try:
     from flask_socketio import SocketIO, emit, join_room, leave_room
     SOCKETIO_AVAILABLE = True
@@ -41,6 +42,7 @@ def create_app(config_name='default'):
     # Inicializar extensiones
     db.init_app(app)
     migrate = Migrate(app, db)
+    csrf = CSRFProtect(app)
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
