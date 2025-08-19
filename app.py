@@ -257,7 +257,25 @@ def create_app(config_name='default'):
                 
                 # Cambiar contraseña si se proporciona
                 new_password = request.form.get('new_password')
-                if new_password:
+                current_password = request.form.get('current_password')
+                confirm_password = request.form.get('confirm_password')
+                
+                if new_password and current_password:
+                    # Verificar contraseña actual
+                    if not current_user.check_password(current_password):
+                        flash('La contraseña actual es incorrecta', 'error')
+                        return render_template('profile.html')
+                    
+                    # Verificar que las contraseñas coincidan
+                    if new_password != confirm_password:
+                        flash('Las contraseñas no coinciden', 'error')
+                        return render_template('profile.html')
+                    
+                    # Verificar longitud mínima
+                    if len(new_password) < 6:
+                        flash('La contraseña debe tener al menos 6 caracteres', 'error')
+                        return render_template('profile.html')
+                    
                     current_user.set_password(new_password)
                 
                 # Procesar imagen de perfil
@@ -546,39 +564,8 @@ def init_db():
 
 def create_sample_data():
     """Crear datos de ejemplo"""
-    # Crear algunos usuarios de ejemplo
-    users_data = [
-        {
-            'username': 'residente1',
-            'email': 'residente1@barrioprivado.com',
-            'name': 'Juan Pérez',
-            'role': 'resident',
-            'address': 'Manzana A, Casa 1',
-            'phone': '+54 9 11 1234-5678'
-        },
-        {
-            'username': 'seguridad1',
-            'email': 'seguridad@barrioprivado.com',
-            'name': 'Carlos Rodríguez',
-            'role': 'security',
-            'phone': '+54 9 11 8765-4321'
-        },
-        {
-            'username': 'mantenimiento1',
-            'email': 'mantenimiento@barrioprivado.com',
-            'name': 'Roberto García',
-            'role': 'maintenance',
-            'phone': '+54 9 11 5555-1234'
-        }
-    ]
-    
-    for user_data in users_data:
-        if not User.query.filter_by(username=user_data['username']).first():
-            user = User(**user_data)
-            user.set_password('password123')
-            user.email_verified = True
-            user.is_active = True
-            db.session.add(user)
+    # NOTA: No se crean usuarios de prueba automáticamente
+    # Los usuarios deben ser creados manualmente por el administrador
     
     # Crear algunas noticias de ejemplo
     news_data = [

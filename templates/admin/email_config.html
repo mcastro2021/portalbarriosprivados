@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de Email - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-envelope me-2"></i>Configuración de Email
+                    </h2>
+                    <p class="text-muted mb-0">Configura el servidor de correos para notificaciones</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Configuración SMTP -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-gear me-2"></i>Configuración SMTP
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('admin.save_email_config') }}">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Servidor SMTP</label>
+                                        <input type="text" class="form-control" name="smtp_server" 
+                                               value="{{ config.smtp_server }}" 
+                                               placeholder="smtp.gmail.com">
+                                        <div class="form-text">Servidor SMTP (ej: smtp.gmail.com)</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Puerto</label>
+                                        <input type="number" class="form-control" name="smtp_port" 
+                                               value="{{ config.smtp_port }}" 
+                                               placeholder="587">
+                                        <div class="form-text">Puerto SMTP (587 para TLS, 465 para SSL)</div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" name="smtp_username" 
+                                               value="{{ config.smtp_username }}" 
+                                               placeholder="tu-email@gmail.com">
+                                        <div class="form-text">Email del remitente</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Contraseña</label>
+                                        <input type="password" class="form-control" name="smtp_password" 
+                                               value="{{ config.smtp_password }}" 
+                                               placeholder="Tu contraseña de aplicación">
+                                        <div class="form-text">Contraseña de aplicación (no la contraseña normal)</div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Nombre del Remitente</label>
+                                        <input type="text" class="form-control" name="from_name" 
+                                               value="{{ config.from_name }}" 
+                                               placeholder="Barrio Tejas 4">
+                                        <div class="form-text">Nombre que aparecerá como remitente</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Usar SSL/TLS</label>
+                                        <select class="form-select" name="use_tls">
+                                            <option value="1" {% if config.use_tls %}selected{% endif %}>Sí (TLS)</option>
+                                            <option value="0" {% if not config.use_tls %}selected{% endif %}>No</option>
+                                        </select>
+                                        <div class="form-text">Recomendado: Sí para Gmail, Outlook, etc.</div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-lg me-2"></i>Guardar Configuración
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" onclick="testEmail()">
+                                        <i class="bi bi-envelope me-2"></i>Probar Email
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Configuración WhatsApp -->
+                    <div class="card border-0 shadow-sm mt-4">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-whatsapp me-2"></i>Configuración WhatsApp Business
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('admin.save_whatsapp_config') }}">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">API Key</label>
+                                        <input type="password" class="form-control" name="whatsapp_api_key" 
+                                               value="{{ config.whatsapp_api_key }}" 
+                                               placeholder="Tu API key de WhatsApp Business">
+                                        <div class="form-text">Token de acceso de WhatsApp Business API</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Phone Number ID</label>
+                                        <input type="text" class="form-control" name="whatsapp_phone_id" 
+                                               value="{{ config.whatsapp_phone_id }}" 
+                                               placeholder="123456789012345">
+                                        <div class="form-text">ID del número de teléfono de WhatsApp Business</div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Business Account ID</label>
+                                        <input type="text" class="form-control" name="whatsapp_business_id" 
+                                               value="{{ config.whatsapp_business_id }}" 
+                                               placeholder="123456789012345">
+                                        <div class="form-text">ID de la cuenta de negocio (opcional)</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Número de Teléfono de Prueba</label>
+                                        <input type="text" class="form-control" name="test_phone" 
+                                               value="{{ config.test_phone }}" 
+                                               placeholder="5491112345678">
+                                        <div class="form-text">Número para enviar mensajes de prueba</div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-lg me-2"></i>Guardar Configuración
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" onclick="testWhatsApp()">
+                                        <i class="bi bi-whatsapp me-2"></i>Probar WhatsApp
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de información -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-info-circle me-2"></i>Configuración Gmail
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <h6>Para usar Gmail:</h6>
+                            <ol class="small">
+                                <li>Activa la verificación en 2 pasos</li>
+                                <li>Genera una contraseña de aplicación</li>
+                                <li>Usa esa contraseña aquí</li>
+                                <li>Servidor: smtp.gmail.com</li>
+                                <li>Puerto: 587</li>
+                                <li>TLS: Sí</li>
+                            </ol>
+                            <a href="https://support.google.com/accounts/answer/185833" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-link-45deg me-1"></i>Ver instrucciones
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-whatsapp me-2"></i>WhatsApp Business
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <h6>Para configurar WhatsApp:</h6>
+                            <ol class="small">
+                                <li>Crea una cuenta de WhatsApp Business</li>
+                                <li>Configura la API en Meta for Developers</li>
+                                <li>Obtén el token de acceso</li>
+                                <li>Configura el webhook</li>
+                            </ol>
+                            <a href="https://developers.facebook.com/docs/whatsapp" target="_blank" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-link-45deg me-1"></i>Documentación
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-shield-check me-2"></i>Seguridad
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info small mb-0">
+                                <i class="bi bi-lock me-2"></i>
+                                <strong>Datos protegidos:</strong> Las credenciales se almacenan de forma segura en variables de entorno.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log de pruebas -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Historial de Pruebas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="testLog" class="small">
+                        <div class="text-muted">No hay pruebas recientes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de resultado -->
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultTitle">Resultado de la Prueba</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="resultBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function testEmail() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Enviando...';
+    
+    fetch('{{ url_for("admin.test_email") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult(data.success ? 'Email Enviado' : 'Error de Email', 
+                  data.message || data.error, 
+                  data.success ? 'success' : 'error');
+        
+        if (data.success) {
+            updateTestLog('Email de prueba enviado exitosamente', new Date().toLocaleString());
+        }
+    })
+    .catch(error => {
+        showResult('Error', 'Error al enviar email: ' + error.message, 'error');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+function testWhatsApp() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Enviando...';
+    
+    fetch('{{ url_for("admin.test_whatsapp") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult(data.success ? 'WhatsApp Enviado' : 'Error de WhatsApp', 
+                  data.message || data.error, 
+                  data.success ? 'success' : 'error');
+        
+        if (data.success) {
+            updateTestLog('WhatsApp de prueba enviado exitosamente', new Date().toLocaleString());
+        }
+    })
+    .catch(error => {
+        showResult('Error', 'Error al enviar WhatsApp: ' + error.message, 'error');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+function showResult(title, message, type) {
+    const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+    document.getElementById('resultTitle').textContent = title;
+    
+    const body = document.getElementById('resultBody');
+    body.innerHTML = `
+        <div class="alert alert-${type === 'success' ? 'success' : 'danger'}">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            ${message}
+        </div>
+    `;
+    
+    modal.show();
+}
+
+function updateTestLog(message, timestamp) {
+    const log = document.getElementById('testLog');
+    const logEntry = document.createElement('div');
+    logEntry.className = 'border-start border-success ps-3 mb-2';
+    logEntry.innerHTML = `
+        <div class="text-success small"><strong>${timestamp}</strong></div>
+        <div class="small">${message}</div>
+    `;
+    
+    if (log.querySelector('.text-muted')) {
+        log.innerHTML = '';
+    }
+    
+    log.insertBefore(logEntry, log.firstChild);
+}
+</script>
+{% endblock %}

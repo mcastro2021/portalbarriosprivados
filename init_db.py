@@ -79,49 +79,10 @@ def main():
 def create_sample_data():
     """Crear datos de ejemplo para el sistema"""
     
-    # Crear usuarios de ejemplo
-    users_data = [
-        {
-            'username': 'residente1',
-            'email': 'residente1@barrioprivado.com',
-            'name': 'Juan Pérez',
-            'role': 'resident',
-            'address': 'Manzana A, Casa 1',
-            'phone': '+54 9 11 1234-5678'
-        },
-        {
-            'username': 'residente2',
-            'email': 'residente2@barrioprivado.com',
-            'name': 'María González',
-            'role': 'resident',
-            'address': 'Manzana A, Casa 2',
-            'phone': '+54 9 11 2345-6789'
-        },
-        {
-            'username': 'seguridad1',
-            'email': 'seguridad@barrioprivado.com',
-            'name': 'Carlos Rodríguez',
-            'role': 'security',
-            'phone': '+54 9 11 8765-4321'
-        },
-        {
-            'username': 'mantenimiento1',
-            'email': 'mantenimiento@barrioprivado.com',
-            'name': 'Roberto García',
-            'role': 'maintenance',
-            'phone': '+54 9 11 5555-1234'
-        }
-    ]
+    # NOTA: No se crean usuarios de prueba automáticamente
+    # Los usuarios deben ser creados manualmente por el administrador
     
     admin = User.query.filter_by(username='admin').first()
-    
-    for user_data in users_data:
-        if not User.query.filter_by(username=user_data['username']).first():
-            user = User(**user_data)
-            user.set_password('password123')
-            user.email_verified = True
-            user.is_active = True
-            db.session.add(user)
     
     # Crear noticias de ejemplo
     news_data = [

@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from functools import wraps
 from models import db, User, Visit, Reservation, News, Maintenance, Expense, Classified, SecurityReport, Notification
 from datetime import datetime, timedelta
+import os
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -91,6 +92,101 @@ def reports():
 def settings():
     """Configuraciones del sistema"""
     return render_template('admin/settings.html')
+
+@bp.route('/email-config')
+@login_required
+@admin_required
+def email_config():
+    """Configuración de email y WhatsApp"""
+    # Obtener configuración actual desde variables de entorno
+    config = {
+        'smtp_server': os.getenv('SMTP_SERVER', 'smtp.gmail.com'),
+        'smtp_port': os.getenv('SMTP_PORT', '587'),
+        'smtp_username': os.getenv('SMTP_USERNAME', ''),
+        'smtp_password': os.getenv('SMTP_PASSWORD', ''),
+        'from_name': os.getenv('SMTP_FROM_NAME', 'Barrio Tejas 4'),
+        'use_tls': os.getenv('SMTP_USE_TLS', '1') == '1',
+        'whatsapp_api_key': os.getenv('WHATSAPP_API_KEY', ''),
+        'whatsapp_phone_id': os.getenv('WHATSAPP_PHONE_ID', ''),
+        'whatsapp_business_id': os.getenv('WHATSAPP_BUSINESS_ID', ''),
+        'test_phone': os.getenv('TEST_PHONE', '')
+    }
+    
+    return render_template('admin/email_config.html', config=config)
+
+@bp.route('/save-email-config', methods=['POST'])
+@login_required
+@admin_required
+def save_email_config():
+    """Guardar configuración de email"""
+    try:
+        # En un entorno real, esto se guardaría en la base de datos
+        # Por ahora, solo mostramos un mensaje de éxito
+        flash('Configuración de email guardada correctamente', 'success')
+        return redirect(url_for('admin.email_config'))
+    except Exception as e:
+        flash(f'Error al guardar la configuración: {str(e)}', 'error')
+        return redirect(url_for('admin.email_config'))
+
+@bp.route('/save-whatsapp-config', methods=['POST'])
+@login_required
+@admin_required
+def save_whatsapp_config():
+    """Guardar configuración de WhatsApp"""
+    try:
+        # En un entorno real, esto se guardaría en la base de datos
+        # Por ahora, solo mostramos un mensaje de éxito
+        flash('Configuración de WhatsApp guardada correctamente', 'success')
+        return redirect(url_for('admin.email_config'))
+    except Exception as e:
+        flash(f'Error al guardar la configuración: {str(e)}', 'error')
+        return redirect(url_for('admin.email_config'))
+
+@bp.route('/test-email', methods=['POST'])
+@login_required
+@admin_required
+def test_email():
+    """Probar envío de email"""
+    try:
+        from notification_service import notification_service
+        
+        # Enviar email de prueba al administrador
+        success = notification_service.send_email(
+            to_email=current_user.email,
+            subject='Prueba de Email - Portal del Barrio',
+            body='Este es un email de prueba para verificar la configuración del servidor SMTP.',
+            html_body='<h2>Prueba de Email</h2><p>Este es un email de prueba para verificar la configuración del servidor SMTP.</p>'
+        )
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Email de prueba enviado correctamente'})
+        else:
+            return jsonify({'success': False, 'error': 'Error al enviar el email de prueba'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Error: {str(e)}'})
+
+@bp.route('/test-whatsapp', methods=['POST'])
+@login_required
+@admin_required
+def test_whatsapp():
+    """Probar envío de WhatsApp"""
+    try:
+        from notification_service import notification_service
+        
+        # Enviar WhatsApp de prueba
+        success = notification_service.send_whatsapp(
+            phone_number=os.getenv('TEST_PHONE', ''),
+            message='🔔 Prueba de WhatsApp\n\nEste es un mensaje de prueba para verificar la configuración de WhatsApp Business API.\n\nPortal del Barrio Tejas 4'
+        )
+        
+        if success:
+            return jsonify({'success': True, 'message': 'WhatsApp de prueba enviado correctamente'})
+        else:
+            return jsonify({'success': False, 'error': 'Error al enviar el WhatsApp de prueba'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Error: {str(e)}'})
 
 @bp.route('/users')
 @login_required

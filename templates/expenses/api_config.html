@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración API - Expensas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-gear me-2"></i>Configuración API ExpensasOnline
+                    </h2>
+                    <p class="text-muted mb-0">Configura la integración con expensasonline.pro</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('expenses.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver a Expensas
+                    </a>
+                </div>
+            </div>
+
+            <!-- Configuración de API -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-plug me-2"></i>Configuración de Conexión
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                <div class="form-check form-switch mb-4">
+                                    <input class="form-check-input" type="checkbox" id="api_enabled" name="api_enabled" 
+                                           {% if api_config.enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="api_enabled">
+                                        <strong>Habilitar integración con expensasonline.pro</strong>
+                                    </label>
+                                    <div class="form-text">Activa la sincronización automática de expensas</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">URL Base de la API</label>
+                                        <input type="url" class="form-control" name="api_base_url" 
+                                               value="{{ api_config.base_url }}" 
+                                               placeholder="https://propietarios.expensasonline.pro/api">
+                                        <div class="form-text">URL base del portal de expensas</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">API Key</label>
+                                        <input type="password" class="form-control" name="api_key" 
+                                               value="{{ api_config.api_key }}" 
+                                               placeholder="Tu API key de expensasonline.pro">
+                                        <div class="form-text">Clave de API proporcionada por expensasonline.pro</div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Usuario</label>
+                                        <input type="text" class="form-control" name="api_username" 
+                                               value="{{ api_config.username }}" 
+                                               placeholder="Usuario del portal">
+                                        <div class="form-text">Usuario para autenticación en el portal</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Contraseña</label>
+                                        <input type="password" class="form-control" name="api_password" 
+                                               value="{{ api_config.password }}" 
+                                               placeholder="Contraseña del portal">
+                                        <div class="form-text">Contraseña para autenticación en el portal</div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-lg me-2"></i>Guardar Configuración
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" onclick="testConnection()">
+                                        <i class="bi bi-wifi me-2"></i>Probar Conexión
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" onclick="syncExpenses()">
+                                        <i class="bi bi-arrow-repeat me-2"></i>Sincronizar Expensas
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de información -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-info-circle me-2"></i>Información
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <h6>¿Qué hace esta integración?</h6>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Sincroniza expensas automáticamente
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Mantiene datos actualizados
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Reduce trabajo manual
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Mejora la precisión de datos
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-shield-check me-2"></i>Seguridad
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info small mb-0">
+                                <i class="bi bi-lock me-2"></i>
+                                <strong>Datos protegidos:</strong> Las credenciales se almacenan de forma segura y solo se utilizan para la sincronización.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log de sincronización -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Historial de Sincronización
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="syncLog" class="small">
+                        <div class="text-muted">No hay registros de sincronización recientes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de resultado -->
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultTitle">Resultado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="resultBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function testConnection() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Probando...';
+    
+    fetch('{{ url_for("expenses.test_connection") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult(data.success ? 'Conexión Exitosa' : 'Error de Conexión', 
+                  data.message || data.error, 
+                  data.success ? 'success' : 'error');
+    })
+    .catch(error => {
+        showResult('Error', 'Error de conexión: ' + error.message, 'error');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+function syncExpenses() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Sincronizando...';
+    
+    fetch('{{ url_for("expenses.sync_expenses") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult(data.success ? 'Sincronización Exitosa' : 'Error de Sincronización', 
+                  data.message || data.error, 
+                  data.success ? 'success' : 'error');
+        
+        if (data.success) {
+            // Actualizar log
+            updateSyncLog(data.message, new Date().toLocaleString());
+        }
+    })
+    .catch(error => {
+        showResult('Error', 'Error de sincronización: ' + error.message, 'error');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+function showResult(title, message, type) {
+    const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+    document.getElementById('resultTitle').textContent = title;
+    
+    const body = document.getElementById('resultBody');
+    body.innerHTML = `
+        <div class="alert alert-${type === 'success' ? 'success' : 'danger'}">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            ${message}
+        </div>
+    `;
+    
+    modal.show();
+}
+
+function updateSyncLog(message, timestamp) {
+    const log = document.getElementById('syncLog');
+    const logEntry = document.createElement('div');
+    logEntry.className = 'border-start border-success ps-3 mb-2';
+    logEntry.innerHTML = `
+        <div class="text-success small"><strong>${timestamp}</strong></div>
+        <div class="small">${message}</div>
+    `;
+    
+    if (log.querySelector('.text-muted')) {
+        log.innerHTML = '';
+    }
+    
+    log.insertBefore(logEntry, log.firstChild);
+}
+
+// Validación del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const enabled = document.getElementById('api_enabled').checked;
+    
+    if (enabled) {
+        const requiredFields = ['api_base_url', 'api_key', 'api_username', 'api_password'];
+        let missingFields = [];
+        
+        requiredFields.forEach(field => {
+            const input = document.querySelector(`[name="${field}"]`);
+            if (!input.value.trim()) {
+                missingFields.push(field.replace('api_', '').replace('_', ' '));
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            e.preventDefault();
+            alert('Por favor completa los siguientes campos: ' + missingFields.join(', '));
+            return false;
+        }
+    }
+});
+</script>
+{% endblock %}
