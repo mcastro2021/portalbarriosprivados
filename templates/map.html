@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mapa del Barrio - Tejas Cuatro{% endblock %}
+{% block title %}Mapa Interactivo - Tejas Cuatro{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -8,28 +8,31 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-1">
-                <i class="bi bi-map me-2"></i>Plano del Barrio - Tejas Cuatro
+                <i class="bi bi-map me-2"></i>Mapa Interactivo - Tejas Cuatro
             </h2>
             <p class="text-muted mb-0">Plano de Lote Joven - Tejas Cuatro Barrio con Seguridad</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary" onclick="downloadImage()">
-                <i class="bi bi-download me-2"></i>Descargar
+            <button class="btn btn-outline-primary" onclick="downloadSVG()">
+                <i class="bi bi-download me-2"></i>Descargar SVG
             </button>
             <button class="btn btn-outline-info" onclick="toggleFullscreen()">
                 <i class="bi bi-arrows-fullscreen me-2"></i>Pantalla Completa
             </button>
+            <button class="btn btn-outline-secondary" onclick="resetView()">
+                <i class="bi bi-arrows-fullscreen me-2"></i>Vista Completa
+            </button>
         </div>
     </div>
 
-    <!-- Mapa Estático -->
+    <!-- Mapa SVG Interactivo -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">
-                            <i class="bi bi-geo-alt me-2"></i>Plano de Tejas Cuatro
+                            <i class="bi bi-geo-alt me-2"></i>Plano Interactivo de Tejas Cuatro
                         </h6>
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-outline-secondary" onclick="zoomIn()">
@@ -48,16 +51,200 @@
                     <div class="text-center p-3 bg-light">
                         <small class="text-muted">
                             <i class="bi bi-info-circle me-1"></i>
-                            Plano oficial del desarrollo Lote Joven - Tejas Cuatro
+                            Haz clic en las áreas del mapa para ver información detallada
                         </small>
                     </div>
                     
-                                         <div id="mapContainer" class="position-relative" style="height: 700px; overflow: auto; background: #f8f9fa;">
-                         <img id="mapImage" 
-                              src="{{ url_for('static', filename='images/tejas4-map.png') }}" 
-                              alt="Plano de Tejas Cuatro"
-                              style="width: 100%; height: auto; max-width: none; cursor: grab;">
-                     </div>
+                    <div id="mapContainer" class="position-relative" style="height: 700px; overflow: auto; background: #f8f9fa;">
+                        <svg id="mapSVG" width="1200" height="800" viewBox="0 0 1200 800" 
+                             style="cursor: grab; user-select: none;">
+                            
+                            <!-- Fondo del mapa -->
+                            <rect width="1200" height="800" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+                            
+                            <!-- Título del mapa -->
+                            <text x="600" y="30" text-anchor="middle" font-family="Arial, sans-serif" 
+                                  font-size="24" font-weight="bold" fill="#495057">
+                                LOTE JOVEN - TEJAS CUATRO
+                            </text>
+                            
+                            <!-- Etapa 1 - Manzanas 40-57 (Vendida) -->
+                            <g id="etapa1" class="map-area" data-stage="1">
+                                <rect x="700" y="500" width="400" height="250" 
+                                      fill="#FF6B6B" fill-opacity="0.3" stroke="#FF6B6B" stroke-width="3" 
+                                      stroke-dasharray="10,5" class="stage-area"/>
+                                <text x="900" y="625" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="16" font-weight="bold" fill="#FF6B6B">
+                                    ETAPA 1
+                                </text>
+                                <text x="900" y="645" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="12" fill="#FF6B6B">
+                                    Manzanas 40-57 (Vendida)
+                                </text>
+                                <circle cx="1080" cy="520" r="15" fill="#FF6B6B" class="info-indicator"/>
+                                <text x="1080" y="525" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="12" font-weight="bold" fill="white">ℹ</text>
+                            </g>
+                            
+                            <!-- Etapa 2A - Manzanas 20-39 (En Venta) -->
+                            <g id="etapa2a" class="map-area" data-stage="2a">
+                                <rect x="300" y="200" width="350" height="200" 
+                                      fill="#4ECDC4" fill-opacity="0.3" stroke="#4ECDC4" stroke-width="3" 
+                                      stroke-dasharray="10,5" class="stage-area"/>
+                                <text x="475" y="300" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="16" font-weight="bold" fill="#4ECDC4">
+                                    ETAPA 2A
+                                </text>
+                                <text x="475" y="320" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="12" fill="#4ECDC4">
+                                    Manzanas 20-39 (En Venta)
+                                </text>
+                                <circle cx="630" cy="220" r="15" fill="#4ECDC4" class="info-indicator"/>
+                                <text x="630" y="225" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="12" font-weight="bold" fill="white">ℹ</text>
+                            </g>
+                            
+                            <!-- Etapa 2B - Manzanas 1-19 (Desarrollo) -->
+                            <g id="etapa2b" class="map-area" data-stage="2b">
+                                <rect x="100" y="400" width="300" height="250" 
+                                      fill="#45B7D1" fill-opacity="0.3" stroke="#45B7D1" stroke-width="3" 
+                                      stroke-dasharray="10,5" class="stage-area"/>
+                                <text x="250" y="525" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="16" font-weight="bold" fill="#45B7D1">
+                                    ETAPA 2B
+                                </text>
+                                <text x="250" y="545" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="12" fill="#45B7D1">
+                                    Manzanas 1-19 (Desarrollo)
+                                </text>
+                                <circle cx="380" cy="420" r="15" fill="#45B7D1" class="info-indicator"/>
+                                <text x="380" y="425" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="12" font-weight="bold" fill="white">ℹ</text>
+                            </g>
+                            
+                            <!-- Etapa 3 - Manzanas 58-70 (Futuro) -->
+                            <g id="etapa3" class="map-area" data-stage="3">
+                                <rect x="500" y="700" width="350" height="200" 
+                                      fill="#96CEB4" fill-opacity="0.3" stroke="#96CEB4" stroke-width="3" 
+                                      stroke-dasharray="10,5" class="stage-area"/>
+                                <text x="675" y="800" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="16" font-weight="bold" fill="#96CEB4">
+                                    ETAPA 3
+                                </text>
+                                <text x="675" y="820" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="12" fill="#96CEB4">
+                                    Manzanas 58-70 (Futuro)
+                                </text>
+                                <circle cx="830" cy="720" r="15" fill="#96CEB4" class="info-indicator"/>
+                                <text x="830" y="725" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="12" font-weight="bold" fill="white">ℹ</text>
+                            </g>
+                            
+                            <!-- Espacios Verdes -->
+                            <g id="ev1" class="map-area" data-type="green">
+                                <rect x="850" y="50" width="150" height="120" 
+                                      fill="#2ECC71" fill-opacity="0.2" stroke="#2ECC71" stroke-width="2" 
+                                      stroke-dasharray="5,5" class="green-area"/>
+                                <circle cx="980" cy="70" r="12" fill="#2ECC71" class="info-indicator"/>
+                                <text x="980" y="74" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="10" font-weight="bold" fill="white">🌳</text>
+                                <text x="925" y="120" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="10" fill="#2ECC71">E.V.1</text>
+                            </g>
+                            
+                            <g id="ev2" class="map-area" data-type="green">
+                                <rect x="750" y="350" width="100" height="80" 
+                                      fill="#2ECC71" fill-opacity="0.2" stroke="#2ECC71" stroke-width="2" 
+                                      stroke-dasharray="5,5" class="green-area"/>
+                                <circle cx="830" cy="370" r="12" fill="#2ECC71" class="info-indicator"/>
+                                <text x="830" y="374" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="10" font-weight="bold" fill="white">🌳</text>
+                                <text x="800" y="395" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="10" fill="#2ECC71">E.V.2</text>
+                            </g>
+                            
+                            <g id="ev3" class="map-area" data-type="green">
+                                <rect x="500" y="100" width="120" height="90" 
+                                      fill="#2ECC71" fill-opacity="0.2" stroke="#2ECC71" stroke-width="2" 
+                                      stroke-dasharray="5,5" class="green-area"/>
+                                <circle cx="600" cy="120" r="12" fill="#2ECC71" class="info-indicator"/>
+                                <text x="600" y="124" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="10" font-weight="bold" fill="white">🌳</text>
+                                <text x="560" y="145" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="10" fill="#2ECC71">E.V.3</text>
+                            </g>
+                            
+                            <g id="ev4" class="map-area" data-type="green">
+                                <rect x="400" y="600" width="60" height="40" 
+                                      fill="#2ECC71" fill-opacity="0.2" stroke="#2ECC71" stroke-width="2" 
+                                      stroke-dasharray="5,5" class="green-area"/>
+                                <circle cx="450" cy="620" r="10" fill="#2ECC71" class="info-indicator"/>
+                                <text x="450" y="623" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="8" font-weight="bold" fill="white">🌳</text>
+                                <text x="430" y="635" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="8" fill="#2ECC71">E.V.4</text>
+                            </g>
+                            
+                            <g id="ev5" class="map-area" data-type="green">
+                                <rect x="350" y="650" width="50" height="35" 
+                                      fill="#2ECC71" fill-opacity="0.2" stroke="#2ECC71" stroke-width="2" 
+                                      stroke-dasharray="5,5" class="green-area"/>
+                                <circle cx="390" cy="670" r="10" fill="#2ECC71" class="info-indicator"/>
+                                <text x="390" y="673" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="8" font-weight="bold" fill="white">🌳</text>
+                                <text x="375" y="680" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="8" fill="#2ECC71">E.V.5</text>
+                            </g>
+                            
+                            <g id="ev6" class="map-area" data-type="green">
+                                <rect x="50" y="700" width="180" height="140" 
+                                      fill="#2ECC71" fill-opacity="0.2" stroke="#2ECC71" stroke-width="2" 
+                                      stroke-dasharray="5,5" class="green-area"/>
+                                <circle cx="210" cy="720" r="12" fill="#2ECC71" class="info-indicator"/>
+                                <text x="210" y="724" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="10" font-weight="bold" fill="white">🌳</text>
+                                <text x="140" y="770" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="10" fill="#2ECC71">E.V.6</text>
+                            </g>
+                            
+                            <g id="ev7" class="map-area" data-type="green">
+                                <rect x="450" y="750" width="40" height="30" 
+                                      fill="#2ECC71" fill-opacity="0.2" stroke="#2ECC71" stroke-width="2" 
+                                      stroke-dasharray="5,5" class="green-area"/>
+                                <circle cx="480" cy="770" r="10" fill="#2ECC71" class="info-indicator"/>
+                                <text x="480" y="773" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="8" font-weight="bold" fill="white">🌳</text>
+                                <text x="470" y="775" text-anchor="middle" font-family="Arial, sans-serif" 
+                                      font-size="8" fill="#2ECC71">E.V.7</text>
+                            </g>
+                            
+                            <!-- Leyenda -->
+                            <g id="leyenda" transform="translate(50, 50)">
+                                <rect x="0" y="0" width="200" height="120" fill="white" stroke="#dee2e6" stroke-width="1" rx="5"/>
+                                <text x="100" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#495057">Leyenda</text>
+                                
+                                <!-- Etapa 1 -->
+                                <rect x="10" y="30" width="15" height="15" fill="#FF6B6B" fill-opacity="0.3" stroke="#FF6B6B" stroke-width="1"/>
+                                <text x="30" y="42" font-family="Arial, sans-serif" font-size="10" fill="#495057">Etapa 1 (Vendida)</text>
+                                
+                                <!-- Etapa 2A -->
+                                <rect x="10" y="50" width="15" height="15" fill="#4ECDC4" fill-opacity="0.3" stroke="#4ECDC4" stroke-width="1"/>
+                                <text x="30" y="62" font-family="Arial, sans-serif" font-size="10" fill="#495057">Etapa 2A (En Venta)</text>
+                                
+                                <!-- Etapa 2B -->
+                                <rect x="10" y="70" width="15" height="15" fill="#45B7D1" fill-opacity="0.3" stroke="#45B7D1" stroke-width="1"/>
+                                <text x="30" y="82" font-family="Arial, sans-serif" font-size="10" fill="#495057">Etapa 2B (Desarrollo)</text>
+                                
+                                <!-- Etapa 3 -->
+                                <rect x="10" y="90" width="15" height="15" fill="#96CEB4" fill-opacity="0.3" stroke="#96CEB4" stroke-width="1"/>
+                                <text x="30" y="102" font-family="Arial, sans-serif" font-size="10" fill="#495057">Etapa 3 (Futuro)</text>
+                                
+                                <!-- Espacios Verdes -->
+                                <rect x="110" y="30" width="15" height="15" fill="#2ECC71" fill-opacity="0.2" stroke="#2ECC71" stroke-width="1"/>
+                                <text x="130" y="42" font-family="Arial, sans-serif" font-size="10" fill="#495057">Espacios Verdes</text>
+                            </g>
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
@@ -125,19 +312,20 @@
     </div>
 </div>
 
-<!-- Modal de Pantalla Completa -->
-<div class="modal fade" id="fullscreenModal" tabindex="-1">
-    <div class="modal-dialog modal-fullscreen">
+<!-- Modal para detalles -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Plano de Tejas Cuatro - Vista Completa</h5>
+                <h5 class="modal-title" id="modalTitle">Detalles del Área</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0">
-                <img id="fullscreenImage" 
-                     src="{{ url_for('static', filename='images/tejas4-map.png') }}" 
-                     alt="Plano de Tejas Cuatro"
-                     style="width: 100%; height: 100%; object-fit: contain;">
+            <div class="modal-body" id="modalBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="contactAboutArea()">Consultar</button>
             </div>
         </div>
     </div>
@@ -147,108 +335,332 @@
 {% block extra_js %}
 <script>
 let currentZoom = 1;
-const zoomStep = 0.2;
-const minZoom = 0.5;
-const maxZoom = 3;
+let isDragging = false;
+let startX, startY, translateX = 0, translateY = 0;
 
-// Función para mostrar error si la imagen no carga
-function showMapError() {
+// Datos de las áreas
+const areaData = {
+    'etapa1': {
+        nombre: 'Etapa 1 - Manzanas 40-57',
+        estado: 'Vendida',
+        manzanas: 18,
+        descripcion: 'Primera etapa del desarrollo Lote Joven - Tejas Cuatro. Completamente vendida con infraestructura completa.',
+        servicios: ['Agua', 'Luz', 'Gas', 'Cloacas', 'Seguridad 24hs'],
+        color: '#FF6B6B'
+    },
+    'etapa2a': {
+        nombre: 'Etapa 2A - Manzanas 20-39',
+        estado: 'En Venta',
+        manzanas: 20,
+        descripcion: 'Segunda etapa con lotes disponibles para compra. Infraestructura completa, seguridad 24hs.',
+        servicios: ['Agua', 'Luz', 'Gas', 'Cloacas', 'Seguridad 24hs', 'Pavimento'],
+        color: '#4ECDC4'
+    },
+    'etapa2b': {
+        nombre: 'Etapa 2B - Manzanas 1-19',
+        estado: 'Desarrollo',
+        manzanas: 19,
+        descripcion: 'En desarrollo, próximamente disponible. Lotes en preparación con todos los servicios.',
+        servicios: ['Agua', 'Luz', 'Gas', 'Cloacas', 'En desarrollo'],
+        color: '#45B7D1'
+    },
+    'etapa3': {
+        nombre: 'Etapa 3 - Manzanas 58-70',
+        estado: 'Futuro',
+        manzanas: 13,
+        descripcion: 'Planificada para futuras expansiones del desarrollo Tejas Cuatro.',
+        servicios: ['Planificación en curso'],
+        color: '#96CEB4'
+    },
+    'ev1': {
+        nombre: 'E.V.1 - Plaza Central',
+        tipo: 'Espacio Verde',
+        area: '8121.0m²',
+        descripcion: 'Plaza central del desarrollo con áreas de recreación y esparcimiento.',
+        servicios: ['Áreas verdes', 'Juegos infantiles', 'Paseos'],
+        color: '#2ECC71'
+    },
+    'ev2': {
+        nombre: 'E.V.2 - Parque Norte',
+        tipo: 'Espacio Verde',
+        area: '2333.7m²',
+        descripcion: 'Parque norte con vegetación nativa y senderos.',
+        servicios: ['Senderos', 'Áreas de descanso', 'Vegetación nativa'],
+        color: '#2ECC71'
+    },
+    'ev3': {
+        nombre: 'E.V.3 - Reserva Natural',
+        tipo: 'Espacio Verde',
+        area: '2093.91m²',
+        descripcion: 'Reserva natural preservada para la biodiversidad local.',
+        servicios: ['Reserva natural', 'Biodiversidad', 'Senderos ecológicos'],
+        color: '#2ECC71'
+    },
+    'ev4': {
+        nombre: 'E.V.4 - Plaza Sur',
+        tipo: 'Espacio Verde',
+        area: '314.16m²',
+        descripcion: 'Plaza sur con áreas de encuentro comunitario.',
+        servicios: ['Área de encuentro', 'Mobiliario urbano'],
+        color: '#2ECC71'
+    },
+    'ev5': {
+        nombre: 'E.V.5 - Jardín Central',
+        tipo: 'Espacio Verde',
+        area: '295.73m²',
+        descripcion: 'Jardín central con especies ornamentales.',
+        servicios: ['Jardín ornamental', 'Especies nativas'],
+        color: '#2ECC71'
+    },
+    'ev6': {
+        nombre: 'E.V.6 - Parque Grande',
+        tipo: 'Espacio Verde',
+        area: '5342.93m²',
+        descripcion: 'El parque más grande del desarrollo con múltiples actividades.',
+        servicios: ['Deportes', 'Recreación', 'Áreas de picnic', 'Estacionamiento'],
+        color: '#2ECC71'
+    },
+    'ev7': {
+        nombre: 'E.V.7 - Jardín Este',
+        tipo: 'Espacio Verde',
+        area: '350.40m²',
+        descripcion: 'Jardín este con diseño paisajístico.',
+        servicios: ['Diseño paisajístico', 'Áreas de descanso'],
+        color: '#2ECC71'
+    }
+};
+
+// Inicializar mapa
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+    addEventListeners();
+});
+
+function initializeMap() {
+    const svg = document.getElementById('mapSVG');
+    const areas = svg.querySelectorAll('.map-area');
+    
+    areas.forEach(area => {
+        area.addEventListener('click', handleAreaClick);
+        area.addEventListener('mouseenter', handleAreaHover);
+        area.addEventListener('mouseleave', handleAreaLeave);
+    });
+}
+
+function addEventListeners() {
     const container = document.getElementById('mapContainer');
-    container.innerHTML = `
-        <div class="d-flex align-items-center justify-content-center h-100">
-            <div class="text-center">
-                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
-                <h5 class="mt-3 text-muted">Imagen del Plano no Disponible</h5>
-                <p class="text-muted">El archivo del plano no se encuentra en el servidor.</p>
-                <small class="text-muted">
-                    Por favor, sube la imagen del plano a: <code>static/images/tejas4-map.png</code>
-                </small>
+    const svg = document.getElementById('mapSVG');
+    
+    // Zoom con rueda del mouse
+    container.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        const newZoom = Math.max(0.5, Math.min(3, currentZoom + delta));
+        setZoom(newZoom);
+    });
+    
+    // Arrastrar
+    svg.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', stopDrag);
+}
+
+function handleAreaClick(event) {
+    const areaId = event.currentTarget.id;
+    const data = areaData[areaId];
+    
+    if (data) {
+        showAreaDetails(data);
+    }
+}
+
+function handleAreaHover(event) {
+    const area = event.currentTarget;
+    area.style.cursor = 'pointer';
+    
+    // Resaltar área
+    const rect = area.querySelector('rect');
+    if (rect) {
+        rect.style.fillOpacity = '0.5';
+    }
+}
+
+function handleAreaLeave(event) {
+    const area = event.currentTarget;
+    area.style.cursor = 'grab';
+    
+    // Restaurar opacidad
+    const rect = area.querySelector('rect');
+    if (rect) {
+        rect.style.fillOpacity = '0.3';
+    }
+}
+
+function showAreaDetails(data) {
+    const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    const title = document.getElementById('modalTitle');
+    const body = document.getElementById('modalBody');
+    
+    title.textContent = data.nombre;
+    
+    let content = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Información General</h6>
+                <p><strong>Nombre:</strong> ${data.nombre}</p>
+                ${data.estado ? `<p><strong>Estado:</strong> <span class="badge bg-success">${data.estado}</span></p>` : ''}
+                ${data.tipo ? `<p><strong>Tipo:</strong> ${data.tipo}</p>` : ''}
+                ${data.manzanas ? `<p><strong>Manzanas:</strong> ${data.manzanas}</p>` : ''}
+                ${data.area ? `<p><strong>Área:</strong> ${data.area}</p>` : ''}
+            </div>
+            <div class="col-md-6">
+                <h6>Descripción</h6>
+                <p>${data.descripcion}</p>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Servicios Disponibles</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    ${data.servicios.map(servicio => `<span class="badge bg-primary">${servicio}</span>`).join('')}
+                </div>
             </div>
         </div>
     `;
-}
-
-// Agregar event listener para error de imagen
-document.addEventListener('DOMContentLoaded', function() {
-    const mapImage = document.getElementById('mapImage');
-    if (mapImage) {
-        mapImage.addEventListener('error', showMapError);
-    }
-});
-
-function zoomIn() {
-    if (currentZoom < maxZoom) {
-        currentZoom += zoomStep;
-        applyZoom();
-    }
-}
-
-function zoomOut() {
-    if (currentZoom > minZoom) {
-        currentZoom -= zoomStep;
-        applyZoom();
-    }
-}
-
-function resetZoom() {
-    currentZoom = 1;
-    applyZoom();
-}
-
-function applyZoom() {
-    const mapImage = document.getElementById('mapImage');
-    mapImage.style.transform = `scale(${currentZoom})`;
-    mapImage.style.transformOrigin = 'center center';
-}
-
-function toggleFullscreen() {
-    const modal = new bootstrap.Modal(document.getElementById('fullscreenModal'));
+    
+    body.innerHTML = content;
     modal.show();
 }
 
-function downloadImage() {
-    const link = document.createElement('a');
-    link.href = "{{ url_for('static', filename='images/tejas4-map.png') }}";
-    link.download = 'plano-tejas-cuatro.png';
-    link.click();
+function zoomIn() {
+    setZoom(Math.min(3, currentZoom + 0.2));
 }
 
-// Event listeners para zoom con rueda del mouse
-document.getElementById('mapContainer').addEventListener('wheel', function(e) {
-    e.preventDefault();
-    if (e.deltaY < 0) {
-        zoomIn();
-    } else {
-        zoomOut();
-    }
-});
+function zoomOut() {
+    setZoom(Math.max(0.5, currentZoom - 0.2));
+}
 
-// Event listeners para arrastrar la imagen
-let isDragging = false;
-let startX, startY, scrollLeft, scrollTop;
+function resetZoom() {
+    setZoom(1);
+}
 
-document.getElementById('mapImage').addEventListener('mousedown', function(e) {
+function setZoom(zoom) {
+    currentZoom = zoom;
+    const svg = document.getElementById('mapSVG');
+    svg.style.transform = `scale(${zoom})`;
+    svg.style.transformOrigin = 'center center';
+}
+
+function resetView() {
+    setZoom(1);
+    translateX = 0;
+    translateY = 0;
+    const svg = document.getElementById('mapSVG');
+    svg.style.transform = `translate(${translateX}px, ${translateY}px) scale(1)`;
+}
+
+function startDrag(event) {
     isDragging = true;
-    startX = e.pageX - this.offsetLeft;
-    startY = e.pageY - this.offsetTop;
-    scrollLeft = this.parentElement.scrollLeft;
-    scrollTop = this.parentElement.scrollTop;
-    this.style.cursor = 'grabbing';
-});
+    startX = event.clientX - translateX;
+    startY = event.clientY - translateY;
+    event.currentTarget.style.cursor = 'grabbing';
+}
 
-document.addEventListener('mousemove', function(e) {
+function onMouseMove(event) {
     if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - startX;
-    const y = e.pageY - startY;
-    const container = document.getElementById('mapContainer');
-    container.scrollLeft = scrollLeft - (x - startX);
-    container.scrollTop = scrollTop - (y - startY);
-});
+    
+    translateX = event.clientX - startX;
+    translateY = event.clientY - startY;
+    
+    const svg = document.getElementById('mapSVG');
+    svg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+}
 
-document.addEventListener('mouseup', function() {
+function stopDrag() {
     isDragging = false;
-    document.getElementById('mapImage').style.cursor = 'grab';
-});
+    const svg = document.getElementById('mapSVG');
+    svg.style.cursor = 'grab';
+}
+
+function toggleFullscreen() {
+    const container = document.getElementById('mapContainer');
+    if (!document.fullscreenElement) {
+        container.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+function downloadSVG() {
+    const svg = document.getElementById('mapSVG');
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+    const svgUrl = URL.createObjectURL(svgBlob);
+    
+    const link = document.createElement('a');
+    link.href = svgUrl;
+    link.download = 'mapa-tejas-cuatro.svg';
+    link.click();
+    
+    URL.revokeObjectURL(svgUrl);
+}
+
+function contactAboutArea() {
+    alert('Función de contacto en desarrollo. Próximamente podrás consultar sobre esta área.');
+}
 </script>
+
+<style>
+.map-area {
+    transition: all 0.3s ease;
+}
+
+.map-area:hover {
+    filter: brightness(1.1);
+}
+
+.stage-area {
+    transition: fill-opacity 0.3s ease;
+}
+
+.green-area {
+    transition: fill-opacity 0.3s ease;
+}
+
+.info-indicator {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.info-indicator:hover {
+    transform: scale(1.2);
+}
+
+#mapSVG {
+    transition: transform 0.3s ease;
+}
+
+#mapContainer {
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 #f8f9fa;
+}
+
+#mapContainer::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+#mapContainer::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+#mapContainer::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 4px;
+}
+
+#mapContainer::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+</style>
 {% endblock %}
