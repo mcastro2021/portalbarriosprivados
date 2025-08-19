@@ -37,12 +37,15 @@ def init_permanent_db():
             )
             admin.set_password('admin123')
             db.session.add(admin)
+            db.session.commit()
             print("✅ Usuario administrador creado (admin/admin123)")
+        else:
+            print("ℹ️ Usuario administrador ya existe")
         
-        # Crear datos del mapa de Tejas 4
+        # Crear datos del mapa de Tejas 4 (solo si no existen)
         create_tejas4_map_data()
         
-        # Crear noticias de ejemplo
+        # Crear noticias de ejemplo (solo si no existen)
         create_sample_news(admin)
         
         # Commit todos los cambios
@@ -51,10 +54,14 @@ def init_permanent_db():
 
 def create_tejas4_map_data():
     """Crear datos específicos del mapa de Tejas 4"""
-    print("🗺️ Creando datos del mapa de Tejas 4...")
+    print("🗺️ Verificando datos del mapa de Tejas 4...")
     
-    # Limpiar datos existentes
-    NeighborhoodMap.query.delete()
+    # Verificar si ya existen datos del mapa
+    if NeighborhoodMap.query.count() > 0:
+        print("ℹ️ Los datos del mapa ya existen, saltando creación...")
+        return
+    
+    print("🗺️ Creando datos del mapa de Tejas 4...")
     
     # Datos de las etapas basados en la imagen
     map_data = [
@@ -288,12 +295,14 @@ def create_tejas4_map_data():
 
 def create_sample_news(admin):
     """Crear noticias de ejemplo"""
-    print("📰 Creando noticias de ejemplo...")
+    print("📰 Verificando noticias de ejemplo...")
     
     # Verificar si ya existen noticias
     if News.query.count() > 0:
-        print("ℹ️ Las noticias ya existen, saltando...")
+        print("ℹ️ Las noticias ya existen, saltando creación...")
         return
+    
+    print("📰 Creando noticias de ejemplo...")
     
     news_data = [
         {

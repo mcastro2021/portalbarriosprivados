@@ -119,6 +119,16 @@ cp .env.example .env
 python init_db.py
 ```
 
+**Nota**: Los datos de ejemplo solo se crean una vez. Si necesitas resetear la base de datos completamente, usa:
+```bash
+python reset_db.py
+```
+
+**Verificar estado de la base de datos**:
+```bash
+python check_db.py
+```
+
 6. **Ejecutar la aplicación**
 ```bash
 python app.py
@@ -173,6 +183,8 @@ portalbarriosprivados/
 ├── utils/              # Utilidades
 ├── requirements.txt    # Dependencias
 ├── init_db.py         # Inicialización de BD
+├── reset_db.py        # Reset completo de BD (solo desarrollo)
+├── check_db.py        # Verificar estado de BD
 └── README.md          # Este archivo
 ```
 

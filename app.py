@@ -565,12 +565,20 @@ def init_db():
             )
             admin.set_password('admin123')
             db.session.add(admin)
-            
-            # Crear algunos datos de ejemplo
-            create_sample_data()
-            
             db.session.commit()
-            print("Base de datos inicializada con usuario admin (admin/admin123)")
+            print("✅ Usuario administrador creado (admin/admin123)")
+            
+            # Crear algunos datos de ejemplo solo si no existen
+            create_sample_data()
+        else:
+            print("ℹ️ Usuario administrador ya existe")
+            
+        # Verificar si ya existen datos de ejemplo
+        if News.query.count() == 0 and NeighborhoodMap.query.count() == 0:
+            create_sample_data()
+            print("✅ Datos de ejemplo creados")
+        else:
+            print("ℹ️ Los datos de ejemplo ya existen, saltando creación")
 
 def create_sample_data():
     """Crear datos de ejemplo"""
