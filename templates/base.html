@@ -102,7 +102,7 @@
                                     <i class="bi bi-person me-2"></i>Perfil
                                 </a></li>
                                 {% if current_user.role == 'admin' %}
-                                <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">
                                     <i class="bi bi-gear me-2"></i>Administración
                                 </a></li>
                                 {% endif %}
