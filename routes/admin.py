@@ -41,8 +41,8 @@ def dashboard():
         'monthly_expenses': Expense.query.filter(Expense.created_at >= start_of_month).count(),
         'pending_visits': Visit.query.filter_by(status='pending').count(),
         'pending_expenses': Expense.query.filter_by(status='pending').count(),
-        'pending_security': SecurityReport.query.filter_by(status='pending').count(),
-        'active_classifieds': Classified.query.filter_by(is_active=True).count()
+        'pending_security': SecurityReport.query.filter_by(status='pending').count() if hasattr(SecurityReport, 'status') else 0,
+        'active_classifieds': Classified.query.filter_by(is_active=True).count() if hasattr(Classified, 'is_active') else 0
     }
     
     # Actividad reciente
