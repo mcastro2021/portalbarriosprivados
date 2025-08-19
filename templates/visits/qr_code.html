@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Código QR - Visita #{{ visit.id }} - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow text-center">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-qr-code me-2"></i>Código QR de Acceso
+                    </h4>
+                </div>
+                <div class="card-body py-5">
+                    <h5 class="mb-3">Visita Autorizada</h5>
+                    
+                    <!-- Código QR -->
+                    {% if visit.qr_code %}
+                    <div class="mb-4">
+                        <img src="data:image/png;base64,{{ visit.qr_code }}" 
+                             alt="Código QR" 
+                             class="img-fluid" 
+                             style="max-width: 300px;">
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        El código QR no está disponible
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Información de la visita -->
+                    <div class="bg-light rounded p-4 mb-4">
+                        <h6 class="mb-3">Detalles de la Visita</h6>
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <td class="text-muted text-start">Visitante:</td>
+                                <td class="text-end fw-bold">{{ visit.visitor_name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted text-start">DNI:</td>
+                                <td class="text-end fw-bold">{{ visit.visitor_dni }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted text-start">Fecha:</td>
+                                <td class="text-end fw-bold">{{ visit.expected_date.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                            {% if visit.expected_time %}
+                            <tr>
+                                <td class="text-muted text-start">Hora:</td>
+                                <td class="text-end fw-bold">{{ visit.expected_time.strftime('%H:%M') }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if visit.vehicle_plate %}
+                            <tr>
+                                <td class="text-muted text-start">Vehículo:</td>
+                                <td class="text-end fw-bold">
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-car-front me-1"></i>{{ visit.vehicle_plate }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td class="text-muted text-start">Autorizado por:</td>
+                                <td class="text-end fw-bold">{{ visit.resident.name or visit.resident.username }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- Instrucciones -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle me-2"></i>Instrucciones para el visitante
+                        </h6>
+                        <ul class="mb-0 text-start">
+                            <li>Presente este código QR en la entrada del barrio</li>
+                            <li>Tenga su DNI a mano para verificación</li>
+                            <li>Este código es válido solo para la fecha indicada</li>
+                            <li>No comparta este código con terceros</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="printQR()">
+                            <i class="bi bi-printer me-2"></i>Imprimir Código
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="downloadQR()">
+                            <i class="bi bi-download me-2"></i>Descargar Imagen
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="shareQR()">
+                            <i class="bi bi-share me-2"></i>Compartir
+                        </button>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="bi bi-shield-check me-1"></i>
+                        Este código es único e intransferible
+                    </small>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('visits.show', visit_id=visit.id) }}" class="btn btn-link">
+                    <i class="bi bi-arrow-left me-2"></i>Volver a los detalles
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos para impresión -->
+<style>
+@media print {
+    .btn, .card-footer, .alert, .text-center.mt-4 {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .card-header {
+        background: none !important;
+        color: black !important;
+        border-bottom: 2px solid black !important;
+    }
+    
+    body {
+        font-size: 14pt;
+    }
+}
+</style>
+
+<script>
+function printQR() {
+    window.print();
+}
+
+function downloadQR() {
+    // Obtener la imagen del QR
+    const qrImage = document.querySelector('img[alt="Código QR"]');
+    if (!qrImage) {
+        Swal.fire('Error', 'No se encontró el código QR', 'error');
+        return;
+    }
+    
+    // Crear un enlace de descarga
+    const link = document.createElement('a');
+    link.download = `visita_{{ visit.id }}_qr.png`;
+    link.href = qrImage.src;
+    link.click();
+}
+
+function shareQR() {
+    const shareData = {
+        title: 'Código QR de Visita - {{ config.BARRIO_NAME }}',
+        text: `Código de acceso para {{ visit.visitor_name }} el {{ visit.expected_date.strftime('%d/%m/%Y') }}`,
+        url: window.location.href
+    };
+    
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => console.log('Compartido exitosamente'))
+            .catch((error) => console.log('Error al compartir:', error));
+    } else {
+        // Fallback: copiar URL al portapapeles
+        navigator.clipboard.writeText(window.location.href)
+            .then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Enlace copiado',
+                    text: 'El enlace ha sido copiado al portapapeles',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            })
+            .catch(() => {
+                Swal.fire('Error', 'No se pudo copiar el enlace', 'error');
+            });
+    }
+}
+
+// Si viene de WhatsApp o similar, mostrar mensaje de bienvenida
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('welcome') === 'true') {
+        Swal.fire({
+            icon: 'success',
+            title: '¡Bienvenido!',
+            text: 'Este es tu código de acceso al barrio',
+            confirmButtonText: 'Entendido'
+        });
+    }
+});
+</script>
+{% endblock %}

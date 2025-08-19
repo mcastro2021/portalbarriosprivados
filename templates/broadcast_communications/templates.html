@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Plantillas de Comunicados - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-file-text me-2"></i>Plantillas de Comunicados
+                </h1>
+                <a href="{{ url_for('broadcast_communications.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for template in templates %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm template-card" data-template-id="{{ template.id }}">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle p-3 bg-{{ template.color }}-subtle">
+                            <i class="bi bi-{{ template.icon }} text-{{ template.color }} fs-4"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h5 class="card-title mb-0">{{ template.name }}</h5>
+                            <small class="text-muted">Prioridad: {{ template.priority }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="template-content mb-3">
+                        <h6 class="text-muted small">TÍTULO:</h6>
+                        <p class="template-title fw-bold">{{ template.title }}</p>
+                        
+                        <h6 class="text-muted small">MENSAJE:</h6>
+                        <p class="template-message">{{ template.message }}</p>
+                    </div>
+                    
+                    <button class="btn btn-{{ template.color }} w-100 use-template-btn"
+                            data-title="{{ template.title }}"
+                            data-message="{{ template.message }}"
+                            data-priority="{{ template.priority }}">
+                        <i class="bi bi-check2-circle me-2"></i>Usar esta plantilla
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.template-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.template-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+.template-content {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.template-title {
+    font-size: 1.1rem;
+}
+
+.template-message {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar clic en botón de usar plantilla
+    document.querySelectorAll('.use-template-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const title = this.dataset.title;
+            const message = this.dataset.message;
+            const priority = this.dataset.priority;
+            
+            // Si estamos en la página de plantillas, redirigir a index con los datos
+            const params = new URLSearchParams({
+                template_title: title,
+                template_message: message,
+                template_priority: priority
+            });
+            
+            window.location.href = "{{ url_for('broadcast_communications.index') }}?" + params.toString();
+        });
+    });
+});
+</script>
+{% endblock %}

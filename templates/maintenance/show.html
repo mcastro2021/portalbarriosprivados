@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitud #{{ maintenance.id }} - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-tools me-2"></i>Solicitud de Mantenimiento #{{ maintenance.id }}
+                    </h4>
+                    <span class="badge bg-{{ maintenance.get_status_color() }}">
+                        {{ maintenance.get_status_display() }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Descripción -->
+                    <div class="mb-4">
+                        <h5>Descripción del problema</h5>
+                        <p class="text-muted">{{ maintenance.description }}</p>
+                    </div>
+                    
+                    <!-- Imágenes -->
+                    {% if maintenance.images %}
+                    <div class="mb-4">
+                        <h5>Imágenes adjuntas</h5>
+                        <div class="row g-2">
+                            {% for image in maintenance.images.split(',') %}
+                            <div class="col-6 col-md-4">
+                                <a href="{{ url_for('uploaded_file', filename='maintenance/' + image) }}" 
+                                   data-bs-toggle="modal" data-bs-target="#imageModal" 
+                                   onclick="showImage('{{ url_for('uploaded_file', filename='maintenance/' + image) }}')">
+                                    <img src="{{ url_for('uploaded_file', filename='maintenance/' + image) }}" 
+                                         class="img-thumbnail w-100" style="height: 150px; object-fit: cover;">
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Detalles -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Información General</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td class="text-muted">Tipo:</td>
+                                    <td>{{ maintenance.maintenance_type }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Prioridad:</td>
+                                    <td>
+                                        <span class="badge bg-{{ maintenance.get_priority_color() }}">
+                                            {{ maintenance.get_priority_display() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Ubicación:</td>
+                                    <td>{{ maintenance.location or 'No especificada' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Creado:</td>
+                                    <td>{{ maintenance.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        {% if maintenance.ai_classification %}
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Análisis IA</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td class="text-muted">Clasificación:</td>
+                                    <td>{{ maintenance.ai_classification }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Área asignada:</td>
+                                    <td>{{ maintenance.assigned_area or 'Por asignar' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Tiempo estimado:</td>
+                                    <td>{{ maintenance.expected_response_time or 'Por determinar' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Confianza IA:</td>
+                                    <td>
+                                        {% if maintenance.ai_confidence %}
+                                            {{ (maintenance.ai_confidence * 100)|round|int }}%
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Sugerencias IA -->
+                    {% if maintenance.ai_suggestions %}
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-lightbulb me-2"></i>Sugerencias de IA</h6>
+                        <p class="mb-0">{{ maintenance.ai_suggestions }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Historial de actualizaciones -->
+                    {% if maintenance.updates %}
+                    <div class="mb-4">
+                        <h5>Historial de actualizaciones</h5>
+                        <div class="timeline">
+                            {% for update in maintenance.updates %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <p class="mb-1">{{ update.message }}</p>
+                                    <small class="text-muted">
+                                        {{ update.created_at.strftime('%d/%m/%Y %H:%M') }} - 
+                                        {{ update.user.name or update.user.username }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Acciones -->
+                    {% if current_user == maintenance.user or current_user.can_access_admin() %}
+                    <div class="border-top pt-3">
+                        {% if maintenance.status != 'completed' and maintenance.status != 'cancelled' %}
+                        <a href="{{ url_for('maintenance.edit', maintenance_id=maintenance.id) }}" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-pencil me-2"></i>Editar
+                        </a>
+                        {% endif %}
+                        
+                        {% if current_user.can_access_admin() %}
+                            {% if maintenance.status == 'pending' %}
+                            <button class="btn btn-success" onclick="updateStatus({{ maintenance.id }}, 'in_progress')">
+                                <i class="bi bi-play-circle me-2"></i>Iniciar trabajo
+                            </button>
+                            {% elif maintenance.status == 'in_progress' %}
+                            <button class="btn btn-primary" onclick="updateStatus({{ maintenance.id }}, 'completed')">
+                                <i class="bi bi-check-circle me-2"></i>Marcar como completado
+                            </button>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if maintenance.status == 'pending' %}
+                        <button class="btn btn-outline-danger" onclick="updateStatus({{ maintenance.id }}, 'cancelled')">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar solicitud
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Información del solicitante -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Solicitante</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-lg bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center">
+                            {{ maintenance.user.name[0].upper() if maintenance.user.name else maintenance.user.username[0].upper() }}
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ maintenance.user.name or maintenance.user.username }}</h6>
+                            <small class="text-muted">{{ maintenance.user.address or 'Sin dirección' }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if maintenance.user.phone or maintenance.user.email %}
+                    <div class="contact-info">
+                        {% if maintenance.user.phone %}
+                        <p class="mb-2">
+                            <i class="bi bi-telephone me-2"></i>
+                            {{ maintenance.user.phone }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if maintenance.user.email %}
+                        <p class="mb-0">
+                            <i class="bi bi-envelope me-2"></i>
+                            {{ maintenance.user.email }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Línea de tiempo -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Estado actual</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3" style="height: 25px;">
+                        {% set progress = 0 %}
+                        {% if maintenance.status == 'pending' %}
+                            {% set progress = 25 %}
+                        {% elif maintenance.status == 'in_progress' %}
+                            {% set progress = 50 %}
+                        {% elif maintenance.status == 'completed' %}
+                            {% set progress = 100 %}
+                        {% endif %}
+                        
+                        <div class="progress-bar bg-{{ maintenance.get_status_color() }}" 
+                             role="progressbar" style="width: {{ progress }}%">
+                            {{ maintenance.get_status_display() }}
+                        </div>
+                    </div>
+                    
+                    <small class="text-muted">
+                        Última actualización: {{ maintenance.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver a Mantenimiento
+        </a>
+    </div>
+</div>
+
+<!-- Modal para ver imágenes -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-lg {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.timeline-item:before {
+    content: '';
+    position: absolute;
+    left: -21px;
+    top: 10px;
+    height: calc(100% - 10px);
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item:last-child:before {
+    display: none;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -25px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #007bff;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+</style>
+
+<script>
+function showImage(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+}
+
+function updateStatus(maintenanceId, newStatus) {
+    const messages = {
+        'in_progress': '¿Iniciar el trabajo de mantenimiento?',
+        'completed': '¿Marcar como completado?',
+        'cancelled': '¿Cancelar esta solicitud?'
+    };
+    
+    Swal.fire({
+        title: messages[newStatus],
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/maintenance/update-status/${maintenanceId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Actualizado!', 'El estado ha sido actualizado', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo actualizar el estado', 'error');
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

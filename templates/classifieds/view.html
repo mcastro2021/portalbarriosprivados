@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}{{ classified.title }} - Clasificados - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ classified.title }}</h4>
+                    <span class="badge bg-{{ 'success' if classified.status == 'active' else 'secondary' }}">
+                        {{ 'Activo' if classified.status == 'active' else 'Inactivo' }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Imágenes -->
+                    {% if classified.images %}
+                    <div id="classifiedCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for image in classified.images.split(',') %}
+                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                <img src="{{ url_for('uploaded_file', filename='classifieds/' + image) }}" 
+                                     class="d-block w-100" alt="Imagen {{ loop.index }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if classified.images.split(',')|length > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#classifiedCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#classifiedCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Descripción -->
+                    <div class="mb-4">
+                        <h5>Descripción</h5>
+                        <p class="text-muted">{{ classified.description|safe }}</p>
+                    </div>
+                    
+                    <!-- Precio -->
+                    {% if classified.price %}
+                    <div class="mb-4">
+                        <h3 class="text-primary">${{ "{:,.2f}".format(classified.price) }}</h3>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Detalles -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p class="mb-1">
+                                <i class="bi bi-tag me-2"></i>
+                                <strong>Categoría:</strong> 
+                                <span class="badge bg-secondary">{{ classified.get_category_display() }}</span>
+                            </p>
+                            <p class="mb-1">
+                                <i class="bi bi-calendar3 me-2"></i>
+                                <strong>Publicado:</strong> {{ classified.created_at.strftime('%d/%m/%Y') }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1">
+                                <i class="bi bi-eye me-2"></i>
+                                <strong>Vistas:</strong> {{ classified.views or 0 }}
+                            </p>
+                            <p class="mb-1">
+                                <i class="bi bi-clock me-2"></i>
+                                <strong>Última actualización:</strong> {{ classified.updated_at.strftime('%d/%m/%Y') }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Acciones -->
+                    {% if current_user == classified.user or current_user.can_access_admin() %}
+                    <div class="border-top pt-3">
+                        <a href="{{ url_for('classifieds.edit', classified_id=classified.id) }}" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-pencil me-2"></i>Editar
+                        </a>
+                        <button class="btn btn-outline-danger" onclick="deleteClassified({{ classified.id }})">
+                            <i class="bi bi-trash me-2"></i>Eliminar
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Información del vendedor -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Información de Contacto</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-lg bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center">
+                            {{ classified.user.name[0].upper() if classified.user.name else classified.user.username[0].upper() }}
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ classified.user.name or classified.user.username }}</h6>
+                            <small class="text-muted">Miembro desde {{ classified.user.created_at.strftime('%Y') }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if classified.contact_phone or classified.contact_email %}
+                    <div class="contact-info">
+                        {% if classified.contact_phone %}
+                        <p class="mb-2">
+                            <i class="bi bi-telephone me-2"></i>
+                            <a href="tel:{{ classified.contact_phone }}">{{ classified.contact_phone }}</a>
+                        </p>
+                        {% endif %}
+                        
+                        {% if classified.contact_email %}
+                        <p class="mb-2">
+                            <i class="bi bi-envelope me-2"></i>
+                            <a href="mailto:{{ classified.contact_email }}">{{ classified.contact_email }}</a>
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Contacta al vendedor a través del sistema de mensajes internos
+                    </div>
+                    {% endif %}
+                    
+                    <button class="btn btn-primary w-100 mt-3" onclick="contactSeller({{ classified.user.id }})">
+                        <i class="bi bi-chat-dots me-2"></i>Enviar Mensaje
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Otros anuncios del vendedor -->
+            {% if other_classifieds %}
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Otros anuncios del vendedor</h5>
+                </div>
+                <div class="card-body">
+                    {% for other in other_classifieds[:3] %}
+                    <a href="{{ url_for('classifieds.view', classified_id=other.id) }}" 
+                       class="text-decoration-none">
+                        <div class="d-flex mb-3">
+                            {% if other.images %}
+                            <img src="{{ url_for('uploaded_file', filename='classifieds/' + other.images.split(',')[0]) }}" 
+                                 class="rounded" width="60" height="60" style="object-fit: cover;">
+                            {% else %}
+                            <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
+                                 style="width: 60px; height: 60px;">
+                                <i class="bi bi-image text-white"></i>
+                            </div>
+                            {% endif %}
+                            <div class="ms-3">
+                                <h6 class="mb-0">{{ other.title }}</h6>
+                                {% if other.price %}
+                                <p class="mb-0 text-primary">${{ "{:,.0f}".format(other.price) }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('classifieds.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver a Clasificados
+        </a>
+    </div>
+</div>
+
+<style>
+.avatar-lg {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+}
+
+.carousel-item img {
+    max-height: 400px;
+    object-fit: contain;
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+function contactSeller(userId) {
+    Swal.fire({
+        title: 'Función en desarrollo',
+        text: 'El sistema de mensajería estará disponible próximamente',
+        icon: 'info',
+        confirmButtonText: 'Entendido'
+    });
+}
+
+function deleteClassified(classifiedId) {
+    Swal.fire({
+        title: '¿Eliminar anuncio?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/classifieds/delete/${classifiedId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Eliminado!', 'El anuncio ha sido eliminado', 'success')
+                        .then(() => window.location.href = '{{ url_for("classifieds.index") }}');
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo eliminar el anuncio', 'error');
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

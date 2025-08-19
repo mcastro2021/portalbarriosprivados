@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Pago Pendiente - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="card shadow-lg">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-hourglass-split text-warning" style="font-size: 5rem;"></i>
+                    </div>
+                    
+                    <h2 class="text-warning mb-3">Pago Pendiente</h2>
+                    
+                    <p class="lead mb-4">
+                        Tu pago está siendo procesado
+                    </p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-clock me-2"></i>
+                        <strong>El pago puede tardar unos minutos en confirmarse.</strong><br>
+                        Te notificaremos cuando esté completado.
+                    </div>
+                    
+                    <div class="bg-light rounded p-4 mb-4">
+                        <h5 class="mb-3">Información del Pago</h5>
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <td class="text-muted text-start">Período:</td>
+                                <td class="fw-bold text-end">{{ expense.period }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted text-start">Monto:</td>
+                                <td class="fw-bold text-end">${{ "{:,.2f}".format(expense.amount) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted text-start">Estado:</td>
+                                <td class="fw-bold text-end">
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-clock me-1"></i>Procesando
+                                    </span>
+                                </td>
+                            </tr>
+                            {% if expense.payment_reference %}
+                            <tr>
+                                <td class="text-muted text-start">Referencia:</td>
+                                <td class="fw-bold text-end">{{ expense.payment_reference }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Procesando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Verificando el estado del pago...</p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>¿Qué hacer ahora?</strong>
+                        <ul class="mb-0 text-start">
+                            <li>Recibirás un email cuando el pago se confirme</li>
+                            <li>Puedes verificar el estado en "Mis Expensas"</li>
+                            <li>Si el pago no se procesa, podrás intentar nuevamente</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="checkPaymentStatus()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Verificar Estado
+                        </button>
+                        <a href="{{ url_for('expenses.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-list-ul me-2"></i>Ver Todas las Expensas
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <p class="text-muted">
+                    <i class="bi bi-question-circle me-1"></i>
+                    ¿El pago tarda demasiado? Contáctanos en 
+                    <a href="mailto:{{ config.BARRIO_EMAIL }}">{{ config.BARRIO_EMAIL }}</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Verificar el estado del pago automáticamente cada 10 segundos
+let checkInterval;
+
+document.addEventListener('DOMContentLoaded', function() {
+    checkInterval = setInterval(checkPaymentStatus, 10000); // Cada 10 segundos
+});
+
+function checkPaymentStatus() {
+    fetch('{{ url_for("expenses.check_payment_status", expense_id=expense.id) }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'paid') {
+                clearInterval(checkInterval);
+                window.location.href = '{{ url_for("expenses.payment_success", expense_id=expense.id) }}';
+            } else if (data.status === 'failed') {
+                clearInterval(checkInterval);
+                window.location.href = '{{ url_for("expenses.payment_failure", expense_id=expense.id) }}';
+            }
+        })
+        .catch(error => {
+            console.error('Error verificando estado del pago:', error);
+        });
+}
+
+// Limpiar el intervalo cuando se abandona la página
+window.addEventListener('beforeunload', function() {
+    if (checkInterval) {
+        clearInterval(checkInterval);
+    }
+});
+</script>
+{% endblock %}

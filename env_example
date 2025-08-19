@@ -24,7 +24,7 @@ TWILIO_PHONE_NUMBER=your-twilio-phone-number
 OPENAI_API_KEY=your-openai-api-key
 
 # Claude (opcional para chatbot inteligente - prioridad sobre OpenAI)
-CLAUDE_API_KEY=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
+CLAUDE_API_KEY=your-claude-api-key
 CLAUDE_MODEL=claude-4-sonnet-20250514
 
 # Configuración del barrio

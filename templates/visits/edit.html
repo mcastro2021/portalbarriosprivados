@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Visita - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Visita
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('visits.edit', visit_id=visit.id) }}" 
+                          class="needs-validation" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Solo puedes editar visitas que aún no han sido procesadas.
+                        </div>
+                        
+                        <h5 class="mb-3">Datos del Visitante</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="visitor_name" class="form-label">Nombre completo <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="visitor_name" name="visitor_name" 
+                                       value="{{ visit.visitor_name }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingresa el nombre del visitante
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="visitor_dni" class="form-label">DNI <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="visitor_dni" name="visitor_dni" 
+                                       value="{{ visit.visitor_dni }}" required pattern="[0-9]{7,8}"
+                                       placeholder="12345678">
+                                <div class="invalid-feedback">
+                                    Por favor ingresa un DNI válido (7-8 dígitos)
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="visitor_phone" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="visitor_phone" name="visitor_phone" 
+                                       value="{{ visit.visitor_phone }}" placeholder="+54 9 11 1234-5678">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vehicle_plate" class="form-label">Patente del vehículo</label>
+                                <input type="text" class="form-control" id="vehicle_plate" name="vehicle_plate" 
+                                       value="{{ visit.vehicle_plate }}" placeholder="ABC123 o AB123CD"
+                                       style="text-transform: uppercase;">
+                                <div class="form-text">Dejar vacío si viene a pie</div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3 mt-4">Detalles de la Visita</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expected_date" class="form-label">Fecha esperada <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="expected_date" name="expected_date" 
+                                       value="{{ visit.expected_date.strftime('%Y-%m-%d') }}" 
+                                       min="{{ datetime.now().strftime('%Y-%m-%d') }}"
+                                       max="{{ (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d') }}"
+                                       required>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona una fecha válida
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expected_time" class="form-label">Hora aproximada</label>
+                                <input type="time" class="form-control" id="expected_time" name="expected_time" 
+                                       value="{{ visit.expected_time.strftime('%H:%M') if visit.expected_time else '' }}">
+                                <div class="form-text">Opcional - ayuda a la seguridad</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="purpose" class="form-label">Motivo de la visita</label>
+                            <input type="text" class="form-control" id="purpose" name="purpose" 
+                                   value="{{ visit.purpose }}" maxlength="200"
+                                   placeholder="Ej: Visita familiar, entrega, trabajo, etc.">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="visit_type" class="form-label">Tipo de visita</label>
+                            <select class="form-select" id="visit_type" name="visit_type">
+                                <option value="single" {% if visit.visit_type == 'single' %}selected{% endif %}>
+                                    Visita única
+                                </option>
+                                <option value="frequent" {% if visit.visit_type == 'frequent' %}selected{% endif %}>
+                                    Visitante frecuente
+                                </option>
+                            </select>
+                            <div class="form-text">
+                                Los visitantes frecuentes pueden tener acceso más rápido en futuras visitas
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notas adicionales</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"
+                                      placeholder="Información adicional para seguridad">{{ visit.notes }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('visits.show', visit_id=visit.id) }}" 
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validación del formulario
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Convertir patente a mayúsculas
+document.getElementById('vehicle_plate').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+
+// Formatear DNI
+document.getElementById('visitor_dni').addEventListener('input', function() {
+    // Eliminar cualquier caracter que no sea número
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+</script>
+{% endblock %}

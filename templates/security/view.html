@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte #{{ report.id }} - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-shield-exclamation me-2"></i>Reporte de Seguridad #{{ report.id }}
+                    </h4>
+                    <span class="badge bg-{{ report.get_priority_color() }} fs-6">
+                        Prioridad {{ report.get_priority_display() }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Descripción del incidente -->
+                    <div class="mb-4">
+                        <h5>Descripción del Incidente</h5>
+                        <p class="text-muted">{{ report.description }}</p>
+                    </div>
+                    
+                    <!-- Detalles -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Información General</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td class="text-muted">Tipo:</td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ report.get_incident_type_display() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Ubicación:</td>
+                                    <td>{{ report.location }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Fecha del incidente:</td>
+                                    <td>
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ report.incident_date.strftime('%d/%m/%Y') }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Hora:</td>
+                                    <td>
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ report.incident_time.strftime('%H:%M') if report.incident_time else 'No especificada' }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Estado del Reporte</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td class="text-muted">Estado:</td>
+                                    <td>
+                                        <span class="badge bg-{{ report.get_status_color() }}">
+                                            {{ report.get_status_display() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Reportado:</td>
+                                    <td>{{ report.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                </tr>
+                                {% if report.resolved_at %}
+                                <tr>
+                                    <td class="text-muted">Resuelto:</td>
+                                    <td>{{ report.resolved_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td class="text-muted">Anónimo:</td>
+                                    <td>
+                                        {% if report.is_anonymous %}
+                                            <span class="badge bg-warning">Sí</span>
+                                        {% else %}
+                                            <span class="badge bg-info">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Imágenes -->
+                    {% if report.images %}
+                    <div class="mb-4">
+                        <h5>Evidencia Fotográfica</h5>
+                        <div class="row g-2">
+                            {% for image in report.images.split(',') %}
+                            <div class="col-6 col-md-4">
+                                <a href="{{ url_for('uploaded_file', filename='security/' + image) }}" 
+                                   data-bs-toggle="modal" data-bs-target="#imageModal" 
+                                   onclick="showImage('{{ url_for('uploaded_file', filename='security/' + image) }}')">
+                                    <img src="{{ url_for('uploaded_file', filename='security/' + image) }}" 
+                                         class="img-thumbnail w-100" style="height: 150px; object-fit: cover;">
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Resolución -->
+                    {% if report.resolution %}
+                    <div class="alert alert-success">
+                        <h6><i class="bi bi-check-circle me-2"></i>Resolución</h6>
+                        <p class="mb-0">{{ report.resolution }}</p>
+                        {% if report.resolved_by %}
+                        <small class="text-muted">
+                            Resuelto por {{ report.resolved_by.name or report.resolved_by.username }} 
+                            el {{ report.resolved_at.strftime('%d/%m/%Y %H:%M') }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Acciones -->
+                    {% if current_user.can_access_admin() or (current_user == report.user and report.status == 'open') %}
+                    <div class="border-top pt-3">
+                        {% if current_user.can_access_admin() %}
+                            {% if report.status == 'open' %}
+                            <button class="btn btn-primary" onclick="markAsInvestigating({{ report.id }})">
+                                <i class="bi bi-search me-2"></i>Marcar como "Investigando"
+                            </button>
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#resolveModal">
+                                <i class="bi bi-check-circle me-2"></i>Resolver
+                            </button>
+                            {% elif report.status == 'investigating' %}
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#resolveModal">
+                                <i class="bi bi-check-circle me-2"></i>Resolver
+                            </button>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if current_user == report.user and report.status == 'open' %}
+                        <button class="btn btn-outline-danger" onclick="deleteReport({{ report.id }})">
+                            <i class="bi bi-trash me-2"></i>Eliminar reporte
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Información del reportante -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Información del Reporte</h5>
+                </div>
+                <div class="card-body">
+                    {% if report.is_anonymous %}
+                        <div class="alert alert-warning mb-3">
+                            <i class="bi bi-incognito me-2"></i>
+                            Este reporte fue enviado de forma anónima
+                        </div>
+                        
+                        {% if report.reporter_name or report.reporter_phone or report.reporter_email %}
+                        <p class="text-muted mb-2"><strong>Datos de contacto opcionales:</strong></p>
+                        {% if report.reporter_name %}
+                        <p class="mb-1">
+                            <i class="bi bi-person me-2"></i>{{ report.reporter_name }}
+                        </p>
+                        {% endif %}
+                        {% if report.reporter_phone %}
+                        <p class="mb-1">
+                            <i class="bi bi-telephone me-2"></i>{{ report.reporter_phone }}
+                        </p>
+                        {% endif %}
+                        {% if report.reporter_email %}
+                        <p class="mb-1">
+                            <i class="bi bi-envelope me-2"></i>{{ report.reporter_email }}
+                        </p>
+                        {% endif %}
+                        {% endif %}
+                    {% else %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-lg bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center">
+                                {{ report.user.name[0].upper() if report.user.name else report.user.username[0].upper() }}
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ report.user.name or report.user.username }}</h6>
+                                <small class="text-muted">{{ report.user.address or 'Sin dirección' }}</small>
+                            </div>
+                        </div>
+                        
+                        {% if current_user.can_access_admin() %}
+                        <p class="mb-1">
+                            <i class="bi bi-envelope me-2"></i>{{ report.user.email }}
+                        </p>
+                        {% if report.user.phone %}
+                        <p class="mb-0">
+                            <i class="bi bi-telephone me-2"></i>{{ report.user.phone }}
+                        </p>
+                        {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Acciones rápidas -->
+            {% if current_user.can_access_admin() %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-danger" onclick="alertSecurity()">
+                            <i class="bi bi-megaphone me-2"></i>Alertar a Seguridad
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="notifyResidents()">
+                            <i class="bi bi-broadcast me-2"></i>Notificar Residentes
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="generateReport()">
+                            <i class="bi bi-file-text me-2"></i>Generar Informe
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('security.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver a Reportes
+        </a>
+    </div>
+</div>
+
+<!-- Modal para resolver -->
+{% if current_user.can_access_admin() %}
+<div class="modal fade" id="resolveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resolver Reporte</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="resolveForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="resolution" class="form-label">Descripción de la resolución</label>
+                        <textarea class="form-control" id="resolution" rows="4" required
+                                  placeholder="Describe las acciones tomadas y el resultado..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-2"></i>Marcar como resuelto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal para ver imágenes -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Evidencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-lg {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+}
+</style>
+
+<script>
+function showImage(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+}
+
+function markAsInvestigating(reportId) {
+    fetch(`/security/update-status/${reportId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ status: 'investigating' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('¡Actualizado!', 'El reporte está siendo investigado', 'success')
+                .then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo actualizar el estado', 'error');
+        }
+    });
+}
+
+document.getElementById('resolveForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const resolution = document.getElementById('resolution').value;
+    
+    fetch(`/security/resolve/${{{ report.id }}}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ resolution: resolution })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('¡Resuelto!', 'El reporte ha sido marcado como resuelto', 'success')
+                .then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo resolver el reporte', 'error');
+        }
+    });
+});
+
+function deleteReport(reportId) {
+    Swal.fire({
+        title: '¿Eliminar reporte?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/security/delete/${reportId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Eliminado!', 'El reporte ha sido eliminado', 'success')
+                        .then(() => window.location.href = '{{ url_for("security.index") }}');
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo eliminar el reporte', 'error');
+                }
+            });
+        }
+    });
+}
+
+function alertSecurity() {
+    Swal.fire('Función en desarrollo', 'Esta funcionalidad estará disponible próximamente', 'info');
+}
+
+function notifyResidents() {
+    Swal.fire('Función en desarrollo', 'Esta funcionalidad estará disponible próximamente', 'info');
+}
+
+function generateReport() {
+    Swal.fire('Función en desarrollo', 'Esta funcionalidad estará disponible próximamente', 'info');
+}
+</script>
+{% endblock %}

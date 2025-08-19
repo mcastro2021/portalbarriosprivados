@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Notificaciones - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-clock-history me-2"></i>Historial de Notificaciones
+                </h1>
+                <a href="{{ url_for('expense_notifications.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% if notifications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha de Envío</th>
+                                    <th>Usuario</th>
+                                    <th>Período</th>
+                                    <th>Monto</th>
+                                    <th>Método</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in notifications %}
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ expense.notification_date.strftime('%d/%m/%Y %H:%M') if expense.notification_date else 'N/A' }}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                {{ expense.user.name[0].upper() if expense.user.name else expense.user.username[0].upper() }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ expense.user.name or expense.user.username }}</div>
+                                                <small class="text-muted">{{ expense.user.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ expense.period }}</td>
+                                    <td class="fw-bold">${{ "{:,.2f}".format(expense.amount) }}</td>
+                                    <td>
+                                        {% if expense.notification_method == 'email' %}
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-envelope me-1"></i>Email
+                                            </span>
+                                        {% elif expense.notification_method == 'whatsapp' %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                                            </span>
+                                        {% elif expense.notification_method == 'both' %}
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-broadcast me-1"></i>Ambos
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if expense.status == 'paid' %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i>Pagada
+                                            </span>
+                                        {% elif expense.status == 'pending' %}
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-clock me-1"></i>Pendiente
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x-circle me-1"></i>Vencida
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="resendNotification({{ expense.id }})">
+                                            <i class="bi bi-arrow-repeat"></i> Reenviar
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No hay notificaciones enviadas aún</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Enviadas</h5>
+                    <h2 class="mb-0">{{ notifications|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Por Email</h5>
+                    <h2 class="mb-0">{{ notifications|selectattr('notification_method', 'equalto', 'email')|list|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Por WhatsApp</h5>
+                    <h2 class="mb-0">{{ notifications|selectattr('notification_method', 'equalto', 'whatsapp')|list|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Tasa de Pago</h5>
+                    <h2 class="mb-0">
+                        {% if notifications|length > 0 %}
+                            {{ ((notifications|selectattr('status', 'equalto', 'paid')|list|length / notifications|length) * 100)|round|int }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+</style>
+
+<script>
+function resendNotification(expenseId) {
+    Swal.fire({
+        title: '¿Reenviar notificación?',
+        text: 'Se volverá a enviar la notificación al usuario',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, reenviar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Reenviando notificación...');
+            
+            fetch('{{ url_for("expense_notifications.send_notification") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    expense_id: expenseId,
+                    method: 'both'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    Swal.fire('¡Enviado!', data.message, 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'Error al reenviar', 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                Swal.fire('Error', 'Error al conectar con el servidor', 'error');
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

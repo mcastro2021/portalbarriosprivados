@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Solicitud - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Solicitud de Mantenimiento
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('maintenance.edit', maintenance_id=maintenance.id) }}" 
+                          enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="mb-3">
+                            <label for="maintenance_type" class="form-label">Tipo de mantenimiento <span class="text-danger">*</span></label>
+                            <select class="form-select" id="maintenance_type" name="maintenance_type" required>
+                                <option value="">Selecciona el tipo</option>
+                                <option value="plomeria" {% if maintenance.maintenance_type == 'plomeria' %}selected{% endif %}>Plomería</option>
+                                <option value="electricidad" {% if maintenance.maintenance_type == 'electricidad' %}selected{% endif %}>Electricidad</option>
+                                <option value="pintura" {% if maintenance.maintenance_type == 'pintura' %}selected{% endif %}>Pintura</option>
+                                <option value="jardineria" {% if maintenance.maintenance_type == 'jardineria' %}selected{% endif %}>Jardinería</option>
+                                <option value="limpieza" {% if maintenance.maintenance_type == 'limpieza' %}selected{% endif %}>Limpieza</option>
+                                <option value="seguridad" {% if maintenance.maintenance_type == 'seguridad' %}selected{% endif %}>Seguridad</option>
+                                <option value="ascensor" {% if maintenance.maintenance_type == 'ascensor' %}selected{% endif %}>Ascensor</option>
+                                <option value="otros" {% if maintenance.maintenance_type == 'otros' %}selected{% endif %}>Otros</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Por favor selecciona el tipo de mantenimiento
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Descripción del problema <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="4" required>{{ maintenance.description }}</textarea>
+                            <div class="form-text">Describe detalladamente el problema para que podamos ayudarte mejor</div>
+                            <div class="invalid-feedback">
+                                Por favor describe el problema
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">Ubicación</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       value="{{ maintenance.location }}" placeholder="Ej: Cocina, Baño principal, etc.">
+                                <div class="form-text">Especifica dónde se encuentra el problema</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="priority" class="form-label">Prioridad <span class="text-danger">*</span></label>
+                                <select class="form-select" id="priority" name="priority" required>
+                                    {% for value, label in priorities %}
+                                    <option value="{{ value }}" {% if maintenance.priority == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona la prioridad
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if current_user.can_access_admin() %}
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Estado</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="pending" {% if maintenance.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                                <option value="in_progress" {% if maintenance.status == 'in_progress' %}selected{% endif %}>En Progreso</option>
+                                <option value="completed" {% if maintenance.status == 'completed' %}selected{% endif %}>Completado</option>
+                                <option value="cancelled" {% if maintenance.status == 'cancelled' %}selected{% endif %}>Cancelado</option>
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Imágenes actuales</label>
+                            {% if maintenance.images %}
+                            <div class="row g-2 mb-2">
+                                {% for image in maintenance.images.split(',') %}
+                                <div class="col-4 col-md-3">
+                                    <div class="position-relative">
+                                        <img src="{{ url_for('uploaded_file', filename='maintenance/' + image) }}" 
+                                             class="img-thumbnail w-100" style="height: 100px; object-fit: cover;">
+                                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                                                onclick="removeImage('{{ image }}')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No hay imágenes cargadas</p>
+                            {% endif %}
+                            
+                            <label for="images" class="form-label">Agregar nuevas imágenes</label>
+                            <input type="file" class="form-control" id="images" name="images" 
+                                   accept="image/*" multiple>
+                            <div class="form-text">Puedes subir imágenes del problema (opcional)</div>
+                        </div>
+                        
+                        <input type="hidden" id="removed_images" name="removed_images" value="">
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Nota:</strong> Solo puedes editar solicitudes que estén pendientes. 
+                            Una vez que el trabajo haya comenzado, contacta a la administración para cualquier cambio.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('maintenance.show', maintenance_id=maintenance.id) }}" 
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Array para mantener las imágenes a eliminar
+let removedImages = [];
+
+function removeImage(imageName) {
+    if (confirm('¿Eliminar esta imagen?')) {
+        removedImages.push(imageName);
+        document.getElementById('removed_images').value = removedImages.join(',');
+        
+        // Ocultar la imagen visualmente
+        event.target.closest('.col-4').style.display = 'none';
+    }
+}
+
+// Validación del formulario
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

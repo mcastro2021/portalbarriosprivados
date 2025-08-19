@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Anuncio - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Anuncio
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('classifieds.edit', classified_id=classified.id) }}" 
+                          enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Título del anuncio <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ classified.title }}" required maxlength="100">
+                            <div class="invalid-feedback">
+                                Por favor ingresa un título para tu anuncio
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Categoría <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Selecciona una categoría</option>
+                                {% for value, label in config.CLASSIFIED_CATEGORIES %}
+                                <option value="{{ value }}" {% if classified.category == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Por favor selecciona una categoría
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Descripción <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="5" required>{{ classified.description }}</textarea>
+                            <div class="form-text">Describe detalladamente lo que ofreces</div>
+                            <div class="invalid-feedback">
+                                Por favor ingresa una descripción
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Precio</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="price" name="price" 
+                                       value="{{ classified.price }}" step="0.01" min="0">
+                            </div>
+                            <div class="form-text">Deja en blanco si no aplica</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_phone" class="form-label">Teléfono de contacto</label>
+                                <input type="tel" class="form-control" id="contact_phone" name="contact_phone" 
+                                       value="{{ classified.contact_phone }}" placeholder="+54 9 11 1234-5678">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_email" class="form-label">Email de contacto</label>
+                                <input type="email" class="form-control" id="contact_email" name="contact_email" 
+                                       value="{{ classified.contact_email }}" placeholder="tu@email.com">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Imágenes actuales</label>
+                            {% if classified.images %}
+                            <div class="row g-2 mb-2">
+                                {% for image in classified.images.split(',') %}
+                                <div class="col-4 col-md-3">
+                                    <div class="position-relative">
+                                        <img src="{{ url_for('uploaded_file', filename='classifieds/' + image) }}" 
+                                             class="img-thumbnail w-100" style="height: 100px; object-fit: cover;">
+                                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                                                onclick="removeImage('{{ image }}')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No hay imágenes cargadas</p>
+                            {% endif %}
+                            
+                            <label for="images" class="form-label">Agregar nuevas imágenes</label>
+                            <input type="file" class="form-control" id="images" name="images" 
+                                   accept="image/*" multiple>
+                            <div class="form-text">Puedes subir hasta 5 imágenes (JPG, PNG, GIF)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Estado</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="active" {% if classified.status == 'active' %}selected{% endif %}>
+                                    Activo
+                                </option>
+                                <option value="inactive" {% if classified.status == 'inactive' %}selected{% endif %}>
+                                    Inactivo
+                                </option>
+                                <option value="sold" {% if classified.status == 'sold' %}selected{% endif %}>
+                                    Vendido
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <input type="hidden" id="removed_images" name="removed_images" value="">
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('classifieds.my_classifieds') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Array para mantener las imágenes a eliminar
+let removedImages = [];
+
+function removeImage(imageName) {
+    if (confirm('¿Eliminar esta imagen?')) {
+        removedImages.push(imageName);
+        document.getElementById('removed_images').value = removedImages.join(',');
+        
+        // Ocultar la imagen visualmente
+        event.target.closest('.col-4').style.display = 'none';
+    }
+}
+
+// Validación del formulario
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Previsualización de imágenes nuevas
+document.getElementById('images').addEventListener('change', function(e) {
+    const files = e.target.files;
+    if (files.length > 5) {
+        Swal.fire('Error', 'Puedes subir máximo 5 imágenes', 'error');
+        e.target.value = '';
+    }
+});
+</script>
+{% endblock %}

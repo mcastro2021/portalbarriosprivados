@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Reserva - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Reserva
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('reservations.edit', reservation_id=reservation.id) }}" 
+                          class="needs-validation" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Solo puedes editar reservas con al menos 24 horas de anticipación.
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="space_id" class="form-label">Espacio <span class="text-danger">*</span></label>
+                            <select class="form-select" id="space_id" name="space_id" required disabled>
+                                {% for space_id, space in spaces.items() %}
+                                <option value="{{ space_id }}" 
+                                        {% if reservation.space_id == space_id %}selected{% endif %}
+                                        data-capacity="{{ space.capacity }}"
+                                        data-max-hours="{{ space.max_hours }}">
+                                    {{ space.name }} (Capacidad: {{ space.capacity }} personas)
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <input type="hidden" name="space_id" value="{{ reservation.space_id }}">
+                            <div class="form-text">No se puede cambiar el espacio de una reserva existente</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reservation_date" class="form-label">Fecha <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="reservation_date" name="reservation_date" 
+                                   value="{{ reservation.reservation_date.strftime('%Y-%m-%d') }}" 
+                                   min="{{ (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d') }}"
+                                   max="{{ (datetime.now() + timedelta(days=config.COMMON_SPACES[reservation.space_id]['advance_booking_days'])).strftime('%Y-%m-%d') }}"
+                                   required>
+                            <div class="invalid-feedback">
+                                Por favor selecciona una fecha válida
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="start_time" class="form-label">Hora de inicio <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" id="start_time" name="start_time" 
+                                       value="{{ reservation.start_time.strftime('%H:%M') }}" 
+                                       min="08:00" max="22:00" required>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona una hora de inicio
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="end_time" class="form-label">Hora de fin <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" id="end_time" name="end_time" 
+                                       value="{{ reservation.end_time.strftime('%H:%M') }}" 
+                                       min="09:00" max="23:00" required>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona una hora de fin
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="purpose" class="form-label">Propósito de la reserva <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="purpose" name="purpose" 
+                                   value="{{ reservation.purpose }}" required maxlength="200"
+                                   placeholder="Ej: Cumpleaños, reunión familiar, etc.">
+                            <div class="invalid-feedback">
+                                Por favor indica el propósito de la reserva
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notas adicionales</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"
+                                      placeholder="Información adicional que consideres relevante">{{ reservation.notes }}</textarea>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Importante:</strong>
+                            <ul class="mb-0">
+                                <li>Los cambios están sujetos a disponibilidad</li>
+                                <li>Si cambias la fecha u horario, la reserva volverá a estado "Pendiente"</li>
+                                <li>Recibirás una notificación cuando se aprueben los cambios</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('reservations.show', reservation_id=reservation.id) }}" 
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validación del formulario
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                // Validar horarios
+                const startTime = document.getElementById('start_time').value;
+                const endTime = document.getElementById('end_time').value;
+                
+                if (startTime && endTime && startTime >= endTime) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    Swal.fire('Error', 'La hora de fin debe ser posterior a la hora de inicio', 'error');
+                    return false;
+                }
+                
+                // Validar duración máxima
+                const maxHours = parseInt(document.querySelector('#space_id option:checked').dataset.maxHours);
+                const start = new Date(`2000-01-01T${startTime}`);
+                const end = new Date(`2000-01-01T${endTime}`);
+                const duration = (end - start) / (1000 * 60 * 60);
+                
+                if (duration > maxHours) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    Swal.fire('Error', `La duración máxima para este espacio es de ${maxHours} horas`, 'error');
+                    return false;
+                }
+                
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Actualizar hora mínima de fin cuando cambia la hora de inicio
+document.getElementById('start_time').addEventListener('change', function() {
+    const startTime = this.value;
+    if (startTime) {
+        const [hours, minutes] = startTime.split(':');
+        const minEndTime = `${String(parseInt(hours) + 1).padStart(2, '0')}:${minutes}`;
+        document.getElementById('end_time').min = minEndTime;
+        
+        // Si la hora de fin actual es menor que la nueva hora mínima, actualizarla
+        if (document.getElementById('end_time').value < minEndTime) {
+            document.getElementById('end_time').value = minEndTime;
+        }
+    }
+});
+</script>
+{% endblock %}

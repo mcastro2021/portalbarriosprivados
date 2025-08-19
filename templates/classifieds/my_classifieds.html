@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Clasificados - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-megaphone me-2"></i>Mis Clasificados
+                </h1>
+                <div>
+                    <a href="{{ url_for('classifieds.new') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-2"></i>Nuevo Anuncio
+                    </a>
+                    <a href="{{ url_for('classifieds.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-grid me-2"></i>Ver Todos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Anuncios</h5>
+                    <h2 class="mb-0">{{ classifieds|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Activos</h5>
+                    <h2 class="mb-0">{{ classifieds|selectattr('status', 'equalto', 'active')|list|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Vistas Totales</h5>
+                    <h2 class="mb-0">{{ classifieds|sum(attribute='views') or 0 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Mensajes</h5>
+                    <h2 class="mb-0">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de clasificados -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% if classifieds %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Imagen</th>
+                                    <th>Título</th>
+                                    <th>Categoría</th>
+                                    <th>Precio</th>
+                                    <th>Estado</th>
+                                    <th>Vistas</th>
+                                    <th>Publicado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for classified in classifieds %}
+                                <tr>
+                                    <td>
+                                        {% if classified.images %}
+                                        <img src="{{ url_for('uploaded_file', filename='classifieds/' + classified.images.split(',')[0]) }}" 
+                                             class="rounded" width="50" height="50" style="object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px;">
+                                            <i class="bi bi-image text-white"></i>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('classifieds.view', classified_id=classified.id) }}" 
+                                           class="text-decoration-none">
+                                            <strong>{{ classified.title }}</strong>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ classified.get_category_display() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if classified.price %}
+                                            <strong>${{ "{:,.0f}".format(classified.price) }}</strong>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if classified.status == 'active' %}
+                                            <span class="badge bg-success">Activo</span>
+                                        {% elif classified.status == 'sold' %}
+                                            <span class="badge bg-info">Vendido</span>
+                                        {% elif classified.status == 'expired' %}
+                                            <span class="badge bg-warning">Expirado</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-eye me-1"></i>{{ classified.views or 0 }}
+                                    </td>
+                                    <td>
+                                        <small>{{ classified.created_at.strftime('%d/%m/%Y') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('classifieds.view', classified_id=classified.id) }}" 
+                                               class="btn btn-outline-primary" title="Ver">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('classifieds.edit', classified_id=classified.id) }}" 
+                                               class="btn btn-outline-secondary" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            {% if classified.status == 'active' %}
+                                            <button class="btn btn-outline-warning" 
+                                                    onclick="toggleStatus({{ classified.id }}, 'inactive')" 
+                                                    title="Pausar">
+                                                <i class="bi bi-pause-circle"></i>
+                                            </button>
+                                            {% else %}
+                                            <button class="btn btn-outline-success" 
+                                                    onclick="toggleStatus({{ classified.id }}, 'active')" 
+                                                    title="Activar">
+                                                <i class="bi bi-play-circle"></i>
+                                            </button>
+                                            {% endif %}
+                                            <button class="btn btn-outline-danger" 
+                                                    onclick="deleteClassified({{ classified.id }})" 
+                                                    title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-megaphone display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No tienes anuncios publicados</p>
+                        <a href="{{ url_for('classifieds.new') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-lg me-2"></i>Publicar mi primer anuncio
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleStatus(classifiedId, newStatus) {
+    const action = newStatus === 'active' ? 'activar' : 'pausar';
+    
+    Swal.fire({
+        title: `¿${action.charAt(0).toUpperCase() + action.slice(1)} anuncio?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Sí, ${action}`,
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/classifieds/toggle-status/${classifiedId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Actualizado!', `El anuncio ha sido ${action === 'activar' ? 'activado' : 'pausado'}`, 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo actualizar el estado', 'error');
+                }
+            });
+        }
+    });
+}
+
+function deleteClassified(classifiedId) {
+    Swal.fire({
+        title: '¿Eliminar anuncio?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/classifieds/delete/${classifiedId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Eliminado!', 'El anuncio ha sido eliminado', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo eliminar el anuncio', 'error');
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

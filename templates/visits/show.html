@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Visita #{{ visit.id }} - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-check me-2"></i>Detalle de Visita #{{ visit.id }}
+                    </h4>
+                    <span class="badge bg-{{ visit.get_status_color() }} fs-6">
+                        {{ visit.get_status_display() }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Información del visitante -->
+                    <div class="mb-4">
+                        <h5>Datos del Visitante</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td class="text-muted">Nombre:</td>
+                                        <td class="fw-bold">{{ visit.visitor_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">DNI:</td>
+                                        <td class="fw-bold">{{ visit.visitor_dni }}</td>
+                                    </tr>
+                                    {% if visit.visitor_phone %}
+                                    <tr>
+                                        <td class="text-muted">Teléfono:</td>
+                                        <td>{{ visit.visitor_phone }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if visit.vehicle_plate %}
+                                    <tr>
+                                        <td class="text-muted">Patente:</td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-car-front me-1"></i>{{ visit.vehicle_plate }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td class="text-muted">Fecha esperada:</td>
+                                        <td class="fw-bold">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            {{ visit.expected_date.strftime('%d/%m/%Y') }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Hora esperada:</td>
+                                        <td class="fw-bold">
+                                            <i class="bi bi-clock me-1"></i>
+                                            {{ visit.expected_time.strftime('%H:%M') if visit.expected_time else 'No especificada' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Propósito:</td>
+                                        <td>{{ visit.purpose or 'No especificado' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Tipo de visita:</td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                {{ 'Única' if visit.visit_type == 'single' else 'Frecuente' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notas adicionales -->
+                    {% if visit.notes %}
+                    <div class="mb-4">
+                        <h6>Notas adicionales</h6>
+                        <div class="bg-light rounded p-3">
+                            <p class="mb-0">{{ visit.notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Código QR -->
+                    {% if visit.status == 'approved' and visit.qr_code %}
+                    <div class="text-center my-4">
+                        <h5>Código QR de Acceso</h5>
+                        <p class="text-muted">El visitante debe presentar este código en la entrada</p>
+                        <img src="data:image/png;base64,{{ visit.qr_code }}" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary" onclick="printQR()">
+                                <i class="bi bi-printer me-2"></i>Imprimir
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="shareQR()">
+                                <i class="bi bi-share me-2"></i>Compartir
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Historial de entrada/salida -->
+                    {% if visit.entry_time or visit.exit_time %}
+                    <div class="mb-4">
+                        <h6>Registro de Acceso</h6>
+                        <table class="table table-sm">
+                            {% if visit.entry_time %}
+                            <tr>
+                                <td class="text-muted">Entrada:</td>
+                                <td class="fw-bold text-success">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>
+                                    {{ visit.entry_time.strftime('%d/%m/%Y %H:%M') }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if visit.exit_time %}
+                            <tr>
+                                <td class="text-muted">Salida:</td>
+                                <td class="fw-bold text-danger">
+                                    <i class="bi bi-box-arrow-right me-1"></i>
+                                    {{ visit.exit_time.strftime('%d/%m/%Y %H:%M') }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Acciones -->
+                    {% if current_user == visit.resident or current_user.can_access_admin() %}
+                    <div class="border-top pt-3">
+                        {% if visit.status == 'pending' %}
+                            {% if current_user.can_access_admin() %}
+                                <button class="btn btn-success" onclick="updateStatus({{ visit.id }}, 'approved')">
+                                    <i class="bi bi-check-circle me-2"></i>Aprobar
+                                </button>
+                                <button class="btn btn-danger" onclick="updateStatus({{ visit.id }}, 'rejected')">
+                                    <i class="bi bi-x-circle me-2"></i>Rechazar
+                                </button>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('visits.edit', visit_id=visit.id) }}" 
+                               class="btn btn-outline-primary">
+                                <i class="bi bi-pencil me-2"></i>Editar
+                            </a>
+                        {% elif visit.status == 'approved' and not visit.entry_time %}
+                            <button class="btn btn-outline-danger" onclick="cancelVisit({{ visit.id }})">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar visita
+                            </button>
+                        {% endif %}
+                        
+                        {% if current_user.can_access_admin() and visit.status == 'approved' %}
+                            {% if not visit.entry_time %}
+                                <button class="btn btn-primary" onclick="registerEntry({{ visit.id }})">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Registrar entrada
+                                </button>
+                            {% elif not visit.exit_time %}
+                                <button class="btn btn-warning" onclick="registerExit({{ visit.id }})">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Registrar salida
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Información del residente -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Residente Anfitrión</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-lg bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center">
+                            {{ visit.resident.name[0].upper() if visit.resident.name else visit.resident.username[0].upper() }}
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ visit.resident.name or visit.resident.username }}</h6>
+                            <small class="text-muted">{{ visit.resident.address or 'Sin dirección' }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if current_user.can_access_admin() %}
+                    <div class="contact-info">
+                        <p class="mb-1">
+                            <i class="bi bi-envelope me-2"></i>{{ visit.resident.email }}
+                        </p>
+                        {% if visit.resident.phone %}
+                        <p class="mb-0">
+                            <i class="bi bi-telephone me-2"></i>{{ visit.resident.phone }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Estado de la visita -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-{{ visit.get_status_color() }} text-white">
+                    <h5 class="mb-0">Estado Actual</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <i class="bi bi-{{ visit.get_status_icon() }} display-4 text-{{ visit.get_status_color() }}"></i>
+                        <h5 class="mt-3">{{ visit.get_status_display() }}</h5>
+                        
+                        {% if visit.status == 'pending' %}
+                            <p class="text-muted">Esperando aprobación</p>
+                        {% elif visit.status == 'approved' %}
+                            {% if not visit.entry_time %}
+                                <p class="text-muted">Visita autorizada</p>
+                            {% elif not visit.exit_time %}
+                                <p class="text-success">Visitante en el barrio</p>
+                            {% else %}
+                                <p class="text-muted">Visita completada</p>
+                            {% endif %}
+                        {% elif visit.status == 'rejected' %}
+                            <p class="text-muted">Acceso denegado</p>
+                        {% elif visit.status == 'cancelled' %}
+                            <p class="text-muted">Visita cancelada</p>
+                        {% elif visit.status == 'expired' %}
+                            <p class="text-muted">Autorización vencida</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('visits.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver a Visitas
+        </a>
+    </div>
+</div>
+
+<style>
+.avatar-lg {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+}
+</style>
+
+<script>
+function updateStatus(visitId, newStatus) {
+    const action = newStatus === 'approved' ? 'aprobar' : 'rechazar';
+    
+    Swal.fire({
+        title: `¿${action.charAt(0).toUpperCase() + action.slice(1)} visita?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Sí, ${action}`,
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/visits/update-status/${visitId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Actualizado!', `La visita ha sido ${newStatus === 'approved' ? 'aprobada' : 'rechazada'}`, 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo actualizar el estado', 'error');
+                }
+            });
+        }
+    });
+}
+
+function cancelVisit(visitId) {
+    Swal.fire({
+        title: '¿Cancelar visita?',
+        text: 'El visitante no podrá ingresar con este código',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, cancelar',
+        cancelButtonText: 'No',
+        confirmButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/visits/cancel/${visitId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Cancelada!', 'La visita ha sido cancelada', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo cancelar la visita', 'error');
+                }
+            });
+        }
+    });
+}
+
+function registerEntry(visitId) {
+    fetch(`/visits/register-entry/${visitId}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('¡Registrado!', 'Entrada registrada correctamente', 'success')
+                .then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo registrar la entrada', 'error');
+        }
+    });
+}
+
+function registerExit(visitId) {
+    fetch(`/visits/register-exit/${visitId}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('¡Registrado!', 'Salida registrada correctamente', 'success')
+                .then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo registrar la salida', 'error');
+        }
+    });
+}
+
+function printQR() {
+    window.print();
+}
+
+function shareQR() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Código QR de Visita',
+            text: 'Código de acceso para visita al barrio',
+            url: window.location.href
+        });
+    } else {
+        // Copiar URL al portapapeles
+        navigator.clipboard.writeText(window.location.href);
+        Swal.fire('¡Copiado!', 'El enlace ha sido copiado al portapapeles', 'success');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}{{ news.title }} - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <article class="card shadow">
+                <div class="card-body">
+                    <!-- Encabezado -->
+                    <header class="mb-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-{{ news.get_category_color() }} mb-2">
+                                    {{ news.get_category_display() }}
+                                </span>
+                                {% if news.is_important %}
+                                <span class="badge bg-danger mb-2">
+                                    <i class="bi bi-exclamation-circle me-1"></i>Importante
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% if current_user == news.author or current_user.can_access_admin() %}
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('news.edit', news_id=news.id) }}">
+                                            <i class="bi bi-pencil me-2"></i>Editar
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item text-danger" onclick="deleteNews({{ news.id }})">
+                                            <i class="bi bi-trash me-2"></i>Eliminar
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <h1 class="h2 mb-3">{{ news.title }}</h1>
+                        
+                        <div class="d-flex align-items-center text-muted mb-3">
+                            <div class="d-flex align-items-center me-4">
+                                <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                    {{ news.author.name[0].upper() if news.author.name else news.author.username[0].upper() }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ news.author.name or news.author.username }}</div>
+                                    <small>{{ news.created_at.strftime('%d de %B, %Y') }}</small>
+                                </div>
+                            </div>
+                            <div>
+                                <i class="bi bi-eye me-1"></i>
+                                <small>{{ news.views or 0 }} vistas</small>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <!-- Imagen destacada -->
+                    {% if news.featured_image %}
+                    <div class="mb-4">
+                        <img src="{{ url_for('uploaded_file', filename='news/' + news.featured_image) }}" 
+                             class="img-fluid rounded w-100" alt="{{ news.title }}">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Contenido -->
+                    <div class="article-content">
+                        {{ news.content|safe }}
+                    </div>
+                    
+                    <!-- Archivos adjuntos -->
+                    {% if news.attachments %}
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="mb-3">
+                            <i class="bi bi-paperclip me-2"></i>Archivos adjuntos
+                        </h6>
+                        <div class="list-group">
+                            {% for attachment in news.attachments.split(',') %}
+                            <a href="{{ url_for('uploaded_file', filename='news/attachments/' + attachment) }}" 
+                               class="list-group-item list-group-item-action" download>
+                                <i class="bi bi-file-earmark me-2"></i>
+                                {{ attachment }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Información adicional -->
+                    <div class="mt-4 pt-4 border-top">
+                        <div class="row text-muted small">
+                            <div class="col-6">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                Publicado: {{ news.created_at.strftime('%d/%m/%Y %H:%M') }}
+                            </div>
+                            {% if news.updated_at and news.updated_at != news.created_at %}
+                            <div class="col-6 text-end">
+                                <i class="bi bi-pencil me-1"></i>
+                                Actualizado: {{ news.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Compartir -->
+                    <div class="mt-4 pt-4 border-top">
+                        <h6 class="mb-3">Compartir esta noticia</h6>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-primary" onclick="shareOnWhatsApp()">
+                                <i class="bi bi-whatsapp"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="shareByEmail()">
+                                <i class="bi bi-envelope"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="copyLink()">
+                                <i class="bi bi-link-45deg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            
+            <!-- Navegación -->
+            <div class="mt-4 d-flex justify-content-between">
+                <a href="{{ url_for('news.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver a Noticias
+                </a>
+                
+                {% if current_user.can_access_admin() %}
+                <a href="{{ url_for('news.admin') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-gear me-2"></i>Administrar Noticias
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Noticias relacionadas -->
+            {% if related_news %}
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Noticias Relacionadas</h5>
+                </div>
+                <div class="card-body">
+                    {% for related in related_news[:3] %}
+                    <div class="mb-3">
+                        <h6 class="mb-1">
+                            <a href="{{ url_for('news.show', news_id=related.id) }}" 
+                               class="text-decoration-none">
+                                {{ related.title }}
+                            </a>
+                        </h6>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            {{ related.created_at.strftime('%d/%m/%Y') }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+
+.article-content {
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+
+.article-content p {
+    margin-bottom: 1rem;
+}
+
+.article-content h2,
+.article-content h3,
+.article-content h4 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.article-content ul,
+.article-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.article-content img {
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+}
+</style>
+
+<script>
+function deleteNews(newsId) {
+    Swal.fire({
+        title: '¿Eliminar noticia?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/news/delete/${newsId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Eliminado!', 'La noticia ha sido eliminada', 'success')
+                        .then(() => window.location.href = '{{ url_for("news.index") }}');
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo eliminar la noticia', 'error');
+                }
+            });
+        }
+    });
+}
+
+function shareOnWhatsApp() {
+    const text = `{{ news.title }} - {{ config.BARRIO_NAME }}`;
+    const url = window.location.href;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`, '_blank');
+}
+
+function shareByEmail() {
+    const subject = `{{ news.title }}`;
+    const body = `Te comparto esta noticia del barrio:\n\n${window.location.href}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href)
+        .then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Enlace copiado',
+                text: 'El enlace ha sido copiado al portapapeles',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        })
+        .catch(() => {
+            Swal.fire('Error', 'No se pudo copiar el enlace', 'error');
+        });
+}
+</script>
+{% endblock %}

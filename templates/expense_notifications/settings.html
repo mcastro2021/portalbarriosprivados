@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de Notificaciones - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-gear me-2"></i>Configuración de Notificaciones
+                </h1>
+                <a href="{{ url_for('expense_notifications.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>Configuración de Email</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('expense_notifications.settings') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="service_type" value="email">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Servidor SMTP</label>
+                            <input type="text" class="form-control" name="smtp_server" 
+                                   value="{{ config.MAIL_SERVER }}" placeholder="smtp.gmail.com">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Puerto</label>
+                                <input type="number" class="form-control" name="smtp_port" 
+                                       value="{{ config.MAIL_PORT }}" placeholder="587">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Seguridad</label>
+                                <select class="form-select" name="smtp_security">
+                                    <option value="tls" {% if config.MAIL_USE_TLS %}selected{% endif %}>TLS</option>
+                                    <option value="ssl">SSL</option>
+                                    <option value="none">Ninguna</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Usuario</label>
+                            <input type="email" class="form-control" name="smtp_username" 
+                                   value="{{ config.MAIL_USERNAME }}" placeholder="tu-email@gmail.com">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" name="smtp_password" 
+                                   placeholder="••••••••">
+                            <small class="text-muted">Dejar en blanco para mantener la actual</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email de origen</label>
+                            <input type="email" class="form-control" name="from_email" 
+                                   value="{{ config.MAIL_DEFAULT_SENDER }}" placeholder="noreply@tudominio.com">
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Guardar Configuración
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="testEmailConfig()">
+                                <i class="bi bi-send me-2"></i>Probar Envío
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-whatsapp me-2"></i>Configuración de WhatsApp</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('expense_notifications.settings') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="service_type" value="whatsapp">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Account SID</label>
+                            <input type="text" class="form-control" name="twilio_account_sid" 
+                                   value="{{ config.TWILIO_ACCOUNT_SID }}" placeholder="AC...">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Auth Token</label>
+                            <input type="password" class="form-control" name="twilio_auth_token" 
+                                   placeholder="••••••••">
+                            <small class="text-muted">Dejar en blanco para mantener el actual</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Número de WhatsApp</label>
+                            <input type="text" class="form-control" name="twilio_phone_number" 
+                                   value="{{ config.TWILIO_PHONE_NUMBER }}" placeholder="+14155238886">
+                            <small class="text-muted">Debe ser un número de WhatsApp Business verificado</small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Para usar WhatsApp necesitas una cuenta de Twilio con WhatsApp Business API habilitada.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save me-2"></i>Guardar Configuración
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="testWhatsAppConfig()">
+                                <i class="bi bi-send me-2"></i>Probar Envío
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders me-2"></i>Preferencias de Notificación</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('expense_notifications.settings') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="service_type" value="preferences">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Notificaciones Automáticas</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoNotifyExpenses" 
+                                           name="auto_notify_expenses" checked>
+                                    <label class="form-check-label" for="autoNotifyExpenses">
+                                        Enviar notificaciones automáticas de expensas vencidas
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="reminderBeforeDue" 
+                                           name="reminder_before_due" checked>
+                                    <label class="form-check-label" for="reminderBeforeDue">
+                                        Enviar recordatorio antes del vencimiento
+                                    </label>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Días antes del vencimiento</label>
+                                    <input type="number" class="form-control" name="reminder_days" 
+                                           value="3" min="1" max="30">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6>Horario de Envío</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Hora de inicio</label>
+                                    <input type="time" class="form-control" name="send_time_start" value="09:00">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Hora de fin</label>
+                                    <input type="time" class="form-control" name="send_time_end" value="20:00">
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    Las notificaciones solo se enviarán dentro del horario configurado.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-2"></i>Guardar Preferencias
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testEmailConfig() {
+    showLoading('Probando configuración de email...');
+    
+    fetch('{{ url_for("expense_notifications.test_config") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            service_type: 'email'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            Swal.fire('¡Éxito!', data.message, 'success');
+        } else {
+            Swal.fire('Error', data.message || 'Error al probar la configuración', 'error');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        Swal.fire('Error', 'Error al conectar con el servidor', 'error');
+    });
+}
+
+function testWhatsAppConfig() {
+    showLoading('Probando configuración de WhatsApp...');
+    
+    fetch('{{ url_for("expense_notifications.test_config") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            service_type: 'whatsapp'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            Swal.fire('¡Éxito!', data.message, 'success');
+        } else {
+            Swal.fire('Error', data.message || 'Error al probar la configuración', 'error');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        Swal.fire('Error', 'Error al conectar con el servidor', 'error');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Reserva #{{ reservation.id }} - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-calendar-check me-2"></i>Detalle de Reserva #{{ reservation.id }}
+                    </h4>
+                    <span class="badge bg-{{ reservation.get_status_color() }} fs-6">
+                        {{ reservation.get_status_display() }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Información del espacio -->
+                    <div class="mb-4">
+                        <h5>{{ reservation.space_name }}</h5>
+                        <p class="text-muted">{{ config.COMMON_SPACES[reservation.space_id]['description'] }}</p>
+                    </div>
+                    
+                    <!-- Detalles de la reserva -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Información de la Reserva</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td class="text-muted">Fecha:</td>
+                                    <td class="fw-bold">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ reservation.reservation_date.strftime('%A %d de %B, %Y') }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Horario:</td>
+                                    <td class="fw-bold">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ reservation.start_time.strftime('%H:%M') }} - {{ reservation.end_time.strftime('%H:%M') }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Duración:</td>
+                                    <td class="fw-bold">
+                                        {{ reservation.duration_hours() }} horas
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Capacidad máxima:</td>
+                                    <td class="fw-bold">
+                                        <i class="bi bi-people me-1"></i>
+                                        {{ config.COMMON_SPACES[reservation.space_id]['capacity'] }} personas
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Propósito y Notas</h6>
+                            <div class="bg-light rounded p-3">
+                                <p class="mb-2"><strong>Propósito:</strong></p>
+                                <p class="text-muted">{{ reservation.purpose or 'No especificado' }}</p>
+                                
+                                {% if reservation.notes %}
+                                <p class="mb-2 mt-3"><strong>Notas adicionales:</strong></p>
+                                <p class="text-muted">{{ reservation.notes }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Estado de la reserva -->
+                    <div class="alert alert-{{ reservation.get_status_color() }}">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {% if reservation.status == 'pending' %}
+                            Esta reserva está pendiente de aprobación por parte de la administración.
+                        {% elif reservation.status == 'approved' %}
+                            Tu reserva ha sido aprobada. ¡Disfruta del espacio!
+                        {% elif reservation.status == 'rejected' %}
+                            Esta reserva fue rechazada. Por favor, contacta a la administración para más información.
+                        {% elif reservation.status == 'cancelled' %}
+                            Esta reserva fue cancelada.
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Código QR para reservas aprobadas -->
+                    {% if reservation.status == 'approved' and reservation.qr_code %}
+                    <div class="text-center my-4">
+                        <h6>Código QR de la reserva</h6>
+                        <p class="text-muted">Presenta este código al ingresar al espacio</p>
+                        <img src="data:image/png;base64,{{ reservation.qr_code }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Acciones -->
+                    {% if current_user == reservation.user or current_user.can_access_admin() %}
+                    <div class="border-top pt-3">
+                        {% if reservation.status == 'pending' or reservation.status == 'approved' %}
+                            {% if reservation.can_be_edited() %}
+                            <a href="{{ url_for('reservations.edit', reservation_id=reservation.id) }}" 
+                               class="btn btn-outline-primary">
+                                <i class="bi bi-pencil me-2"></i>Editar
+                            </a>
+                            {% endif %}
+                            
+                            {% if reservation.can_be_cancelled() %}
+                            <button class="btn btn-outline-danger" onclick="cancelReservation({{ reservation.id }})">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar reserva
+                            </button>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if current_user.can_access_admin() and reservation.status == 'pending' %}
+                            <button class="btn btn-success" onclick="updateStatus({{ reservation.id }}, 'approved')">
+                                <i class="bi bi-check-circle me-2"></i>Aprobar
+                            </button>
+                            <button class="btn btn-danger" onclick="updateStatus({{ reservation.id }}, 'rejected')">
+                                <i class="bi bi-x-circle me-2"></i>Rechazar
+                            </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Información del solicitante -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Solicitante</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-lg bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center">
+                            {{ reservation.user.name[0].upper() if reservation.user.name else reservation.user.username[0].upper() }}
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ reservation.user.name or reservation.user.username }}</h6>
+                            <small class="text-muted">{{ reservation.user.address or 'Sin dirección' }}</small>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-1">
+                        <i class="bi bi-envelope me-2"></i>{{ reservation.user.email }}
+                    </p>
+                    {% if reservation.user.phone %}
+                    <p class="mb-0">
+                        <i class="bi bi-telephone me-2"></i>{{ reservation.user.phone }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recordatorios -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Recordatorios</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Llega puntual a tu reserva</li>
+                        <li>Respeta el horario establecido</li>
+                        <li>Deja el espacio limpio y ordenado</li>
+                        <li>Reporta cualquier daño o problema</li>
+                        <li>Respeta la capacidad máxima</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('reservations.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver a Reservas
+        </a>
+    </div>
+</div>
+
+<style>
+.avatar-lg {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+}
+</style>
+
+<script>
+function cancelReservation(reservationId) {
+    Swal.fire({
+        title: '¿Cancelar reserva?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, cancelar',
+        cancelButtonText: 'No, mantener',
+        confirmButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/reservations/cancel/${reservationId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Cancelada!', 'La reserva ha sido cancelada', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo cancelar la reserva', 'error');
+                }
+            });
+        }
+    });
+}
+
+function updateStatus(reservationId, newStatus) {
+    const action = newStatus === 'approved' ? 'aprobar' : 'rechazar';
+    
+    Swal.fire({
+        title: `¿${action.charAt(0).toUpperCase() + action.slice(1)} reserva?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Sí, ${action}`,
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/reservations/update-status/${reservationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Actualizado!', `La reserva ha sido ${newStatus === 'approved' ? 'aprobada' : 'rechazada'}`, 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo actualizar el estado', 'error');
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

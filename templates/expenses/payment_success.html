@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Pago Exitoso - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="card shadow-lg">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    
+                    <h2 class="text-success mb-3">¡Pago Exitoso!</h2>
+                    
+                    <p class="lead mb-4">
+                        Tu pago ha sido procesado correctamente
+                    </p>
+                    
+                    <div class="bg-light rounded p-4 mb-4">
+                        <h5 class="mb-3">Detalles del Pago</h5>
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <td class="text-muted text-start">Período:</td>
+                                <td class="fw-bold text-end">{{ expense.period }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted text-start">Monto:</td>
+                                <td class="fw-bold text-end text-success">${{ "{:,.2f}".format(expense.amount) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted text-start">Fecha:</td>
+                                <td class="fw-bold text-end">{{ expense.payment_date.strftime('%d/%m/%Y %H:%M') if expense.payment_date else 'Ahora' }}</td>
+                            </tr>
+                            {% if expense.payment_method %}
+                            <tr>
+                                <td class="text-muted text-start">Método:</td>
+                                <td class="fw-bold text-end">
+                                    {% if expense.payment_method == 'mercadopago' %}
+                                        MercadoPago
+                                    {% elif expense.payment_method == 'transfer' %}
+                                        Transferencia
+                                    {% elif expense.payment_method == 'cash' %}
+                                        Efectivo
+                                    {% else %}
+                                        {{ expense.payment_method }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if expense.payment_reference %}
+                            <tr>
+                                <td class="text-muted text-start">Referencia:</td>
+                                <td class="fw-bold text-end">{{ expense.payment_reference }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-envelope me-2"></i>
+                        Se ha enviado un comprobante a tu email registrado
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('expenses.index') }}" class="btn btn-primary">
+                            <i class="bi bi-list-ul me-2"></i>Ver Todas las Expensas
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-house me-2"></i>Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <p class="text-muted">
+                    <i class="bi bi-question-circle me-1"></i>
+                    ¿Tienes alguna pregunta? Contáctanos en 
+                    <a href="mailto:{{ config.BARRIO_EMAIL }}">{{ config.BARRIO_EMAIL }}</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostrar confetti para celebrar el pago exitoso
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof confetti !== 'undefined') {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+    }
+});
+</script>
+{% endblock %}

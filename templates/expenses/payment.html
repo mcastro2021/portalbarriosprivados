@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Pagar Expensa - {{ config.BARRIO_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-credit-card me-2"></i>Pagar Expensa
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Detalles de la Expensa</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td class="text-muted">Período:</td>
+                                    <td class="fw-bold">{{ expense.period }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Descripción:</td>
+                                    <td>{{ expense.description }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Vencimiento:</td>
+                                    <td>
+                                        <span class="badge {% if expense.is_overdue() %}bg-danger{% else %}bg-success{% endif %}">
+                                            {{ expense.due_date.strftime('%d/%m/%Y') }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Estado:</td>
+                                    <td>
+                                        {% if expense.status == 'paid' %}
+                                            <span class="badge bg-success">Pagada</span>
+                                        {% elif expense.status == 'pending' %}
+                                            <span class="badge bg-warning">Pendiente</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Vencida</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <h5>Monto a Pagar</h5>
+                            <div class="display-4 text-primary fw-bold">
+                                ${{ "{:,.2f}".format(expense.amount) }}
+                            </div>
+                            {% if expense.is_overdue() %}
+                            <div class="alert alert-danger mt-3">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Esta expensa está vencida
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if expense.status != 'paid' %}
+                    <div class="payment-methods">
+                        <h5 class="mb-3">Seleccione el método de pago</h5>
+                        
+                        <div class="row g-3">
+                            <!-- MercadoPago -->
+                            <div class="col-md-6">
+                                <div class="card h-100 payment-method-card">
+                                    <div class="card-body text-center">
+                                        <img src="https://http2.mlstatic.com/storage/developers-site-cms-admin/268205995891-mp-logo.png" 
+                                             alt="MercadoPago" height="40" class="mb-3">
+                                        <h6>MercadoPago</h6>
+                                        <p class="text-muted small">Paga con tarjeta de crédito, débito o dinero en cuenta</p>
+                                        <form action="{{ url_for('expenses.process_payment', expense_id=expense.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <input type="hidden" name="payment_method" value="mercadopago">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="bi bi-credit-card me-2"></i>Pagar ahora
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Transferencia Bancaria -->
+                            <div class="col-md-6">
+                                <div class="card h-100 payment-method-card">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-bank display-4 text-muted mb-3"></i>
+                                        <h6>Transferencia Bancaria</h6>
+                                        <p class="text-muted small">Realiza una transferencia a nuestra cuenta</p>
+                                        <button type="button" class="btn btn-outline-primary w-100" 
+                                                data-bs-toggle="modal" data-bs-target="#bankTransferModal">
+                                            <i class="bi bi-arrow-right-circle me-2"></i>Ver datos bancarios
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Efectivo -->
+                            <div class="col-md-6">
+                                <div class="card h-100 payment-method-card">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-cash-stack display-4 text-muted mb-3"></i>
+                                        <h6>Efectivo</h6>
+                                        <p class="text-muted small">Paga en la administración del barrio</p>
+                                        <button type="button" class="btn btn-outline-secondary w-100" 
+                                                data-bs-toggle="modal" data-bs-target="#cashPaymentModal">
+                                            <i class="bi bi-info-circle me-2"></i>Ver información
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pago Fácil / Rapipago -->
+                            <div class="col-md-6">
+                                <div class="card h-100 payment-method-card">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-shop display-4 text-muted mb-3"></i>
+                                        <h6>Pago Fácil / Rapipago</h6>
+                                        <p class="text-muted small">Paga en cualquier sucursal</p>
+                                        <button type="button" class="btn btn-outline-secondary w-100"
+                                                onclick="downloadPaymentSlip({{ expense.id }})">
+                                            <i class="bi bi-download me-2"></i>Descargar cupón
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success text-center">
+                        <i class="bi bi-check-circle display-4"></i>
+                        <h4 class="mt-3">Esta expensa ya fue pagada</h4>
+                        <p>Fecha de pago: {{ expense.payment_date.strftime('%d/%m/%Y %H:%M') if expense.payment_date else 'N/A' }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="{{ url_for('expenses.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Volver a Expensas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Transferencia Bancaria -->
+<div class="modal fade" id="bankTransferModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Datos para Transferencia Bancaria</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Realiza la transferencia con los siguientes datos:
+                </div>
+                
+                <table class="table table-sm">
+                    <tr>
+                        <td class="text-muted">Banco:</td>
+                        <td class="fw-bold">Banco Ejemplo</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Titular:</td>
+                        <td class="fw-bold">Consorcio {{ config.BARRIO_NAME }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">CUIT:</td>
+                        <td class="fw-bold">30-12345678-9</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">CBU:</td>
+                        <td class="fw-bold">0123456789012345678901</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Alias:</td>
+                        <td class="fw-bold">TEJAS4.EXPENSAS</td>
+                    </tr>
+                </table>
+                
+                <div class="alert alert-warning">
+                    <strong>Importante:</strong> Envía el comprobante a {{ config.BARRIO_EMAIL }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="copyBankData()">
+                    <i class="bi bi-clipboard me-2"></i>Copiar CBU
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pago en Efectivo -->
+<div class="modal fade" id="cashPaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pago en Efectivo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Puedes realizar el pago en efectivo en:
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h6><i class="bi bi-building me-2"></i>Administración del Barrio</h6>
+                        <p class="mb-1">{{ config.BARRIO_ADDRESS }}</p>
+                        <p class="mb-1"><strong>Horario:</strong> Lunes a Viernes de 9:00 a 17:00</p>
+                        <p class="mb-0"><strong>Teléfono:</strong> {{ config.BARRIO_PHONE }}</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <strong>Recuerda:</strong> Solicita tu recibo al momento del pago
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-method-card {
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.payment-method-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+function copyBankData() {
+    navigator.clipboard.writeText('0123456789012345678901').then(function() {
+        Swal.fire({
+            icon: 'success',
+            title: 'CBU copiado',
+            text: 'El CBU ha sido copiado al portapapeles',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
+}
+
+function downloadPaymentSlip(expenseId) {
+    Swal.fire({
+        icon: 'info',
+        title: 'Generando cupón',
+        text: 'Esta funcionalidad estará disponible próximamente',
+        confirmButtonText: 'Entendido'
+    });
+}
+</script>
+{% endblock %}
