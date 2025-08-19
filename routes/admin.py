@@ -37,7 +37,12 @@ def dashboard():
         'active_news': News.query.filter_by(is_published=True).count(),
         'monthly_visits': Visit.query.filter(Visit.created_at >= start_of_month).count(),
         'monthly_reservations': Reservation.query.filter(Reservation.created_at >= start_of_month).count(),
-        'monthly_maintenance': Maintenance.query.filter(Maintenance.created_at >= start_of_month).count()
+        'monthly_maintenance': Maintenance.query.filter(Maintenance.created_at >= start_of_month).count(),
+        'monthly_expenses': Expense.query.filter(Expense.created_at >= start_of_month).count(),
+        'pending_visits': Visit.query.filter_by(status='pending').count(),
+        'pending_expenses': Expense.query.filter_by(status='pending').count(),
+        'pending_security': SecurityReport.query.filter_by(status='pending').count(),
+        'active_classifieds': Classified.query.filter_by(is_active=True).count()
     }
     
     # Actividad reciente

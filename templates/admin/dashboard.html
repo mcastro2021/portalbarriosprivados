@@ -319,9 +319,9 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h6 class="mb-1">{{ visit.visitor_name }}</h6>
-                                        <p class="mb-1 text-muted small">
-                                            <i class="bi bi-person me-1"></i>{{ visit.user.name }}
-                                        </p>
+                                                                                 <p class="mb-1 text-muted small">
+                                             <i class="bi bi-person me-1"></i>{{ visit.resident.name if visit.resident else 'Residente no encontrado' }}
+                                         </p>
                                         <small class="text-muted">{{ visit.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
                                     </div>
                                     <span class="badge bg-{% if visit.status == 'active' %}success{% elif visit.status == 'completed' %}primary{% else %}warning{% endif %}">
