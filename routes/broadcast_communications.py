@@ -6,7 +6,7 @@ Envío masivo de comunicados por email y WhatsApp con un solo clic
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
 from models import db, User
-from notification_service_simple import NotificationService
+from notification_service import NotificationService
 from datetime import datetime, timedelta
 import json
 

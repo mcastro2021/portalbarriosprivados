@@ -16,7 +16,7 @@ except Exception as e:
 
 # Importar servicio de notificaciones de manera segura
 try:
-    from notification_service_simple import NotificationService
+    from notification_service import NotificationService
     NOTIFICATION_SERVICE_AVAILABLE = True
 except Exception as e:
     print(f"⚠️ Error importando notification service: {e}")
