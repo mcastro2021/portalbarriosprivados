@@ -110,6 +110,10 @@ def create_app(config_name='default'):
     app.register_blueprint(smart_maintenance.bp)
     app.register_blueprint(user_management.bp)
     
+    # Importar y registrar blueprint de admin
+    from routes import admin
+    app.register_blueprint(admin.bp)
+    
     # Importar y registrar blueprint de notificaciones de expensas
     from routes import expense_notifications
     app.register_blueprint(expense_notifications.bp)
