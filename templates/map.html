@@ -10,11 +10,14 @@
             <h2 class="mb-1">
                 <i class="bi bi-map me-2"></i>Mapa Interactivo Tejas 4
             </h2>
-            <p class="text-muted mb-0">Explora nuestro barrio con 755 lotes en 4 etapas</p>
+            <p class="text-muted mb-0">Explora nuestro barrio con datos en tiempo real</p>
         </div>
-        <div>
+        <div class="d-flex gap-2">
             <button class="btn btn-outline-primary" onclick="showStats()">
                 <i class="bi bi-bar-chart me-2"></i>Estadísticas
+            </button>
+            <button class="btn btn-outline-success" onclick="toggleView()">
+                <i class="bi bi-layers me-2"></i>Cambiar Vista
             </button>
         </div>
     </div>
@@ -25,7 +28,7 @@
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
                     <i class="bi bi-houses-fill text-success fs-1 mb-2"></i>
-                    <h4 class="mb-0">755</h4>
+                    <h4 class="mb-0" id="total-lots">{{ blocks|length }}</h4>
                     <small class="text-muted">Lotes Totales</small>
                 </div>
             </div>
@@ -34,7 +37,7 @@
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
                     <i class="bi bi-grid-3x3-gap-fill text-primary fs-1 mb-2"></i>
-                    <h4 class="mb-0">71</h4>
+                    <h4 class="mb-0" id="total-blocks">{{ blocks|selectattr('block_type', 'equalto', 'residential')|list|length }}</h4>
                     <small class="text-muted">Manzanas</small>
                 </div>
             </div>
@@ -43,7 +46,7 @@
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
                     <i class="bi bi-diagram-3-fill text-info fs-1 mb-2"></i>
-                    <h4 class="mb-0">4</h4>
+                    <h4 class="mb-0" id="total-stages">{{ blocks|map(attribute='stage')|unique|list|length }}</h4>
                     <small class="text-muted">Etapas</small>
                 </div>
             </div>
@@ -52,8 +55,8 @@
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
                     <i class="bi bi-tree-fill text-warning fs-1 mb-2"></i>
-                    <h4 class="mb-0">120</h4>
-                    <small class="text-muted">Hectáreas</small>
+                    <h4 class="mb-0" id="total-amenities">{{ blocks|selectattr('block_type', 'equalto', 'amenity')|list|length }}</h4>
+                    <small class="text-muted">Amenities</small>
                 </div>
             </div>
         </div>
@@ -66,98 +69,44 @@
                 <div class="card-header bg-white">
                     <h6 class="mb-0">
                         <i class="bi bi-geo-alt me-2"></i>
-                        Plano Maestro - Tejas 4 (Basado en imagen oficial)
+                        Mapa Interactivo - Tejas 4
                     </h6>
                 </div>
                 <div class="card-body p-2">
-                    <!-- Interactive Map Image -->
-                    <div style="position: relative; width: 100%; height: 100%; background: #f8f9fa; border-radius: 5px;">
-                        <div style="position: absolute; top: 10px; left: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10;">
-                            <h6 class="mb-2">📍 Tejas 4 - Análisis del Mapa</h6>
+                    <!-- Interactive Map Canvas -->
+                    <div id="map-container" style="position: relative; width: 100%; height: 100%; background: #f8f9fa; border-radius: 5px; overflow: hidden;">
+                        <!-- Legend -->
+                        <div style="position: absolute; top: 10px; left: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; max-width: 200px;">
+                            <h6 class="mb-2">📍 Leyenda</h6>
                             <div class="small">
                                 <div class="d-flex align-items-center mb-1">
                                     <div style="width: 12px; height: 12px; background: #4CAF50; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Etapa 1 - Vendida (180 lotes)</span>
+                                    <span>Etapa 1 - Vendida</span>
                                 </div>
                                 <div class="d-flex align-items-center mb-1">
                                     <div style="width: 12px; height: 12px; background: #2196F3; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Etapa 2A - En venta (220 lotes)</span>
+                                    <span>Etapa 2A - En venta</span>
                                 </div>
                                 <div class="d-flex align-items-center mb-1">
                                     <div style="width: 12px; height: 12px; background: #FF9800; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Etapa 2B - Desarrollo (195 lotes)</span>
+                                    <span>Etapa 2B - Desarrollo</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <div style="width: 12px; height: 12px; background: #9C27B0; margin-right: 8px; border-radius: 2px;"></div>
+                                    <span>Etapa 3 - Futuro</span>
                                 </div>
                                 <div class="d-flex align-items-center">
-                                    <div style="width: 12px; height: 12px; background: #9C27B0; margin-right: 8px; border-radius: 2px;"></div>
-                                    <span>Etapa 3 - Futuro (160 lotes)</span>
+                                    <div style="width: 12px; height: 12px; background: #e74c3c; margin-right: 8px; border-radius: 2px;"></div>
+                                    <span>Amenities</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Simulated neighborhood layout -->
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                            <div style="background: linear-gradient(45deg, #e8f5e8, #f0f8f0); padding: 40px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                                <img src="{{ url_for('static', filename='images/tejas4-logo.svg') }}" 
-                                     alt="Tejas 4" 
-                                     style="height: 60px; margin-bottom: 20px;">
-                                
-                                <h4 class="text-primary mb-3">Barrio Tejas 4</h4>
-                                
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <div class="p-2 rounded" style="background: #4CAF50; color: white; font-size: 0.8rem;">
-                                            <strong>ETAPA 1</strong><br>
-                                            <small>Mz. 40-57 (18 manzanas)</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="p-2 rounded" style="background: #2196F3; color: white; font-size: 0.8rem;">
-                                            <strong>ETAPA 2A</strong><br>
-                                            <small>Mz. 20-39 (20 manzanas)</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="p-2 rounded" style="background: #FF9800; color: white; font-size: 0.8rem;">
-                                            <strong>ETAPA 2B</strong><br>
-                                            <small>Mz. 1-19 (19 manzanas)</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="p-2 rounded" style="background: #9C27B0; color: white; font-size: 0.8rem;">
-                                            <strong>ETAPA 3</strong><br>
-                                            <small>Mz. 58-70 (13 manzanas)</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex justify-content-center gap-3 mb-3">
-                                    <div class="text-center">
-                                        <div style="width: 30px; height: 30px; background: #e74c3c; border-radius: 50%; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem;">
-                                            🏊
-                                        </div>
-                                        <small>Club House</small>
-                                    </div>
-                                    <div class="text-center">
-                                        <div style="width: 30px; height: 30px; background: #f39c12; border-radius: 50%; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem;">
-                                            🛡️
-                                        </div>
-                                        <small>Seguridad</small>
-                                    </div>
-                                    <div class="text-center">
-                                        <div style="width: 30px; height: 30px; background: #27ae60; border-radius: 50%; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem;">
-                                            🌳
-                                        </div>
-                                        <small>Espacios Verdes</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="alert alert-info mb-0" style="font-size: 0.85rem;">
-                                    <strong>📊 Conteo basado en imagen oficial:</strong><br>
-                                    71 manzanas distribuidas en 4 etapas de desarrollo<br>
-                                    Estimación: 755 lotes totales en ~120 hectáreas
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Interactive Map -->
+                        <canvas id="mapCanvas" width="800" height="600" style="width: 100%; height: 100%; cursor: pointer;"></canvas>
+                        
+                        <!-- Tooltip -->
+                        <div id="mapTooltip" style="position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 5px; font-size: 12px; pointer-events: none; display: none; z-index: 100;"></div>
                     </div>
                 </div>
             </div>
@@ -173,70 +122,24 @@
                     </h6>
                 </div>
                 <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
+                    <div class="list-group list-group-flush" id="stages-list">
+                        {% for stage in blocks|groupby('stage') %}
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="d-flex align-items-center mb-1">
-                                        <div style="width: 12px; height: 12px; background: #4CAF50; border-radius: 2px; margin-right: 8px;"></div>
-                                        <strong>Etapa 1</strong>
+                                        <div style="width: 12px; height: 12px; background: {{ stage.grouper|stage_color }}; border-radius: 2px; margin-right: 8px;"></div>
+                                        <strong>{{ stage.grouper|title }}</strong>
                                     </div>
-                                    <small class="text-muted">Manzanas 40-57 • Vendida</small>
+                                    <small class="text-muted">{{ stage.list|length }} manzanas • {{ stage.grouper|stage_status }}</small>
                                 </div>
                                 <div class="text-end">
-                                    <div class="badge bg-success">180</div>
+                                    <div class="badge" style="background: {{ stage.grouper|stage_color }};">{{ stage.list|sum(attribute='total_houses') }}</div>
                                     <small class="d-block text-muted">lotes</small>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="d-flex align-items-center mb-1">
-                                        <div style="width: 12px; height: 12px; background: #2196F3; border-radius: 2px; margin-right: 8px;"></div>
-                                        <strong>Etapa 2A</strong>
-                                    </div>
-                                    <small class="text-muted">Manzanas 20-39 • En venta</small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="badge bg-primary">220</div>
-                                    <small class="d-block text-muted">lotes</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="d-flex align-items-center mb-1">
-                                        <div style="width: 12px; height: 12px; background: #FF9800; border-radius: 2px; margin-right: 8px;"></div>
-                                        <strong>Etapa 2B</strong>
-                                    </div>
-                                    <small class="text-muted">Manzanas 1-19 • Desarrollo</small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="badge bg-warning">195</div>
-                                    <small class="d-block text-muted">lotes</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="d-flex align-items-center mb-1">
-                                        <div style="width: 12px; height: 12px; background: #9C27B0; border-radius: 2px; margin-right: 8px;"></div>
-                                        <strong>Etapa 3</strong>
-                                    </div>
-                                    <small class="text-muted">Manzanas 58-70 • Futuro</small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="badge" style="background: #9C27B0;">160</div>
-                                    <small class="d-block text-muted">lotes</small>
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -285,6 +188,24 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Block Details Modal -->
+<div class="modal fade" id="blockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="blockTitle">Detalles del Bloque</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="blockDetails">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -429,9 +350,184 @@
 </div>
 
 <script>
+// Map data from backend
+const mapData = {{ blocks|map('to_dict')|list|tojson }};
+
+// Stage colors
+const stageColors = {
+    '1': '#4CAF50',
+    '2A': '#2196F3', 
+    '2B': '#FF9800',
+    '3': '#9C27B0'
+};
+
+// Canvas setup
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('mapTooltip');
+
+// Responsive canvas
+function resizeCanvas() {
+    const container = document.getElementById('map-container');
+    canvas.width = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+    drawMap();
+}
+
+// Draw the interactive map
+function drawMap() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Background
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Calculate grid
+    const gridSize = Math.min(canvas.width, canvas.height) / 12;
+    const startX = (canvas.width - gridSize * 10) / 2;
+    const startY = (canvas.height - gridSize * 8) / 2;
+    
+    // Draw blocks
+    mapData.forEach((block, index) => {
+        const x = startX + (index % 10) * gridSize;
+        const y = startY + Math.floor(index / 10) * gridSize;
+        
+        // Color based on stage
+        let color = '#e74c3c'; // Default for amenities
+        if (block.block_type === 'residential') {
+            color = stageColors[block.stage] || '#6c757d';
+        }
+        
+        // Draw block
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
+        
+        // Border
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
+        
+        // Text
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(block.block_name || block.stage, x + gridSize/2, y + gridSize/2);
+        
+        // Store block data for interaction
+        block.x = x;
+        block.y = y;
+        block.width = gridSize - 4;
+        block.height = gridSize - 4;
+    });
+    
+    // Draw amenities
+    const amenities = mapData.filter(b => b.block_type === 'amenity');
+    amenities.forEach((amenity, index) => {
+        const x = startX + (index % 3) * gridSize * 2;
+        const y = startY + Math.floor(index / 3) * gridSize * 2 + gridSize * 6;
+        
+        // Draw amenity icon
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.arc(x + gridSize, y + gridSize, gridSize * 0.8, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Text
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(amenity.block_name, x + gridSize, y + gridSize);
+        
+        // Store amenity data
+        amenity.x = x;
+        amenity.y = y;
+        amenity.width = gridSize * 2;
+        amenity.height = gridSize * 2;
+    });
+}
+
+// Mouse interaction
+canvas.addEventListener('mousemove', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Check if mouse is over any block
+    const block = mapData.find(b => 
+        x >= b.x && x <= b.x + b.width &&
+        y >= b.y && y <= b.y + b.height
+    );
+    
+    if (block) {
+        tooltip.style.display = 'block';
+        tooltip.style.left = e.clientX + 10 + 'px';
+        tooltip.style.top = e.clientY - 10 + 'px';
+        
+        let tooltipText = `<strong>${block.block_name || block.stage}</strong><br>`;
+        if (block.block_type === 'residential') {
+            tooltipText += `Etapa: ${block.stage}<br>`;
+            tooltipText += `Estado: ${block.status}<br>`;
+            tooltipText += `Lotes: ${block.total_houses}<br>`;
+            tooltipText += `Ocupados: ${block.occupied_houses}`;
+        } else {
+            tooltipText += `Tipo: ${block.block_type}<br>`;
+            tooltipText += `Descripción: ${block.description || 'N/A'}`;
+        }
+        
+        tooltip.innerHTML = tooltipText;
+    } else {
+        tooltip.style.display = 'none';
+    }
+});
+
+canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const block = mapData.find(b => 
+        x >= b.x && x <= b.x + b.width &&
+        y >= b.y && y <= b.y + b.height
+    );
+    
+    if (block) {
+        showBlockDetails(block);
+    }
+});
+
+function showBlockDetails(block) {
+    const modal = new bootstrap.Modal(document.getElementById('blockModal'));
+    document.getElementById('blockTitle').textContent = block.block_name || block.stage;
+    document.getElementById('blockDetails').innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Tipo:</strong> ${block.block_type}</p>
+                <p><strong>Etapa:</strong> ${block.stage}</p>
+                <p><strong>Estado:</strong> ${block.status}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Lotes totales:</strong> ${block.total_houses}</p>
+                <p><strong>Lotes ocupados:</strong> ${block.occupied_houses}</p>
+                <p><strong>Descripción:</strong> ${block.description || 'N/A'}</p>
+            </div>
+        </div>
+    `;
+    modal.show();
+}
+
 function showStats() {
     const modal = new bootstrap.Modal(document.getElementById('statsModal'));
     modal.show();
+}
+
+function toggleView() {
+    // Toggle between different view modes
+    const viewModes = ['default', 'stages', 'occupancy'];
+    const currentMode = canvas.dataset.viewMode || 'default';
+    const nextIndex = (viewModes.indexOf(currentMode) + 1) % viewModes.length;
+    canvas.dataset.viewMode = viewModes[nextIndex];
+    
+    drawMap();
 }
 
 function contactSales() {
@@ -439,6 +535,10 @@ function contactSales() {
     const whatsappUrl = `https://wa.me/5491144445555?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
 }
+
+// Initialize
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 // Add some interactivity to the cards
 document.querySelectorAll('.card').forEach(card => {

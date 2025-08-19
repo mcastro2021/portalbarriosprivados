@@ -145,6 +145,7 @@ def change_password():
             return redirect(url_for('profile'))
         except Exception as e:
             db.session.rollback()
+            print(f"Error al cambiar contraseña: {str(e)}")
             flash('Error al actualizar la contraseña', 'error')
     
     return render_template('auth/change_password.html', form=form)

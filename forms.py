@@ -21,7 +21,7 @@ class RegistrationForm(FlaskForm):
 class ChangePasswordForm(FlaskForm):
     current_password = PasswordField('Contraseña actual', validators=[DataRequired()])
     new_password = PasswordField('Nueva contraseña', validators=[DataRequired(), Length(min=6)])
-    new_password2 = PasswordField('Repetir nueva contraseña', validators=[DataRequired(), EqualTo('new_password')])
+    confirm_password = PasswordField('Repetir nueva contraseña', validators=[DataRequired(), EqualTo('new_password')])
 
 class ForgotPasswordForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])

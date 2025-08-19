@@ -465,6 +465,7 @@ class NeighborhoodMap(db.Model):
     block_name = db.Column(db.String(100), nullable=False)
     street_name = db.Column(db.String(100))
     block_number = db.Column(db.Integer)
+    block_type = db.Column(db.String(50), default='residential')  # residential, amenity, commercial
     total_houses = db.Column(db.Integer, default=0)
     occupied_houses = db.Column(db.Integer, default=0)
     description = db.Column(db.Text)
@@ -492,6 +493,25 @@ class NeighborhoodMap(db.Model):
         if self.total_houses > 0:
             return (self.occupied_houses / self.total_houses) * 100
         return 0
+    
+    def to_dict(self):
+        """Convertir a diccionario para JSON"""
+        return {
+            'id': self.id,
+            'block_name': self.block_name,
+            'street_name': self.street_name,
+            'block_number': self.block_number,
+            'block_type': self.block_type,
+            'total_houses': self.total_houses,
+            'occupied_houses': self.occupied_houses,
+            'description': self.description,
+            'stage': self.stage,
+            'status': self.status,
+            'coordinates_lat': self.coordinates_lat,
+            'coordinates_lng': self.coordinates_lng,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
 
 class ChatbotSession(db.Model):
     """Modelo de sesiones del chatbot"""

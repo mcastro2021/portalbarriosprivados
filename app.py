@@ -117,6 +117,36 @@ def create_app(config_name='default'):
     # Importar y registrar blueprint de notificaciones de expensas
     from routes import expense_notifications
     app.register_blueprint(expense_notifications.bp)
+    
+    # Filtros personalizados para Jinja2
+    @app.template_filter('stage_color')
+    def stage_color(stage):
+        """Retorna el color para cada etapa"""
+        colors = {
+            '1': '#4CAF50',
+            '2A': '#2196F3',
+            '2B': '#FF9800',
+            '3': '#9C27B0'
+        }
+        return colors.get(stage, '#6c757d')
+    
+    @app.template_filter('stage_status')
+    def stage_status(stage):
+        """Retorna el estado de cada etapa"""
+        statuses = {
+            '1': 'Vendida',
+            '2A': 'En venta',
+            '2B': 'Desarrollo',
+            '3': 'Futuro'
+        }
+        return statuses.get(stage, 'Desconocido')
+    
+    @app.template_filter('to_dict')
+    def to_dict(obj):
+        """Convertir objeto a diccionario"""
+        if hasattr(obj, 'to_dict'):
+            return obj.to_dict()
+        return obj
     app.register_blueprint(camera_security.bp)
     app.register_blueprint(broadcast_communications.bp)
     
