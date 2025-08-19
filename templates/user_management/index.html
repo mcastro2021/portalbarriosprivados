@@ -735,5 +735,164 @@ async function deleteUser(userId, username) {
         alert('Error de conexión: ' + error.message);
     }
 }
+
+// Batch Actions
+function updateBulkActionsButton() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    const bulkBtn = document.getElementById('bulkActionsBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (checkboxes.length > 0) {
+        bulkBtn.disabled = false;
+        bulkBtn.innerHTML = `<i class="bi bi-gear me-2"></i>Acciones en Lote (${checkboxes.length})`;
+        if (selectedCount) selectedCount.textContent = checkboxes.length;
+    } else {
+        bulkBtn.disabled = true;
+        bulkBtn.innerHTML = `<i class="bi bi-gear me-2"></i>Acciones en Lote`;
+        if (selectedCount) selectedCount.textContent = '0';
+    }
+}
+
+async function bulkAction(action) {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    const userIds = Array.from(checkboxes).map(cb => cb.value);
+    const usernames = Array.from(checkboxes).map(cb => cb.dataset.username);
+    
+    if (userIds.length === 0) {
+        alert('No hay usuarios seleccionados');
+        return;
+    }
+    
+    let confirmMessage = '';
+    let actionName = '';
+    
+    switch(action) {
+        case 'activate':
+            actionName = 'activar';
+            confirmMessage = `¿Estás seguro de que quieres activar a ${userIds.length} usuarios?`;
+            break;
+        case 'deactivate':
+            actionName = 'desactivar';
+            confirmMessage = `¿Estás seguro de que quieres desactivar a ${userIds.length} usuarios?`;
+            break;
+        case 'verify_email':
+            actionName = 'verificar emails';
+            confirmMessage = `¿Estás seguro de que quieres verificar los emails de ${userIds.length} usuarios?`;
+            break;
+        case 'reset_password':
+            actionName = 'resetear contraseñas';
+            confirmMessage = `¿Estás seguro de que quieres resetear las contraseñas de ${userIds.length} usuarios?`;
+            break;
+        case 'delete':
+            actionName = 'eliminar';
+            confirmMessage = `⚠️ ATENCIÓN: ¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE a ${userIds.length} usuarios?\n\nEsta acción no se puede deshacer.`;
+            break;
+    }
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    // Confirmación adicional para eliminación
+    if (action === 'delete') {
+        const hasImportantUsers = usernames.some(username => 
+            username.includes('admin') || username.includes('mcastro')
+        );
+        
+        if (hasImportantUsers) {
+            if (!confirm(`⚠️ ATENCIÓN: Entre los usuarios seleccionados hay usuarios importantes.\n\n¿Estás COMPLETAMENTE SEGURO de que quieres eliminarlos?`)) {
+                return;
+            }
+        }
+    }
+    
+    try {
+        const response = await fetch('/admin/users/bulk-actions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_ids: userIds,
+                action: action
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ ${data.message}\n\nResultados:\n${data.results.join('\n')}`);
+            location.reload();
+        } else {
+            alert(`❌ Error: ${data.error}`);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all checkbox
+    document.getElementById('selectAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        updateBulkActionsButton();
+    });
+    
+    // Individual checkboxes
+    document.querySelectorAll('.user-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateBulkActionsButton);
+    });
+    
+    // Bulk actions button
+    document.getElementById('bulkActionsBtn').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+        if (checkboxes.length > 0) {
+            const modal = new bootstrap.Modal(document.getElementById('bulkActionsModal'));
+            modal.show();
+        }
+    });
+});
 </script>
+
+<!-- Modal de Acciones en Lote -->
+<div class="modal fade" id="bulkActionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-gear me-2"></i>Acciones en Lote
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">
+                    <span id="selectedCount">0</span> usuarios seleccionados
+                </p>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success" onclick="bulkAction('activate')">
+                        <i class="bi bi-check-circle me-2"></i>Activar Usuarios
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="bulkAction('deactivate')">
+                        <i class="bi bi-x-circle me-2"></i>Desactivar Usuarios
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="bulkAction('verify_email')">
+                        <i class="bi bi-envelope-check me-2"></i>Verificar Emails
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="bulkAction('reset_password')">
+                        <i class="bi bi-key me-2"></i>Resetear Contraseñas
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="bulkAction('delete')">
+                        <i class="bi bi-trash me-2"></i>Eliminar Usuarios
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

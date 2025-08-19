@@ -26,6 +26,35 @@ def index():
     
     return render_template('expenses/index.html', expenses=expenses, api_config=api_config)
 
+@bp.route('/new', methods=['GET', 'POST'])
+@login_required
+def new():
+    """Crear nueva expensa"""
+    if request.method == 'POST':
+        try:
+            # Crear nueva expensa
+            expense = Expense(
+                user_id=current_user.id,
+                description=request.form.get('description', ''),
+                amount=float(request.form.get('amount', 0)),
+                due_date=datetime.strptime(request.form.get('due_date'), '%Y-%m-%d') if request.form.get('due_date') else None,
+                status='pending',
+                month=request.form.get('month', ''),
+                period=request.form.get('period', '')
+            )
+            
+            db.session.add(expense)
+            db.session.commit()
+            
+            flash('Expensa creada correctamente', 'success')
+            return redirect(url_for('expenses.index'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al crear la expensa: {str(e)}', 'error')
+    
+    return render_template('expenses/new.html')
+
 @bp.route('/api-config', methods=['GET', 'POST'])
 @login_required
 def api_config():

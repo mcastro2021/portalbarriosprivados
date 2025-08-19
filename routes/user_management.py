@@ -219,7 +219,7 @@ def user_details(user_id):
     
     # Estadísticas del usuario
     user_stats = {
-        'total_visits': len(user.resident_visits) if hasattr(user, 'resident_visits') else 0,
+        'total_visits': len(user.visits) if hasattr(user, 'visits') else 0,
         'total_reservations': len(user.reservations) if hasattr(user, 'reservations') else 0,
         'total_maintenance': len(user.maintenance_requests) if hasattr(user, 'maintenance_requests') else 0,
         'total_expenses': len(user.expenses) if hasattr(user, 'expenses') else 0,

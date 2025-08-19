@@ -276,7 +276,13 @@ def create_app(config_name='default'):
                         flash('La contraseña debe tener al menos 6 caracteres', 'error')
                         return render_template('profile.html')
                     
+                    # Verificar que contenga al menos una letra y un número
+                    if not any(c.isalpha() for c in new_password) or not any(c.isdigit() for c in new_password):
+                        flash('La contraseña debe contener al menos una letra y un número', 'error')
+                        return render_template('profile.html')
+                    
                     current_user.set_password(new_password)
+                    flash('Contraseña cambiada correctamente', 'success')
                 
                 # Procesar imagen de perfil
                 if 'profile_image' in request.files:
