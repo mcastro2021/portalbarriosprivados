@@ -468,21 +468,24 @@ class NeighborhoodMap(db.Model):
     total_houses = db.Column(db.Integer, default=0)
     occupied_houses = db.Column(db.Integer, default=0)
     description = db.Column(db.Text)
-    coordinates = db.Column(db.String(200))  # JSON con lat/lng
+    stage = db.Column(db.String(50))  # Etapa del desarrollo
+    status = db.Column(db.String(50))  # Estado actual
+    coordinates_lat = db.Column(db.Float)  # Latitud
+    coordinates_lng = db.Column(db.Float)  # Longitud
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def get_coordinates_dict(self):
         """Obtener coordenadas como diccionario"""
-        import json
-        if self.coordinates:
-            return json.loads(self.coordinates)
-        return {}
+        return {
+            'lat': self.coordinates_lat,
+            'lng': self.coordinates_lng
+        }
     
     def set_coordinates(self, lat, lng):
         """Establecer coordenadas"""
-        import json
-        self.coordinates = json.dumps({'lat': lat, 'lng': lng})
+        self.coordinates_lat = lat
+        self.coordinates_lng = lng
     
     def get_occupancy_rate(self):
         """Obtener tasa de ocupación"""

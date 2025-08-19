@@ -331,6 +331,36 @@ def create_app(config_name='default'):
             'maintenance_this_month': maintenance_this_month
         })
     
+    @app.route('/api/dashboard/stats')
+    @login_required
+    def api_dashboard_stats():
+        """API para estadísticas del dashboard del usuario"""
+        # Estadísticas del usuario
+        pending_visits = Visit.query.filter_by(resident_id=current_user.id, status='pending').count()
+        active_reservations = Reservation.query.filter_by(user_id=current_user.id, status='approved').count()
+        pending_maintenance = Maintenance.query.filter_by(user_id=current_user.id, status='pending').count()
+        pending_expenses = Expense.query.filter_by(user_id=current_user.id, status='pending').count()
+        
+        # Estadísticas de hoy
+        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        tomorrow = today + timedelta(days=1)
+        today_visits = Visit.query.filter_by(resident_id=current_user.id).filter(Visit.created_at >= today, Visit.created_at < tomorrow).count()
+        
+        return jsonify({
+            'pending_visits': pending_visits,
+            'active_reservations': active_reservations,
+            'pending_maintenance': pending_maintenance,
+            'pending_expenses': pending_expenses,
+            'today_visits': today_visits
+        })
+    
+    @app.route('/api/notifications/count')
+    @login_required
+    def api_notifications_count():
+        """API para contar notificaciones no leídas"""
+        unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        return jsonify({'count': unread_count})
+    
     # WebSocket events
     @socketio.on('connect')
     def handle_connect():
@@ -680,44 +710,7 @@ with app.app_context():
         # Ejecutar migración automática para columnas de IA
         migrate_ai_columns()
         
-        # Crear usuario admin si no existe (para primera ejecución)
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            admin = User(
-                username='admin',
-                email='admin@barrioprivado.com',
-                name='Administrador del Sistema',
-                role='admin',
-                is_active=True,
-                email_verified=True
-            )
-            admin.set_password('admin123')
-            db.session.add(admin)
-            db.session.commit()
-            print("✅ Usuario administrador creado automáticamente")
-        
-        # Crear usuario mcastro2025 si no existe (usuario permanente)
-        mcastro = User.query.filter_by(username='mcastro2025').first()
-        if not mcastro:
-            mcastro = User(
-                username='mcastro2025',
-                email='mcastro2025@tejas4.com',
-                name='Manuel Castro',
-                role='admin',
-                is_active=True,
-                email_verified=True,
-                address='Tejas 4 - Casa Principal'
-            )
-            mcastro.set_password('mcastro2025')
-            db.session.add(mcastro)
-            db.session.commit()
-            print("✅ Usuario mcastro2025 creado automáticamente")
-        else:
-            # Asegurar que esté activo
-            if not mcastro.is_active:
-                mcastro.is_active = True
-                db.session.commit()
-                print("✅ Usuario mcastro2025 reactivado automáticamente")
+        print("✅ Base de datos inicializada correctamente")
     except Exception as e:
         print(f"⚠️ Error inicializando BD: {e}")
         pass  # No fallar si ya existe

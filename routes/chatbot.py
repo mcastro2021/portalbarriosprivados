@@ -122,6 +122,13 @@ def handle_claude_query(message, session):
         # Obtener historial de conversación
         conversation_history = context.get('conversation_history', [])
         
+        # Cargar reglamentos desde el archivo
+        try:
+            with open('REGLAMENTOS_BARRIO.md', 'r', encoding='utf-8') as f:
+                reglamentos_content = f.read()
+        except FileNotFoundError:
+            reglamentos_content = "Reglamentos no disponibles"
+        
         # Construir el prompt del sistema
         system_prompt = f"""Eres un asistente virtual especializado para un barrio cerrado privado llamado "Barrio Tejas 4". 
 
@@ -136,68 +143,17 @@ CONOCIMIENTO ESPECÍFICO DEL BARRIO:
 - Espacios comunes: Quincho principal, Quincho pequeño, SUM, Cancha de fútbol, Cancha de tenis, Piscina, Espacio coworking
 - Servicios disponibles: Visitas, reservas, expensas, mantenimiento, noticias, clasificados, comunicaciones
 
-REGLAMENTOS Y NORMAS COMPLETAS:
+REGLAMENTOS Y NORMAS COMPLETAS DEL BARRIO:
 
-**MASCOTAS:**
-- Máximo 2 mascotas por vivienda
-- Siempre con correa en espacios comunes
-- Horarios de paseo: 07:00-22:00
-- Prohibido en piscina y quinchos
-- Limpieza obligatoria de excrementos
+{reglamentos_content}
 
-**CONSTRUCCIONES Y REFORMAS:**
-- Autorización previa de administración obligatoria
-- Horarios de trabajo: 08:00-18:00 (Lun-Vie)
-- Prohibido sábados, domingos y feriados
-- Depósito de garantía para obras mayores
-
-**RUIDOS Y CONVIVENCIA:**
-- Horarios de descanso: 22:00-08:00
-- Prohibido ruidos molestos en horario de descanso
-- Música alta: Solo hasta 22:00
-- Fiestas: Notificar con 48h de anticipación
-
-**ESTACIONAMIENTO:**
-- Solo en espacios asignados
-- Prohibido estacionar en calles internas
-- Máximo 2 vehículos por vivienda
-
-**BASURA Y RECICLAJE:**
-- Separación obligatoria: Orgánica (🟢), Reciclable (🔵), Especial (🟡)
-- Horarios de recolección: 07:00-09:00
-- Multa por no separar correctamente
-
-**PISCINA:**
-- Horarios: 08:00-22:00
-- Niños siempre acompañados por adultos
-- Ducha obligatoria antes de ingresar
-- Capacidad máxima: 50 personas
-
-**QUINCHOS Y ESPACIOS COMUNES:**
-- Reserva previa obligatoria
-- Máximo 4 horas por reserva
-- Limpieza obligatoria al finalizar
-- Capacidad quincho principal: 50 personas
-- Capacidad quincho pequeño: 20 personas
-
-**SEGURIDAD:**
-- Reportar incidentes inmediatamente
-- Números: Seguridad (+54 11 4444-5556), Emergencias (911)
-- Acceso controlado 24/7
-- Visitas registradas obligatoriamente
-
-**SANCIONES Y MULTAS:**
-- Leves: $10,000 - $25,000
-- Moderadas: $25,000 - $50,000
-- Graves: $50,000 - $100,000
-
-**MAPA DEL BARRIO:**
-- Manzana A: Casas 3-4 dormitorios
-- Manzana B: Casas 2-3 dormitorios
-- Manzana C: Casas 2-4 dormitorios
-- Manzana D: Casas 3-5 dormitorios
-- Piscina principal: Centro del barrio
-- Cancha de fútbol: Manzana A
+INSTRUCCIONES IMPORTANTES:
+1. SIEMPRE responde basándote en los reglamentos específicos del barrio
+2. Si te preguntan sobre reglamentos constructivos, usa la información del archivo de reglamentos
+3. Proporciona información precisa y actualizada
+4. Si no encuentras información específica, indícalo claramente
+5. Para consultas sobre el mapa, usa la información del reglamento
+6. Para sanciones y multas, cita los montos específicos del reglamento
 - Cancha de tenis: Manzana B
 - Pista de jogging: Perímetro del barrio
 
