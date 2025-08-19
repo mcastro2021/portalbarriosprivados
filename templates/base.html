@@ -76,12 +76,7 @@
                             <i class="bi bi-geo-alt me-1"></i>Mapa
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('chatbot.index') }}">
-                            <i class="bi bi-robot me-1"></i>Asistente
-                            <span class="badge bg-success ms-1">IA</span>
-                        </a>
-                    </li>
+
                 </ul>
                 
                 <ul class="navbar-nav">
@@ -190,13 +185,13 @@
 
     <!-- Floating Chatbot Button -->
     <div class="floating-chatbot">
-        <a href="{{ url_for('chatbot.index') }}" class="chatbot-btn" title="Asistente Virtual IA">
+        <a href="#" class="chatbot-btn" data-bs-toggle="modal" data-bs-target="#chatbotModal" title="Asistente Virtual IA">
             <i class="bi bi-robot"></i>
             <div class="pulse-ring"></div>
         </a>
         <div class="chatbot-tooltip">
-            ¡Pregúntame cualquier cosa!<br>
-            <small>Con redirección automática 🚀</small>
+            🤖 Asistente Virtual con Claude AI<br>
+            <small>Pregúntame cualquier cosa</small>
         </div>
     </div>
 
@@ -306,5 +301,212 @@
         }
     }
     </style>
+
+    <!-- Chatbot Modal -->
+    <div class="modal fade" id="chatbotModal" tabindex="-1" aria-labelledby="chatbotModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="chatbotModalLabel">
+                        <i class="bi bi-robot me-2"></i>Asistente Virtual con Claude AI
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="chatbot-container">
+                        <div id="chat-messages" class="chat-messages">
+                            <div class="message bot-message">
+                                <div class="message-content">
+                                    <i class="bi bi-robot me-2"></i>
+                                    ¡Hola! Soy tu asistente virtual con Claude AI. Puedo ayudarte con:
+                                    <br><br>
+                                    <div class="quick-actions">
+                                        <button class="btn btn-outline-primary btn-sm quick-action" data-action="visitas">👥 Visitas</button>
+                                        <button class="btn btn-outline-primary btn-sm quick-action" data-action="reservas">📅 Reservas</button>
+                                        <button class="btn btn-outline-primary btn-sm quick-action" data-action="expensas">💳 Expensas</button>
+                                        <button class="btn btn-outline-primary btn-sm quick-action" data-action="mantenimiento">🔧 Mantenimiento</button>
+                                        <button class="btn btn-outline-primary btn-sm quick-action" data-action="noticias">📢 Noticias</button>
+                                        <button class="btn btn-outline-primary btn-sm quick-action" data-action="mapa">🗺️ Mapa</button>
+                                    </div>
+                                    <br>
+                                    O simplemente escribe tu consulta en lenguaje natural.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <div class="input-group">
+                                <input type="text" id="chat-input" class="form-control" placeholder="Escribe tu mensaje..." autocomplete="off">
+                                <button class="btn btn-primary" id="send-button">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .message {
+        margin-bottom: 15px;
+        display: flex;
+    }
+
+    .user-message {
+        justify-content: flex-end;
+    }
+
+    .bot-message {
+        justify-content: flex-start;
+    }
+
+    .message-content {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        word-wrap: break-word;
+    }
+
+    .user-message .message-content {
+        background: #007bff;
+        color: white;
+    }
+
+    .bot-message .message-content {
+        background: white;
+        border: 1px solid #dee2e6;
+        color: #333;
+    }
+
+    .quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .quick-action {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+    }
+
+    .chat-input-container {
+        position: relative;
+    }
+
+    .typing-indicator {
+        display: none;
+        padding: 10px;
+        color: #666;
+        font-style: italic;
+    }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const chatMessages = document.getElementById('chat-messages');
+        let sessionId = null;
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = isUser ? content : `<i class="bi bi-robot me-2"></i>${content}`;
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            chatInput.value = '';
+
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = '<i class="bi bi-robot me-2"></i>Claude está pensando...';
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            fetch('/chatbot/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    session_id: sessionId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                chatMessages.removeChild(typingDiv);
+                
+                if (data.error) {
+                    addMessage('❌ Error: ' + data.error);
+                } else {
+                    addMessage(data.response);
+                    sessionId = data.session_id;
+                    
+                    // Handle redirect if present
+                    if (data.redirect && data.redirect.auto_redirect) {
+                        setTimeout(() => {
+                            window.location.href = data.redirect.url;
+                        }, data.redirect.delay * 1000);
+                    }
+                }
+            })
+            .catch(error => {
+                chatMessages.removeChild(typingDiv);
+                addMessage('❌ Error de conexión. Intenta de nuevo.');
+            });
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Quick actions
+        document.querySelectorAll('.quick-action').forEach(button => {
+            button.addEventListener('click', function() {
+                const action = this.dataset.action;
+                let message = '';
+                
+                switch(action) {
+                    case 'visitas': message = 'Quiero gestionar mis visitas'; break;
+                    case 'reservas': message = 'Quiero hacer una reserva'; break;
+                    case 'expensas': message = 'Quiero ver mis expensas'; break;
+                    case 'mantenimiento': message = 'Tengo un problema de mantenimiento'; break;
+                    case 'noticias': message = 'Quiero ver las noticias'; break;
+                    case 'mapa': message = 'Quiero ver el mapa del barrio'; break;
+                }
+                
+                chatInput.value = message;
+                sendMessage();
+            });
+        });
+    });
+    </script>
 </body>
 </html> 

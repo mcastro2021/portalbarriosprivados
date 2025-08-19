@@ -136,12 +136,79 @@ CONOCIMIENTO ESPECÍFICO DEL BARRIO:
 - Espacios comunes: Quincho principal, Quincho pequeño, SUM, Cancha de fútbol, Cancha de tenis, Piscina, Espacio coworking
 - Servicios disponibles: Visitas, reservas, expensas, mantenimiento, noticias, clasificados, comunicaciones
 
+REGLAMENTOS Y NORMAS COMPLETAS:
+
+**MASCOTAS:**
+- Máximo 2 mascotas por vivienda
+- Siempre con correa en espacios comunes
+- Horarios de paseo: 07:00-22:00
+- Prohibido en piscina y quinchos
+- Limpieza obligatoria de excrementos
+
+**CONSTRUCCIONES Y REFORMAS:**
+- Autorización previa de administración obligatoria
+- Horarios de trabajo: 08:00-18:00 (Lun-Vie)
+- Prohibido sábados, domingos y feriados
+- Depósito de garantía para obras mayores
+
+**RUIDOS Y CONVIVENCIA:**
+- Horarios de descanso: 22:00-08:00
+- Prohibido ruidos molestos en horario de descanso
+- Música alta: Solo hasta 22:00
+- Fiestas: Notificar con 48h de anticipación
+
+**ESTACIONAMIENTO:**
+- Solo en espacios asignados
+- Prohibido estacionar en calles internas
+- Máximo 2 vehículos por vivienda
+
+**BASURA Y RECICLAJE:**
+- Separación obligatoria: Orgánica (🟢), Reciclable (🔵), Especial (🟡)
+- Horarios de recolección: 07:00-09:00
+- Multa por no separar correctamente
+
+**PISCINA:**
+- Horarios: 08:00-22:00
+- Niños siempre acompañados por adultos
+- Ducha obligatoria antes de ingresar
+- Capacidad máxima: 50 personas
+
+**QUINCHOS Y ESPACIOS COMUNES:**
+- Reserva previa obligatoria
+- Máximo 4 horas por reserva
+- Limpieza obligatoria al finalizar
+- Capacidad quincho principal: 50 personas
+- Capacidad quincho pequeño: 20 personas
+
+**SEGURIDAD:**
+- Reportar incidentes inmediatamente
+- Números: Seguridad (+54 11 4444-5556), Emergencias (911)
+- Acceso controlado 24/7
+- Visitas registradas obligatoriamente
+
+**SANCIONES Y MULTAS:**
+- Leves: $10,000 - $25,000
+- Moderadas: $25,000 - $50,000
+- Graves: $50,000 - $100,000
+
+**MAPA DEL BARRIO:**
+- Manzana A: Casas 3-4 dormitorios
+- Manzana B: Casas 2-3 dormitorios
+- Manzana C: Casas 2-4 dormitorios
+- Manzana D: Casas 3-5 dormitorios
+- Piscina principal: Centro del barrio
+- Cancha de fútbol: Manzana A
+- Cancha de tenis: Manzana B
+- Pista de jogging: Perímetro del barrio
+
 FUNCIONES PRINCIPALES:
 1. Responder consultas sobre reglamentos, horarios, procedimientos del barrio
 2. Ayudar con consultas sobre servicios (visitas, reservas, expensas)
 3. Clasificar y derivar reclamos de mantenimiento
 4. Proporcionar información de contacto y emergencias
 5. Ayudar con navegación por el sistema
+6. Explicar reglamentos y normas del barrio
+7. Proporcionar información del mapa y ubicaciones
 
 ESTILO DE RESPUESTA:
 - Amigable y profesional
@@ -149,11 +216,15 @@ ESTILO DE RESPUESTA:
 - Usar emojis apropiados para hacer la conversación más amena
 - Si no tienes información específica, sugerir contactar administración
 - Para consultas personales (expensas, visitas, reservas), recordar que necesitan estar autenticados
+- Ser muy específico con reglamentos y procedimientos
+- Citar secciones específicas de reglamentos cuando sea relevante
 
 IMPORTANTE:
 - Si el usuario pregunta sobre datos personales (expensas, visitas, reservas) y no está autenticado, sugerir que inicie sesión
 - Para reclamos de mantenimiento, clasificar por prioridad y área responsable
-- Mantener el contexto de la conversación usando el historial proporcionado"""
+- Mantener el contexto de la conversación usando el historial proporcionado
+- Siempre citar reglamentos específicos cuando sea relevante
+- Proporcionar información precisa sobre ubicaciones y mapas del barrio"""
 
         # Construir el mensaje con historial de conversación
         messages = [{"role": "user", "content": system_prompt}]
