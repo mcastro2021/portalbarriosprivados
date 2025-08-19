@@ -121,6 +121,25 @@ def create_app(config_name='default'):
     app.register_blueprint(broadcast_communications.bp)
     
     # Rutas principales
+    @app.route('/health')
+    def health_check():
+        """Endpoint de salud para diagnóstico"""
+        try:
+            # Verificar conexión a la base de datos
+            from sqlalchemy import text
+            db.session.execute(text('SELECT 1'))
+            db_status = 'OK'
+        except Exception as e:
+            db_status = f'ERROR: {str(e)}'
+        
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'database': db_status,
+            'environment': app.config['ENV'] if 'ENV' in app.config else 'development',
+            'debug': app.debug
+        })
+    
     @app.route('/')
     def index():
         """Página principal"""
