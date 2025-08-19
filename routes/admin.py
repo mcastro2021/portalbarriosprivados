@@ -98,21 +98,25 @@ def settings():
 @admin_required
 def email_config():
     """Configuración de email y WhatsApp"""
-    # Obtener configuración actual desde variables de entorno
-    config = {
-        'smtp_server': os.getenv('SMTP_SERVER', 'smtp.gmail.com'),
-        'smtp_port': os.getenv('SMTP_PORT', '587'),
-        'smtp_username': os.getenv('SMTP_USERNAME', ''),
-        'smtp_password': os.getenv('SMTP_PASSWORD', ''),
-        'from_name': os.getenv('SMTP_FROM_NAME', 'Barrio Tejas 4'),
-        'use_tls': os.getenv('SMTP_USE_TLS', '1') == '1',
-        'whatsapp_api_key': os.getenv('WHATSAPP_API_KEY', ''),
-        'whatsapp_phone_id': os.getenv('WHATSAPP_PHONE_ID', ''),
-        'whatsapp_business_id': os.getenv('WHATSAPP_BUSINESS_ID', ''),
-        'test_phone': os.getenv('TEST_PHONE', '')
-    }
-    
-    return render_template('admin/email_config.html', config=config)
+    try:
+        # Obtener configuración actual desde variables de entorno
+        config = {
+            'smtp_server': os.getenv('SMTP_SERVER', 'smtp.gmail.com'),
+            'smtp_port': os.getenv('SMTP_PORT', '587'),
+            'smtp_username': os.getenv('SMTP_USERNAME', ''),
+            'smtp_password': os.getenv('SMTP_PASSWORD', ''),
+            'from_name': os.getenv('SMTP_FROM_NAME', 'Barrio Tejas 4'),
+            'use_tls': os.getenv('SMTP_USE_TLS', '1') == '1',
+            'whatsapp_api_key': os.getenv('WHATSAPP_API_KEY', ''),
+            'whatsapp_phone_id': os.getenv('WHATSAPP_PHONE_ID', ''),
+            'whatsapp_business_id': os.getenv('WHATSAPP_BUSINESS_ID', ''),
+            'test_phone': os.getenv('TEST_PHONE', '')
+        }
+        
+        return render_template('admin/email_config.html', config=config)
+    except Exception as e:
+        flash(f'Error al cargar la configuración: {str(e)}', 'error')
+        return redirect(url_for('admin.dashboard'))
 
 @bp.route('/save-email-config', methods=['POST'])
 @login_required
@@ -252,3 +256,44 @@ def broadcast():
     """Sistema de notificaciones masivas"""
     flash('Función de notificaciones masivas en desarrollo', 'info')
     return redirect(url_for('admin.dashboard'))
+
+# API endpoints para configuración
+@bp.route('/api/save-setting', methods=['POST'])
+@login_required
+@admin_required
+def save_setting():
+    """Guardar configuración del sistema"""
+    try:
+        data = request.get_json()
+        setting = data.get('setting')
+        value = data.get('value')
+        
+        # En un entorno real, esto se guardaría en la base de datos
+        # Por ahora, solo retornamos éxito
+        return jsonify({
+            'success': True,
+            'message': f'Configuración {setting} guardada correctamente'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error al guardar configuración: {str(e)}'
+        }), 500
+
+@bp.route('/api/restart', methods=['POST'])
+@login_required
+@admin_required
+def restart_system():
+    """Reiniciar sistema (simulado)"""
+    try:
+        # En un entorno real, esto reiniciaría el sistema
+        # Por ahora, solo retornamos éxito
+        return jsonify({
+            'success': True,
+            'message': 'Sistema reiniciado correctamente'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error al reiniciar sistema: {str(e)}'
+        }), 500

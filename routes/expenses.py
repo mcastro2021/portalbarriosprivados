@@ -59,41 +59,49 @@ def new():
 @login_required
 def api_config():
     """Configuración de la API de expensasonline.pro"""
-    if not current_user.can_access_admin():
-        flash('No tienes permisos para acceder a esta sección', 'error')
+    try:
+        # Verificar permisos de administrador
+        if not hasattr(current_user, 'can_access_admin') or not current_user.can_access_admin():
+            flash('No tienes permisos para acceder a esta sección', 'error')
+            return redirect(url_for('expenses.index'))
+        
+        if request.method == 'POST':
+            try:
+                # Guardar configuración de API
+                api_config = {
+                    'enabled': request.form.get('api_enabled') == 'on',
+                    'base_url': request.form.get('api_base_url', 'https://propietarios.expensasonline.pro/api'),
+                    'api_key': request.form.get('api_key', ''),
+                    'username': request.form.get('api_username', ''),
+                    'password': request.form.get('api_password', '')
+                }
+                
+                # Aquí podrías guardar la configuración en la base de datos
+                # Por ahora, la guardamos en una variable de sesión
+                session['expensasonline_config'] = api_config
+                
+                flash('Configuración de API guardada correctamente', 'success')
+                return redirect(url_for('expenses.api_config'))
+                
+            except Exception as e:
+                flash(f'Error al guardar la configuración: {str(e)}', 'error')
+        
+        # Obtener configuración actual
+        api_config = session.get('expensasonline_config', {
+            'enabled': False,
+            'base_url': 'https://propietarios.expensasonline.pro/api',
+            'api_key': '',
+            'username': '',
+            'password': ''
+        })
+        
+        return render_template('expenses/api_config.html', api_config=api_config)
+        
+    except Exception as e:
+        # Log the error and return a safe response
+        print(f"Error in expenses.api_config: {str(e)}")
+        flash('Error interno del servidor. Por favor contacta al administrador.', 'error')
         return redirect(url_for('expenses.index'))
-    
-    if request.method == 'POST':
-        try:
-            # Guardar configuración de API
-            api_config = {
-                'enabled': request.form.get('api_enabled') == 'on',
-                'base_url': request.form.get('api_base_url', 'https://propietarios.expensasonline.pro/api'),
-                'api_key': request.form.get('api_key', ''),
-                'username': request.form.get('api_username', ''),
-                'password': request.form.get('api_password', '')
-            }
-            
-            # Aquí podrías guardar la configuración en la base de datos
-            # Por ahora, la guardamos en una variable de sesión
-            session['expensasonline_config'] = api_config
-            
-            flash('Configuración de API guardada correctamente', 'success')
-            return redirect(url_for('expenses.api_config'))
-            
-        except Exception as e:
-            flash(f'Error al guardar la configuración: {str(e)}', 'error')
-    
-    # Obtener configuración actual
-    api_config = session.get('expensasonline_config', {
-        'enabled': False,
-        'base_url': 'https://propietarios.expensasonline.pro/api',
-        'api_key': '',
-        'username': '',
-        'password': ''
-    })
-    
-    return render_template('expenses/api_config.html', api_config=api_config)
 
 @bp.route('/sync', methods=['POST'])
 @login_required
