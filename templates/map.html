@@ -45,8 +45,8 @@
                     <!-- Mensaje informativo -->
                     <div class="alert alert-info m-3 mb-0" role="alert">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>¡Mapa Interactivo!</strong> Haz clic en las áreas de colores para ver información detallada. 
-                        Usa los controles de zoom para navegar por el mapa.
+                        <strong>¡Plano Interactivo de Tejas Cuatro!</strong> Haz clic en las áreas punteadas para ver información detallada de etapas y espacios verdes. 
+                        Usa los controles de zoom para explorar el desarrollo.
                     </div>
                     
                     <div id="mapContainer" class="position-relative" style="height: 600px; overflow: hidden;">
@@ -78,25 +78,30 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-2">
-                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #FF0000;"></div>
-                        <small>Etapa 1 - Vendida (Rojo)</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #FF6B6B; border: 2px dashed #FF6B6B;"></div>
+                        <small>Etapa 1 - Manzanas 40-57 (Vendida)</small>
                     </div>
                     <div class="d-flex align-items-center mb-2">
-                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #00FF00;"></div>
-                        <small>Etapa 2A - En Venta (Verde)</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #4ECDC4; border: 2px dashed #4ECDC4;"></div>
+                        <small>Etapa 2A - Manzanas 20-39 (En Venta)</small>
                     </div>
                     <div class="d-flex align-items-center mb-2">
-                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #0000FF;"></div>
-                        <small>Etapa 2B - Desarrollo (Azul)</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #45B7D1; border: 2px dashed #45B7D1;"></div>
+                        <small>Etapa 2B - Manzanas 1-19 (Desarrollo)</small>
                     </div>
                     <div class="d-flex align-items-center mb-2">
-                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #FFFF00;"></div>
-                        <small>Etapa 3 - Futuro (Amarillo)</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #96CEB4; border: 2px dashed #96CEB4;"></div>
+                        <small>Etapa 3 - Manzanas 58-70 (Futuro)</small>
                     </div>
                     <div class="d-flex align-items-center mb-2">
-                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #00FF00;"></div>
-                        <small>Espacios Verdes (Verde)</small>
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: #2ECC71; border: 2px dashed #2ECC71;"></div>
+                        <small>Espacios Verdes (E.V.1 a E.V.7)</small>
                     </div>
+                    <hr>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Haz clic en las áreas punteadas para ver información detallada
+                    </small>
                 </div>
             </div>
 
@@ -205,23 +210,23 @@ const mapConfig = {
     }
 };
 
-// Coordenadas de las etapas (basadas en la imagen)
+// Coordenadas de las etapas (basadas en la imagen real de Tejas Cuatro)
 const stageCoordinates = {
-    'ETAPA_1': { x: 600, y: 400, width: 300, height: 200, color: '#FF0000' }, // Rojo brillante
-    'ETAPA_2A': { x: 400, y: 200, width: 250, height: 150, color: '#00FF00' }, // Verde brillante
-    'ETAPA_2B': { x: 200, y: 350, width: 200, height: 180, color: '#0000FF' }, // Azul brillante
-    'ETAPA_3': { x: 500, y: 600, width: 280, height: 150, color: '#FFFF00' }  // Amarillo brillante
+    'ETAPA_1': { x: 700, y: 500, width: 400, height: 250, color: '#FF6B6B' }, // Rojo suave
+    'ETAPA_2A': { x: 300, y: 200, width: 350, height: 200, color: '#4ECDC4' }, // Turquesa
+    'ETAPA_2B': { x: 100, y: 400, width: 300, height: 250, color: '#45B7D1' }, // Azul claro
+    'ETAPA_3': { x: 500, y: 700, width: 350, height: 200, color: '#96CEB4' }  // Verde suave
 };
 
-// Espacios verdes
+// Espacios verdes (basados en la imagen real)
 const greenAreas = [
-    { id: 'EV1', x: 800, y: 100, width: 100, height: 80, area: '8121.0m²', name: 'Espacio Verde 1' },
-    { id: 'EV2', x: 750, y: 300, width: 80, height: 60, area: '2333.7m²', name: 'Espacio Verde 2' },
-    { id: 'EV3', x: 500, y: 150, width: 90, height: 70, area: '2093.91m²', name: 'Espacio Verde 3' },
-    { id: 'EV4', x: 150, y: 250, width: 40, height: 30, area: '314.16m²', name: 'Espacio Verde 4' },
-    { id: 'EV5', x: 400, y: 500, width: 35, height: 25, area: '295.73m²', name: 'Espacio Verde 5' },
-    { id: 'EV6', x: 100, y: 550, width: 120, height: 90, area: '5342.93m²', name: 'Espacio Verde 6' },
-    { id: 'EV7', x: 450, y: 650, width: 30, height: 25, area: '350.40m²', name: 'Espacio Verde 7' }
+    { id: 'EV1', x: 850, y: 50, width: 150, height: 120, area: '8121.0m²', name: 'E.V.1 - Plaza Central' },
+    { id: 'EV2', x: 750, y: 350, width: 100, height: 80, area: '2333.7m²', name: 'E.V.2 - Parque Norte' },
+    { id: 'EV3', x: 500, y: 100, width: 120, height: 90, area: '2093.91m²', name: 'E.V.3 - Reserva Natural' },
+    { id: 'EV4', x: 400, y: 600, width: 60, height: 40, area: '314.16m²', name: 'E.V.4 - Plaza Sur' },
+    { id: 'EV5', x: 350, y: 650, width: 50, height: 35, area: '295.73m²', name: 'E.V.5 - Jardín Central' },
+    { id: 'EV6', x: 50, y: 700, width: 180, height: 140, area: '5342.93m²', name: 'E.V.6 - Parque Grande' },
+    { id: 'EV7', x: 450, y: 750, width: 40, height: 30, area: '350.40m²', name: 'E.V.7 - Jardín Este' }
 ];
 
 // Inicializar mapa
@@ -256,27 +261,19 @@ function drawMap() {
     // Limpiar canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Dibujar fondo de prueba para verificar que el canvas funciona
-    ctx.fillStyle = '#f0f0f0';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Dibujar borde del canvas
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, canvas.width, canvas.height);
-    
     // Aplicar transformaciones
     ctx.save();
     ctx.translate(canvas.width/2, canvas.height/2);
     ctx.scale(currentZoom, currentZoom);
     ctx.translate(-canvas.width/2, -canvas.height/2);
     
-    // Dibujar imagen base (si existe)
+    // Dibujar imagen base del mapa real
     const mapImage = new Image();
     mapImage.onload = function() {
+        // Dibujar la imagen del mapa
         ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
         
-        // Dibujar áreas interactivas
+        // Dibujar áreas interactivas sutiles
         drawInteractiveAreas(ctx);
         
         // Dibujar tooltips si hay hover
@@ -285,16 +282,20 @@ function drawMap() {
         }
     };
     mapImage.onerror = function() {
-        // Si la imagen no carga, dibujar un mensaje
-        ctx.fillStyle = '#666';
-        ctx.font = '24px Arial';
+        // Si la imagen no carga, mostrar mensaje informativo
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#6c757d';
+        ctx.font = 'bold 24px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Mapa de Tejas Cuatro', canvas.width/2, canvas.height/2 - 50);
-        ctx.font = '16px Arial';
-        ctx.fillText('(Imagen del mapa no disponible)', canvas.width/2, canvas.height/2);
-        ctx.fillText('Haz clic en las áreas de colores para interactuar', canvas.width/2, canvas.height/2 + 30);
         
-        // Dibujar áreas interactivas
+        ctx.font = '16px Arial';
+        ctx.fillText('Plano de Lote Joven - Tejas Cuatro', canvas.width/2, canvas.height/2);
+        ctx.fillText('Haz clic en las áreas punteadas para ver información', canvas.width/2, canvas.height/2 + 30);
+        
+        // Dibujar áreas interactivas de prueba
         drawInteractiveAreas(ctx);
         
         // Dibujar tooltips si hay hover
@@ -308,39 +309,45 @@ function drawMap() {
 }
 
 function drawInteractiveAreas(ctx) {
-    // Dibujar etapas
+    // Dibujar etapas con overlay sutil
     Object.keys(stageCoordinates).forEach(stage => {
         const coords = stageCoordinates[stage];
-        ctx.fillStyle = coords.color + '80'; // Más opaco para mejor visibilidad
+        // Solo dibujar borde sutil, sin relleno para no ocultar la imagen
         ctx.strokeStyle = coords.color;
-        ctx.lineWidth = 4; // Línea más gruesa
-        ctx.fillRect(coords.x, coords.y, coords.width, coords.height);
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]); // Línea punteada
         ctx.strokeRect(coords.x, coords.y, coords.width, coords.height);
+        ctx.setLineDash([]); // Resetear a línea sólida
         
-        // Texto de la etapa con fondo blanco para mejor legibilidad
-        ctx.fillStyle = 'white';
-        ctx.fillRect(coords.x + coords.width/2 - 60, coords.y + coords.height/2 - 15, 120, 30);
+        // Indicador de interactividad en la esquina
         ctx.fillStyle = coords.color;
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(stage.replace('_', ' '), coords.x + coords.width/2, coords.y + coords.height/2 + 5);
-    });
-    
-    // Dibujar espacios verdes
-    greenAreas.forEach(area => {
-        ctx.fillStyle = '#00FF0080'; // Verde brillante más opaco
-        ctx.strokeStyle = '#00FF00';
-        ctx.lineWidth = 3; // Línea más gruesa
-        ctx.fillRect(area.x, area.y, area.width, area.height);
-        ctx.strokeRect(area.x, area.y, area.width, area.height);
+        ctx.fillRect(coords.x + coords.width - 20, coords.y, 20, 20);
         
-        // Texto del área verde
+        // Texto pequeño en la esquina
         ctx.fillStyle = 'white';
-        ctx.fillRect(area.x + area.width/2 - 40, area.y + area.height/2 - 10, 80, 20);
-        ctx.fillStyle = '#00FF00';
         ctx.font = 'bold 12px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(area.name, area.x + area.width/2, area.y + area.height/2 + 3);
+        ctx.fillText('ℹ', coords.x + coords.width - 10, coords.y + 14);
+    });
+    
+    // Dibujar espacios verdes con overlay sutil
+    greenAreas.forEach(area => {
+        // Solo dibujar borde sutil
+        ctx.strokeStyle = '#2ECC71';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]); // Línea punteada más fina
+        ctx.strokeRect(area.x, area.y, area.width, area.height);
+        ctx.setLineDash([]); // Resetear a línea sólida
+        
+        // Indicador de interactividad
+        ctx.fillStyle = '#2ECC71';
+        ctx.fillRect(area.x + area.width - 15, area.y, 15, 15);
+        
+        // Texto pequeño
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🌳', area.x + area.width - 7.5, area.y + 11);
     });
 }
 
@@ -384,16 +391,36 @@ function handleClick(event) {
 
 function showStageInfo(stage) {
     const stageInfo = {
-        'ETAPA_1': { name: 'Etapa 1', status: 'Vendida', lots: 45, description: 'Primera etapa del desarrollo, completamente vendida' },
-        'ETAPA_2A': { name: 'Etapa 2A', status: 'En Venta', lots: 38, description: 'Segunda etapa, lotes disponibles para compra' },
-        'ETAPA_2B': { name: 'Etapa 2B', status: 'Desarrollo', lots: 42, description: 'En desarrollo, próximamente disponible' },
-        'ETAPA_3': { name: 'Etapa 3', status: 'Futuro', lots: 35, description: 'Planificada para futuras expansiones' }
+        'ETAPA_1': { 
+            name: 'Etapa 1 - Manzanas 40-57', 
+            status: 'Vendida', 
+            lots: 18, 
+            description: 'Primera etapa del desarrollo Lote Joven - Tejas Cuatro. Completamente vendida con infraestructura completa.' 
+        },
+        'ETAPA_2A': { 
+            name: 'Etapa 2A - Manzanas 20-39', 
+            status: 'En Venta', 
+            lots: 20, 
+            description: 'Segunda etapa con lotes disponibles para compra. Infraestructura completa, seguridad 24hs.' 
+        },
+        'ETAPA_2B': { 
+            name: 'Etapa 2B - Manzanas 1-19', 
+            status: 'Desarrollo', 
+            lots: 19, 
+            description: 'En desarrollo, próximamente disponible. Lotes en preparación con todos los servicios.' 
+        },
+        'ETAPA_3': { 
+            name: 'Etapa 3 - Manzanas 58-70', 
+            status: 'Futuro', 
+            lots: 13, 
+            description: 'Planificada para futuras expansiones del desarrollo Tejas Cuatro.' 
+        }
     };
     
     const info = stageInfo[stage];
     document.getElementById('lotTitle').textContent = info.name;
     document.getElementById('lotStage').textContent = info.name;
-    document.getElementById('lotArea').textContent = `${info.lots} lotes`;
+    document.getElementById('lotArea').textContent = `${info.lots} manzanas`;
     document.getElementById('lotStatus').textContent = info.status;
     document.getElementById('lotDescription').textContent = info.description;
     document.getElementById('lotInfoCard').style.display = 'block';
@@ -409,9 +436,9 @@ function showGreenAreaInfo(area) {
 }
 
 function updateStatistics() {
-    document.getElementById('totalLots').textContent = '160';
-    document.getElementById('soldLots').textContent = '45';
-    document.getElementById('availableLots').textContent = '115';
+    document.getElementById('totalLots').textContent = '70';
+    document.getElementById('soldLots').textContent = '18';
+    document.getElementById('availableLots').textContent = '52';
     document.getElementById('greenAreas').textContent = '7';
 }
 
