@@ -1,6 +1,9 @@
-# 🤖 Asistente Virtual con Redirección Automática
+# 🤖 Asistente Virtual con Claude API
 
 ## ✨ **Características Principales**
+
+### 🧠 **Inteligencia Artificial con Claude**
+El chatbot ahora utiliza la **API de Claude** como sistema principal de IA, proporcionando respuestas más inteligentes y contextuales que las respuestas automáticas predefinidas.
 
 ### 🚀 **Redirección Automática Inteligente**
 El chatbot detecta automáticamente la intención del usuario y lo redirige a la sección correspondiente **sin necesidad de hacer clic en nada**.
@@ -61,9 +64,10 @@ Usa estas palabras para activar la redirección automática:
 ## 🛠️ **Tecnología**
 
 ### **Backend (Python/Flask)**
+- **Claude API** como sistema principal de IA
 - Análisis inteligente de consultas
 - Sistema de detección de intenciones
-- Integración con OpenAI (opcional)
+- Integración con OpenAI como respaldo
 - Gestión de sesiones de chat
 - APIs RESTful para comunicación
 
@@ -110,3 +114,7 @@ Usa estas palabras para activar la redirección automática:
 - **Inteligencia**: Entiende contexto y intenciones
 
 ¡El asistente virtual transforma la navegación del portal en una experiencia conversacional inteligente! 🎉
+
+## 📚 **Documentación Adicional**
+
+Para configurar la API de Claude, consulta: [CHATBOT_CLAUDE_SETUP.md](CHATBOT_CLAUDE_SETUP.md)

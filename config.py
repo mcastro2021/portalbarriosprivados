@@ -42,6 +42,10 @@ class Config:
     # Configuración de OpenAI (Chatbot)
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
     
+    # Configuración de Claude (Chatbot)
+    CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')
+    CLAUDE_MODEL = os.environ.get('CLAUDE_MODEL', 'claude-3-sonnet-20240229')
+    
     # Configuración de Redis (para Celery y cache)
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     

@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime
 import json
 import re
+import anthropic
 
 bp = Blueprint('chatbot', __name__, url_prefix='/chatbot')
 
@@ -100,6 +101,86 @@ def chat():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def handle_claude_query(message, session):
+    """Manejar consultas usando la API de Claude"""
+    try:
+        from flask import current_app
+        api_key = current_app.config.get('CLAUDE_API_KEY')
+        model = current_app.config.get('CLAUDE_MODEL', 'claude-3-sonnet-20240229')
+        
+        if not api_key:
+            return None  # Si no hay API key, continuar con otros métodos
+        
+        client = anthropic.Anthropic(api_key=api_key)
+        context = session.get_context_dict()
+        
+        # Obtener información del usuario y contexto
+        user_name = context.get('user_name', 'Usuario')
+        user_role = context.get('user_role', 'resident')
+        is_authenticated = context.get('is_authenticated', False)
+        
+        # Obtener historial de conversación
+        conversation_history = context.get('conversation_history', [])
+        
+        # Construir el prompt del sistema
+        system_prompt = f"""Eres un asistente virtual especializado para un barrio cerrado privado llamado "Barrio Tejas 4". 
+
+INFORMACIÓN DEL USUARIO:
+- Nombre: {user_name}
+- Rol: {user_role}
+- Autenticado: {'Sí' if is_authenticated else 'No'}
+
+CONOCIMIENTO ESPECÍFICO DEL BARRIO:
+- Horarios: Administración (Lun-Vie 9-17h), Seguridad (24/7), Quincho (10-22h)
+- Contactos: Administración (+54 11 4444-5555), Seguridad (+54 11 4444-5556)
+- Espacios comunes: Quincho principal, Quincho pequeño, SUM, Cancha de fútbol, Cancha de tenis, Piscina, Espacio coworking
+- Servicios disponibles: Visitas, reservas, expensas, mantenimiento, noticias, clasificados, comunicaciones
+
+FUNCIONES PRINCIPALES:
+1. Responder consultas sobre reglamentos, horarios, procedimientos del barrio
+2. Ayudar con consultas sobre servicios (visitas, reservas, expensas)
+3. Clasificar y derivar reclamos de mantenimiento
+4. Proporcionar información de contacto y emergencias
+5. Ayudar con navegación por el sistema
+
+ESTILO DE RESPUESTA:
+- Amigable y profesional
+- Respuestas concisas pero informativas
+- Usar emojis apropiados para hacer la conversación más amena
+- Si no tienes información específica, sugerir contactar administración
+- Para consultas personales (expensas, visitas, reservas), recordar que necesitan estar autenticados
+
+IMPORTANTE:
+- Si el usuario pregunta sobre datos personales (expensas, visitas, reservas) y no está autenticado, sugerir que inicie sesión
+- Para reclamos de mantenimiento, clasificar por prioridad y área responsable
+- Mantener el contexto de la conversación usando el historial proporcionado"""
+
+        # Construir el mensaje con historial de conversación
+        messages = [{"role": "user", "content": system_prompt}]
+        
+        # Agregar historial de conversación (últimos 5 intercambios)
+        recent_history = conversation_history[-10:]  # Últimos 10 intercambios
+        for exchange in recent_history:
+            messages.append({"role": "user", "content": exchange['user']})
+            messages.append({"role": "assistant", "content": exchange['bot']})
+        
+        # Agregar el mensaje actual
+        messages.append({"role": "user", "content": message})
+        
+        # Llamar a la API de Claude
+        response = client.messages.create(
+            model=model,
+            messages=messages,
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        return response.content[0].text.strip()
+        
+    except Exception as e:
+        print(f"Error en Claude API: {str(e)}")
+        return None  # Si hay error, continuar con otros métodos
+
 def process_message(message, session):
     """Procesar mensaje y generar respuesta"""
     message_lower = message.lower()
@@ -107,7 +188,12 @@ def process_message(message, session):
     # Detectar intención de redirección automática
     redirect_intent = detect_redirect_intent(message_lower)
     
-    # 1. BUSCAR EN BASE DE CONOCIMIENTO (primera prioridad)
+    # 1. INTENTAR USAR CLAUDE PRIMERO (nueva prioridad)
+    claude_response = handle_claude_query(message, session)
+    if claude_response:
+        return claude_response
+    
+    # 2. BUSCAR EN BASE DE CONOCIMIENTO (segunda prioridad)
     knowledge_response = knowledge_base.buscar_respuesta(message)
     if knowledge_response:
         return knowledge_response
@@ -585,9 +671,14 @@ def extract_claim_title(message):
     return ' '.join(words)
 
 def handle_intelligent_query(message, session):
-    """Maneja consultas con IA avanzada"""
+    """Maneja consultas con IA avanzada usando Claude como respaldo"""
     try:
-        # Si OpenAI está configurado, usar GPT con contexto específico del barrio
+        # Intentar usar Claude primero
+        claude_response = handle_claude_query(message, session)
+        if claude_response:
+            return claude_response
+        
+        # Si Claude no está disponible, intentar con OpenAI
         from flask import current_app
         api_key = current_app.config.get('OPENAI_API_KEY')
         if api_key:
