@@ -313,11 +313,7 @@ def create_app(config_name='default'):
         blocks = NeighborhoodMap.query.all()
         return render_template('map.html', blocks=blocks)
     
-    @app.route('/map-original')
-    @login_required
-    def original_map():
-        """Mapa original con imagen PNG"""
-        return render_template('map_original.html')
+
     
     @app.route('/notifications')
     @login_required
