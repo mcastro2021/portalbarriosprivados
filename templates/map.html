@@ -52,13 +52,12 @@
                         </small>
                     </div>
                     
-                    <div id="mapContainer" class="position-relative" style="height: 700px; overflow: auto; background: #f8f9fa;">
-                        <img id="mapImage" 
-                             src="{{ url_for('static', filename='images/tejas4-map.png') }}" 
-                             alt="Plano de Tejas Cuatro"
-                             style="width: 100%; height: auto; max-width: none; cursor: grab;"
-                             onerror="showMapError()">
-                    </div>
+                                         <div id="mapContainer" class="position-relative" style="height: 700px; overflow: auto; background: #f8f9fa;">
+                         <img id="mapImage" 
+                              src="{{ url_for('static', filename='images/tejas4-map.png') }}" 
+                              alt="Plano de Tejas Cuatro"
+                              style="width: 100%; height: auto; max-width: none; cursor: grab;">
+                     </div>
                 </div>
             </div>
         </div>
@@ -152,6 +151,31 @@ const zoomStep = 0.2;
 const minZoom = 0.5;
 const maxZoom = 3;
 
+// Función para mostrar error si la imagen no carga
+function showMapError() {
+    const container = document.getElementById('mapContainer');
+    container.innerHTML = `
+        <div class="d-flex align-items-center justify-content-center h-100">
+            <div class="text-center">
+                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                <h5 class="mt-3 text-muted">Imagen del Plano no Disponible</h5>
+                <p class="text-muted">El archivo del plano no se encuentra en el servidor.</p>
+                <small class="text-muted">
+                    Por favor, sube la imagen del plano a: <code>static/images/tejas4-map.png</code>
+                </small>
+            </div>
+        </div>
+    `;
+}
+
+// Agregar event listener para error de imagen
+document.addEventListener('DOMContentLoaded', function() {
+    const mapImage = document.getElementById('mapImage');
+    if (mapImage) {
+        mapImage.addEventListener('error', showMapError);
+    }
+});
+
 function zoomIn() {
     if (currentZoom < maxZoom) {
         currentZoom += zoomStep;
@@ -187,22 +211,6 @@ function downloadImage() {
     link.href = "{{ url_for('static', filename='images/tejas4-map.png') }}";
     link.download = 'plano-tejas-cuatro.png';
     link.click();
-}
-
-function showMapError() {
-    const container = document.getElementById('mapContainer');
-    container.innerHTML = `
-        <div class="d-flex align-items-center justify-content-center h-100">
-            <div class="text-center">
-                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
-                <h5 class="mt-3 text-muted">Imagen del Plano no Disponible</h5>
-                <p class="text-muted">El archivo del plano no se encuentra en el servidor.</p>
-                <small class="text-muted">
-                    Por favor, sube la imagen del plano a: <code>static/images/tejas4-map.png</code>
-                </small>
-            </div>
-        </div>
-    `;
 }
 
 // Event listeners para zoom con rueda del mouse
