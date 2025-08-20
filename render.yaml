@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: portalbarriosprivados
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///barrio_cerrado.db
+      - key: BARRIO_NAME
+        value: Barrio Tejas 4
+      - key: BARRIO_ADDRESS
+        value: Av. Principal 1234, Ciudad
+      - key: BARRIO_PHONE
+        value: +54 11 4444-5555
+      - key: BARRIO_EMAIL
+        value: admin@tejas4.com
+      - key: NOTIFICATION_EMAIL_ENABLED
+        value: True
+      - key: NOTIFICATION_WHATSAPP_ENABLED
+        value: False
+      - key: NOTIFICATION_PUSH_ENABLED
+        value: True

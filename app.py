@@ -730,7 +730,9 @@ def init_db():
 # Los datos deben ser creados manualmente por el administrador cuando sea necesario
 
 # Crear instancia de la aplicación para gunicorn
-app = create_app()
+# Usar configuración de producción en Render
+config_name = os.environ.get('FLASK_ENV', 'production')
+app = create_app(config_name)
 
 # Función de migración automática
 def migrate_ai_columns():
