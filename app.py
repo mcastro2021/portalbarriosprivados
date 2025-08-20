@@ -44,12 +44,6 @@ def create_app(config_name='default'):
     migrate = Migrate(app, db)
     csrf = CSRFProtect(app)
     
-    # Excluir rutas API de CSRF
-    csrf.exempt(app.view_functions['api_stats'])
-    csrf.exempt(app.view_functions['api_dashboard_stats'])
-    csrf.exempt(app.view_functions['api_notifications_count'])
-    csrf.exempt(app.view_functions['api_test'])
-    
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
@@ -103,6 +97,13 @@ def create_app(config_name='default'):
         if request.path.startswith('/api/'):
             app.logger.info(f'API Response: {request.method} {request.path} - Status: {response.status_code}')
         return response
+    
+    # Middleware para manejar CSRF en APIs
+    @app.before_request
+    def handle_api_csrf():
+        if request.path.startswith('/api/'):
+            # Para APIs, no requerir CSRF token
+            pass
     
     # Configurar MercadoPago
     mp = mercadopago.SDK(app.config['MERCADOPAGO_ACCESS_TOKEN']) if app.config['MERCADOPAGO_ACCESS_TOKEN'] else None
@@ -604,6 +605,23 @@ def create_app(config_name='default'):
         if request.path.startswith('/api/'):
             return jsonify({'error': 'Error inesperado', 'message': str(error)}), 500
         return render_template('errors/500.html'), 500
+    
+    # Excluir rutas API de CSRF después de que todas las rutas estén definidas
+    try:
+        # Excluir rutas específicas
+        api_routes = ['api_stats', 'api_dashboard_stats', 'api_notifications_count', 'api_test']
+        for route_name in api_routes:
+            if route_name in app.view_functions:
+                csrf.exempt(app.view_functions[route_name])
+        
+        # También excluir todas las rutas que empiecen con /api/
+        for endpoint, view_func in app.view_functions.items():
+            if hasattr(view_func, 'url_rule') and view_func.url_rule and view_func.url_rule.rule.startswith('/api/'):
+                csrf.exempt(view_func)
+        
+        print("✅ Rutas API exentas de CSRF")
+    except Exception as e:
+        print(f"⚠️ Error configurando exenciones CSRF: {e}")
     
     return app
 
