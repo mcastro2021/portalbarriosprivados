@@ -253,8 +253,7 @@ def bulk_actions():
     try:
         if not current_user.can_access_admin():
             return jsonify({'error': 'Permisos insuficientes'}), 403
-    
-    try:
+        
         data = request.get_json()
         user_ids = data.get('user_ids', [])
         action = data.get('action')
@@ -324,6 +323,11 @@ def bulk_actions():
                 'message': f'Acción {action} aplicada a {len(users)} usuarios',
                 'results': results
             })
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Error en bulk_actions: {str(e)}')
+        return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
         
     except Exception as e:
         db.session.rollback()
