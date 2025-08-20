@@ -2,7 +2,7 @@
 Sistema avanzado de gestión de usuarios para administradores
 """
 
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, current_app
 from flask_login import login_required, current_user
 from models import db, User
 from datetime import datetime
@@ -250,8 +250,9 @@ def user_details(user_id):
 @login_required
 def bulk_actions():
     """Acciones en lote para múltiples usuarios"""
-    if not current_user.can_access_admin():
-        return jsonify({'error': 'Permisos insuficientes'}), 403
+    try:
+        if not current_user.can_access_admin():
+            return jsonify({'error': 'Permisos insuficientes'}), 403
     
     try:
         data = request.get_json()
@@ -326,7 +327,8 @@ def bulk_actions():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.error(f'Error en bulk_actions: {str(e)}')
+        return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
 
 @bp.route('/export', methods=['GET'])
 @login_required

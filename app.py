@@ -86,27 +86,27 @@ def create_app(config_name='default'):
     # Crear carpeta de uploads si no existe
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
-    # Middleware para logging de peticiones API
+    # Middleware para logging de peticiones API y admin
     @app.before_request
     def log_api_requests():
-        if request.path.startswith('/api/'):
-            app.logger.info(f'API Request: {request.method} {request.path} - User: {current_user.username if current_user.is_authenticated else "Anonymous"}')
+        if request.path.startswith('/api/') or (request.path.startswith('/admin/') and request.method == 'POST'):
+            app.logger.info(f'API/Admin Request: {request.method} {request.path} - User: {current_user.username if current_user.is_authenticated else "Anonymous"}')
     
     @app.after_request
     def log_api_responses(response):
-        if request.path.startswith('/api/'):
-            app.logger.info(f'API Response: {request.method} {request.path} - Status: {response.status_code}')
+        if request.path.startswith('/api/') or (request.path.startswith('/admin/') and request.method == 'POST'):
+            app.logger.info(f'API/Admin Response: {request.method} {request.path} - Status: {response.status_code}')
             
-            # Asegurar que las APIs devuelvan JSON
+            # Asegurar que las APIs y rutas admin devuelvan JSON
             if hasattr(request, 'is_api') and request.is_api:
                 if not response.headers.get('Content-Type', '').startswith('application/json'):
                     # Si no es JSON, convertir a JSON de error
                     try:
                         if response.status_code >= 400:
                             error_data = {
-                                'error': 'Error en la API',
+                                'error': 'Error en la API/Admin',
                                 'status_code': response.status_code,
-                                'message': 'La API devolvió un error no-JSON'
+                                'message': 'La ruta devolvió un error no-JSON'
                             }
                             response = app.response_class(
                                 response=json.dumps(error_data),
@@ -114,15 +114,15 @@ def create_app(config_name='default'):
                                 mimetype='application/json'
                             )
                     except Exception as e:
-                        app.logger.error(f'Error convirtiendo respuesta API a JSON: {e}')
+                        app.logger.error(f'Error convirtiendo respuesta API/Admin a JSON: {e}')
         
         return response
     
-    # Middleware para manejar APIs
+    # Middleware para manejar APIs y rutas admin que devuelven JSON
     @app.before_request
     def handle_api_requests():
-        if request.path.startswith('/api/'):
-            # Para APIs, configurar headers y manejar CSRF
+        if request.path.startswith('/api/') or request.path.startswith('/admin/') and request.method == 'POST':
+            # Para APIs y rutas admin POST, configurar headers y manejar CSRF
             request.is_api = True
             
             # Asegurar que las APIs devuelvan JSON
@@ -529,33 +529,33 @@ def create_app(config_name='default'):
     # Error handlers
     @app.errorhandler(404)
     def not_found_error(error):
-        if request.path.startswith('/api/'):
+        if request.path.startswith('/api/') or (request.path.startswith('/admin/') and request.method == 'POST'):
             return jsonify({'error': 'Endpoint no encontrado', 'path': request.path}), 404
         return render_template('errors/404.html'), 404
     
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
-        if request.path.startswith('/api/'):
+        if request.path.startswith('/api/') or (request.path.startswith('/admin/') and request.method == 'POST'):
             return jsonify({'error': 'Error interno del servidor', 'message': str(error)}), 500
         return render_template('errors/500.html'), 500
     
     @app.errorhandler(403)
     def forbidden_error(error):
-        if request.path.startswith('/api/'):
+        if request.path.startswith('/api/') or (request.path.startswith('/admin/') and request.method == 'POST'):
             return jsonify({'error': 'Acceso denegado', 'message': 'No tienes permisos para acceder a este recurso'}), 403
         return render_template('errors/403.html'), 403
     
     @app.errorhandler(401)
     def unauthorized_error(error):
-        if request.path.startswith('/api/'):
+        if request.path.startswith('/api/') or (request.path.startswith('/admin/') and request.method == 'POST'):
             return jsonify({'error': 'No autenticado', 'message': 'Debes iniciar sesión para acceder a este recurso'}), 401
         return redirect(url_for('auth.login'))
     
     @app.errorhandler(Exception)
     def handle_exception(error):
         db.session.rollback()
-        if request.path.startswith('/api/'):
+        if request.path.startswith('/api/') or (request.path.startswith('/admin/') and request.method == 'POST'):
             return jsonify({'error': 'Error inesperado', 'message': str(error)}), 500
         return render_template('errors/500.html'), 500
     
@@ -574,6 +574,15 @@ def create_app(config_name='default'):
             
             return f
         return decorator
+    
+    # Middleware para excluir rutas admin del CSRF
+    @app.before_request
+    def handle_admin_csrf():
+        if request.path.startswith('/admin/') and request.method == 'POST':
+            # Para rutas admin POST, deshabilitar CSRF
+            from flask_wtf.csrf import CSRFProtect
+            csrf = CSRFProtect()
+            csrf.exempt(lambda: True)
     
     # Reemplazar las rutas API con el nuevo decorador
     @api_route('/api/stats')
@@ -666,7 +675,22 @@ def create_app(config_name='default'):
             'timestamp': datetime.utcnow().isoformat()
         })
     
-    print("✅ Rutas API configuradas con manejo automático de CSRF")
+    # Ruta de prueba para admin
+    @app.route('/admin/test', methods=['POST'])
+    @login_required
+    def admin_test():
+        """Endpoint de prueba para rutas admin"""
+        if not current_user.can_access_admin():
+            return jsonify({'error': 'No autorizado'}), 403
+        
+        return jsonify({
+            'status': 'ok',
+            'message': 'Admin route funcionando correctamente',
+            'user': current_user.username,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    
+    print("✅ Rutas API y Admin configuradas con manejo automático de CSRF")
     
     return app
 
