@@ -96,14 +96,44 @@ def create_app(config_name='default'):
     def log_api_responses(response):
         if request.path.startswith('/api/'):
             app.logger.info(f'API Response: {request.method} {request.path} - Status: {response.status_code}')
+            
+            # Asegurar que las APIs devuelvan JSON
+            if hasattr(request, 'is_api') and request.is_api:
+                if not response.headers.get('Content-Type', '').startswith('application/json'):
+                    # Si no es JSON, convertir a JSON de error
+                    try:
+                        if response.status_code >= 400:
+                            error_data = {
+                                'error': 'Error en la API',
+                                'status_code': response.status_code,
+                                'message': 'La API devolvió un error no-JSON'
+                            }
+                            response = app.response_class(
+                                response=json.dumps(error_data),
+                                status=response.status_code,
+                                mimetype='application/json'
+                            )
+                    except Exception as e:
+                        app.logger.error(f'Error convirtiendo respuesta API a JSON: {e}')
+        
         return response
     
-    # Middleware para manejar CSRF en APIs
+    # Middleware para manejar APIs
     @app.before_request
-    def handle_api_csrf():
+    def handle_api_requests():
         if request.path.startswith('/api/'):
-            # Para APIs, no requerir CSRF token
-            pass
+            # Para APIs, configurar headers y manejar CSRF
+            request.is_api = True
+            
+            # Asegurar que las APIs devuelvan JSON
+            if request.method == 'POST' and not request.is_json:
+                # Si es POST pero no es JSON, intentar parsear como JSON
+                try:
+                    if request.form:
+                        # Convertir form data a JSON
+                        request.json = dict(request.form)
+                except Exception:
+                    pass
     
     # Configurar MercadoPago
     mp = mercadopago.SDK(app.config['MERCADOPAGO_ACCESS_TOKEN']) if app.config['MERCADOPAGO_ACCESS_TOKEN'] else None
@@ -193,15 +223,7 @@ def create_app(config_name='default'):
             'debug': app.debug
         })
     
-    @app.route('/api/test')
-    def api_test():
-        """Endpoint de prueba para verificar que las APIs funcionan"""
-        return jsonify({
-            'message': 'API funcionando correctamente',
-            'timestamp': datetime.utcnow().isoformat(),
-            'user_authenticated': current_user.is_authenticated,
-            'user_role': current_user.role if current_user.is_authenticated else None
-        })
+
     
     @app.route('/')
     def index():
@@ -391,76 +413,7 @@ def create_app(config_name='default'):
         
         return render_template('qr_code.html', visit=visit)
     
-    @app.route('/api/stats')
-    @login_required
-    def api_stats():
-        """API para estadísticas del dashboard"""
-        try:
-            if not current_user.can_access_admin():
-                return jsonify({'error': 'No autorizado'}), 403
-            
-            # Estadísticas generales
-            total_users = User.query.filter_by(is_active=True).count()
-            total_visits = Visit.query.count()
-            total_reservations = Reservation.query.count()
-            total_maintenance = Maintenance.query.count()
-            
-            # Estadísticas de este mes
-            this_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            visits_this_month = Visit.query.filter(Visit.created_at >= this_month).count()
-            reservations_this_month = Reservation.query.filter(Reservation.created_at >= this_month).count()
-            maintenance_this_month = Maintenance.query.filter(Maintenance.created_at >= this_month).count()
-            
-            return jsonify({
-                'total_users': total_users,
-                'total_visits': total_visits,
-                'total_reservations': total_reservations,
-                'total_maintenance': total_maintenance,
-                'visits_this_month': visits_this_month,
-                'reservations_this_month': reservations_this_month,
-                'maintenance_this_month': maintenance_this_month
-            })
-        except Exception as e:
-            app.logger.error(f'Error en api_stats: {str(e)}')
-            return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
-    
-    @app.route('/api/dashboard/stats')
-    @login_required
-    def api_dashboard_stats():
-        """API para estadísticas del dashboard del usuario"""
-        try:
-            # Estadísticas del usuario
-            pending_visits = Visit.query.filter_by(resident_id=current_user.id, status='pending').count()
-            active_reservations = Reservation.query.filter_by(user_id=current_user.id, status='approved').count()
-            pending_maintenance = Maintenance.query.filter_by(user_id=current_user.id, status='pending').count()
-            pending_expenses = Expense.query.filter_by(user_id=current_user.id, status='pending').count()
-            
-            # Estadísticas de hoy
-            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-            tomorrow = today + timedelta(days=1)
-            today_visits = Visit.query.filter_by(resident_id=current_user.id).filter(Visit.created_at >= today, Visit.created_at < tomorrow).count()
-            
-            return jsonify({
-                'pending_visits': pending_visits,
-                'active_reservations': active_reservations,
-                'pending_maintenance': pending_maintenance,
-                'pending_expenses': pending_expenses,
-                'today_visits': today_visits
-            })
-        except Exception as e:
-            app.logger.error(f'Error en api_dashboard_stats: {str(e)}')
-            return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
-    
-    @app.route('/api/notifications/count')
-    @login_required
-    def api_notifications_count():
-        """API para contar notificaciones no leídas"""
-        try:
-            unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
-            return jsonify({'count': unread_count})
-        except Exception as e:
-            app.logger.error(f'Error en api_notifications_count: {str(e)}')
-            return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
+
     
     # WebSocket events
     @socketio.on('connect')
@@ -606,22 +559,114 @@ def create_app(config_name='default'):
             return jsonify({'error': 'Error inesperado', 'message': str(error)}), 500
         return render_template('errors/500.html'), 500
     
-    # Excluir rutas API de CSRF después de que todas las rutas estén definidas
-    try:
-        # Excluir rutas específicas
-        api_routes = ['api_stats', 'api_dashboard_stats', 'api_notifications_count', 'api_test']
-        for route_name in api_routes:
-            if route_name in app.view_functions:
-                csrf.exempt(app.view_functions[route_name])
-        
-        # También excluir todas las rutas que empiecen con /api/
-        for endpoint, view_func in app.view_functions.items():
-            if hasattr(view_func, 'url_rule') and view_func.url_rule and view_func.url_rule.rule.startswith('/api/'):
-                csrf.exempt(view_func)
-        
-        print("✅ Rutas API exentas de CSRF")
-    except Exception as e:
-        print(f"⚠️ Error configurando exenciones CSRF: {e}")
+    # Crear decorador para rutas API que maneje CSRF automáticamente
+    def api_route(rule, **options):
+        def decorator(f):
+            # Registrar la ruta
+            endpoint = options.pop('endpoint', None)
+            app.add_url_rule(rule, endpoint, f, **options)
+            
+            # Excluir de CSRF
+            try:
+                csrf.exempt(f)
+            except Exception as e:
+                print(f"⚠️ No se pudo excluir {rule} de CSRF: {e}")
+            
+            return f
+        return decorator
+    
+    # Reemplazar las rutas API con el nuevo decorador
+    @api_route('/api/stats')
+    @login_required
+    def api_stats():
+        """API para estadísticas del dashboard"""
+        try:
+            if not current_user.can_access_admin():
+                return jsonify({'error': 'No autorizado'}), 403
+            
+            # Estadísticas generales
+            total_users = User.query.filter_by(is_active=True).count()
+            total_visits = Visit.query.count()
+            total_reservations = Reservation.query.count()
+            total_maintenance = Maintenance.query.count()
+            
+            # Estadísticas de este mes
+            this_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            visits_this_month = Visit.query.filter(Visit.created_at >= this_month).count()
+            reservations_this_month = Reservation.query.filter(Reservation.created_at >= this_month).count()
+            maintenance_this_month = Maintenance.query.filter(Maintenance.created_at >= this_month).count()
+            
+            return jsonify({
+                'total_users': total_users,
+                'total_visits': total_visits,
+                'total_reservations': total_reservations,
+                'total_maintenance': total_maintenance,
+                'visits_this_month': visits_this_month,
+                'reservations_this_month': reservations_this_month,
+                'maintenance_this_month': maintenance_this_month
+            })
+        except Exception as e:
+            app.logger.error(f'Error en api_stats: {str(e)}')
+            return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
+    
+    @api_route('/api/dashboard/stats')
+    @login_required
+    def api_dashboard_stats():
+        """API para estadísticas del dashboard del usuario"""
+        try:
+            # Estadísticas del usuario
+            pending_visits = Visit.query.filter_by(resident_id=current_user.id, status='pending').count()
+            active_reservations = Reservation.query.filter_by(user_id=current_user.id, status='approved').count()
+            pending_maintenance = Maintenance.query.filter_by(user_id=current_user.id, status='pending').count()
+            pending_expenses = Expense.query.filter_by(user_id=current_user.id, status='pending').count()
+            
+            # Estadísticas de hoy
+            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            tomorrow = today + timedelta(days=1)
+            today_visits = Visit.query.filter_by(resident_id=current_user.id).filter(Visit.created_at >= today, Visit.created_at < tomorrow).count()
+            
+            return jsonify({
+                'pending_visits': pending_visits,
+                'active_reservations': active_reservations,
+                'pending_maintenance': pending_maintenance,
+                'pending_expenses': pending_expenses,
+                'today_visits': today_visits
+            })
+        except Exception as e:
+            app.logger.error(f'Error en api_dashboard_stats: {str(e)}')
+            return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
+    
+    @api_route('/api/notifications/count')
+    @login_required
+    def api_notifications_count():
+        """API para contar notificaciones no leídas"""
+        try:
+            unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+            return jsonify({'count': unread_count})
+        except Exception as e:
+            app.logger.error(f'Error en api_notifications_count: {str(e)}')
+            return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
+    
+    @api_route('/api/test')
+    def api_test():
+        """Endpoint de prueba para verificar que las APIs funcionan"""
+        return jsonify({
+            'message': 'API funcionando correctamente',
+            'timestamp': datetime.utcnow().isoformat(),
+            'user_authenticated': current_user.is_authenticated,
+            'user_role': current_user.role if current_user.is_authenticated else None
+        })
+    
+    @api_route('/api/ping')
+    def api_ping():
+        """Endpoint simple para verificar conectividad"""
+        return jsonify({
+            'status': 'ok',
+            'message': 'pong',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    
+    print("✅ Rutas API configuradas con manejo automático de CSRF")
     
     return app
 
