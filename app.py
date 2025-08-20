@@ -568,71 +568,11 @@ def init_db():
             db.session.add(admin)
             db.session.commit()
             print("✅ Usuario administrador creado (admin/admin123)")
-            
-            # Crear algunos datos de ejemplo solo si no existen
-            create_sample_data()
         else:
             print("ℹ️ Usuario administrador ya existe")
-            
-        # Verificar si ya existen datos de ejemplo
-        if News.query.count() == 0 and NeighborhoodMap.query.count() == 0:
-            create_sample_data()
-            print("✅ Datos de ejemplo creados")
-        else:
-            print("ℹ️ Los datos de ejemplo ya existen, saltando creación")
 
-def create_sample_data():
-    """Crear datos de ejemplo"""
-    # NOTA: No se crean usuarios de prueba automáticamente
-    # Los usuarios deben ser creados manualmente por el administrador
-    
-    # Crear algunas noticias de ejemplo
-    news_data = [
-        {
-            'title': 'Bienvenidos al Portal del Barrio',
-            'content': 'Este es el portal oficial de nuestro barrio cerrado. Aquí podrán gestionar visitas, reservar espacios, consultar expensas y mucho más.',
-            'category': 'general',
-            'is_important': True
-        },
-        {
-            'title': 'Mantenimiento Programado - Piscina',
-            'content': 'El próximo lunes se realizará mantenimiento en la piscina. Estará cerrada de 8:00 a 16:00 hs.',
-            'category': 'mantenimiento',
-            'is_important': True
-        }
-    ]
-    
-    admin = User.query.filter_by(username='admin').first()
-    for news_item_data in news_data:
-        if not News.query.filter_by(title=news_item_data['title']).first():
-            news_item = News(**news_item_data, author_id=admin.id)
-            db.session.add(news_item)
-    
-    # Crear datos del mapa del barrio
-    map_data = [
-        {
-            'block_name': 'Manzana A',
-            'street_name': 'Calle Principal',
-            'block_number': 1,
-            'total_houses': 12,
-            'occupied_houses': 10,
-            'description': 'Primera manzana del barrio'
-        },
-        {
-            'block_name': 'Manzana B',
-            'street_name': 'Calle Secundaria',
-            'block_number': 2,
-            'total_houses': 15,
-            'occupied_houses': 12,
-            'description': 'Segunda manzana del barrio'
-        }
-    ]
-    
-    for map_item_data in map_data:
-        if not NeighborhoodMap.query.filter_by(block_name=map_item_data['block_name']).first():
-            map_item = NeighborhoodMap(**map_item_data)
-            map_item.set_coordinates(-34.6037, -58.3816)  # Coordenadas de ejemplo (Buenos Aires)
-            db.session.add(map_item)
+# Función create_sample_data() eliminada para evitar la creación automática de datos de prueba
+# Los datos deben ser creados manualmente por el administrador cuando sea necesario
 
 # Crear instancia de la aplicación para gunicorn
 app = create_app()
