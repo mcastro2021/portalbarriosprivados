@@ -121,7 +121,7 @@ def create_app(config_name='default'):
     # Middleware para manejar APIs y rutas admin que devuelven JSON
     @app.before_request
     def handle_api_requests():
-        if request.path.startswith('/api/') or request.path.startswith('/admin/') and request.method == 'POST':
+        if request.path.startswith('/api/') or (request.path.startswith('/admin/') and request.method == 'POST'):
             # Para APIs y rutas admin POST, configurar headers y manejar CSRF
             request.is_api = True
             
@@ -134,6 +134,12 @@ def create_app(config_name='default'):
                         request.json = dict(request.form)
                 except Exception:
                     pass
+            
+            # Configurar headers para JSON
+            if request.method == 'POST':
+                request.headers = request.headers.copy()
+                if 'Content-Type' not in request.headers:
+                    request.headers['Content-Type'] = 'application/json'
     
     # Configurar MercadoPago
     mp = mercadopago.SDK(app.config['MERCADOPAGO_ACCESS_TOKEN']) if app.config['MERCADOPAGO_ACCESS_TOKEN'] else None
@@ -580,9 +586,11 @@ def create_app(config_name='default'):
     def handle_admin_csrf():
         if request.path.startswith('/admin/') and request.method == 'POST':
             # Para rutas admin POST, deshabilitar CSRF
-            from flask_wtf.csrf import CSRFProtect
-            csrf = CSRFProtect()
-            csrf.exempt(lambda: True)
+            try:
+                # Intentar excluir la ruta actual del CSRF
+                csrf.exempt(lambda: True)
+            except Exception as e:
+                app.logger.warning(f'No se pudo excluir {request.path} del CSRF: {e}')
     
     # Reemplazar las rutas API con el nuevo decorador
     @api_route('/api/stats')
