@@ -251,98 +251,89 @@ def user_details(user_id):
 def bulk_actions():
     """Acciones en lote para múltiples usuarios"""
     try:
-        current_app.logger.info(f'Iniciando bulk_actions - User: {current_user.username}, Action: {request.get_json().get("action") if request.get_json() else "None"}')
+        current_app.logger.info(f'Bulk actions iniciado por: {current_user.username}')
         
+        # Verificar permisos
         if not current_user.can_access_admin():
-            current_app.logger.warning(f'Usuario {current_user.username} intentó acceder a bulk_actions sin permisos')
             return jsonify({'error': 'Permisos insuficientes'}), 403
         
+        # Obtener datos JSON
         data = request.get_json()
         if not data:
-            current_app.logger.error('No se recibieron datos JSON en bulk_actions')
             return jsonify({'error': 'Datos JSON requeridos'}), 400
             
         user_ids = data.get('user_ids', [])
         action = data.get('action')
         
-        current_app.logger.info(f'Bulk action: {action} para {len(user_ids)} usuarios')
+        current_app.logger.info(f'Acción: {action}, Usuarios: {len(user_ids)}')
         
+        # Validar parámetros
         if not user_ids or not action:
-            current_app.logger.error(f'Parámetros faltantes: user_ids={user_ids}, action={action}')
-            return jsonify({'error': 'Faltan parámetros'}), 400
+            return jsonify({'error': 'Faltan parámetros: user_ids y action son requeridos'}), 400
         
+        # Obtener usuarios
         users = User.query.filter(User.id.in_(user_ids)).all()
-        current_app.logger.info(f'Encontrados {len(users)} usuarios para procesar')
+        current_app.logger.info(f'Usuarios encontrados: {len(users)}')
         
         results = []
         deleted_count = 0
         protected_users = ['admin', 'mcastro2025']
         
+        # Procesar cada usuario
         for user in users:
-            try:
-                current_app.logger.info(f'Procesando usuario: {user.username} (ID: {user.id})')
-                
-                if action == 'activate':
-                    if user.id != current_user.id:  # No activarse a sí mismo
-                        user.is_active = True
-                        results.append(f'{user.username}: activado')
-                        current_app.logger.info(f'Usuario {user.username} activado')
-                    else:
-                        results.append(f'{user.username}: saltado (es el usuario actual)')
-                    
-                elif action == 'deactivate':
-                    if user.id != current_user.id:  # No desactivarse a sí mismo
-                        user.is_active = False
-                        results.append(f'{user.username}: desactivado')
-                        current_app.logger.info(f'Usuario {user.username} desactivado')
-                    else:
-                        results.append(f'{user.username}: saltado (es el usuario actual)')
-                    
-                elif action == 'verify_email':
-                    user.email_verified = True
-                    results.append(f'{user.username}: email verificado')
-                    current_app.logger.info(f'Email de {user.username} verificado')
-                    
-                elif action == 'reset_password':
-                    temp_password = 'temp123456'
-                    user.set_password(temp_password)
-                    results.append(f'{user.username}: contraseña resetada')
-                    current_app.logger.info(f'Contraseña de {user.username} resetada')
-                
-                elif action == 'delete':
-                    # Verificar que no sea el mismo admin
-                    if user.id == current_user.id:
-                        results.append(f'{user.username}: error - No puedes eliminar tu propia cuenta')
-                        current_app.logger.warning(f'Intento de eliminar cuenta propia: {user.username}')
-                        continue
-                    
-                    # Verificar que no sea un usuario protegido
-                    if user.username in protected_users:
-                        results.append(f'{user.username}: error - Usuario protegido del sistema')
-                        current_app.logger.warning(f'Intento de eliminar usuario protegido: {user.username}')
-                        continue
-                    
-                    username = user.username
-                    current_app.logger.info(f'Eliminando usuario: {username} (ID: {user.id})')
-                    db.session.delete(user)
-                    deleted_count += 1
-                    results.append(f'{user.username}: eliminado')
-                    continue  # No actualizar updated_at para usuarios eliminados
+            current_app.logger.info(f'Procesando: {user.username} (ID: {user.id})')
+            
+            if action == 'activate':
+                if user.id != current_user.id:
+                    user.is_active = True
+                    results.append(f'{user.username}: activado')
                 else:
-                    results.append(f'{user.username}: error - Acción desconocida: {action}')
-                    current_app.logger.error(f'Acción desconocida: {action}')
-                    continue
-                    
-                user.updated_at = datetime.utcnow()
+                    results.append(f'{user.username}: saltado (usuario actual)')
                 
-            except Exception as e:
-                error_msg = f'{user.username}: error - {str(e)}'
-                results.append(error_msg)
-                current_app.logger.error(f'Error procesando usuario {user.username}: {str(e)}')
+            elif action == 'deactivate':
+                if user.id != current_user.id:
+                    user.is_active = False
+                    results.append(f'{user.username}: desactivado')
+                else:
+                    results.append(f'{user.username}: saltado (usuario actual)')
+                
+            elif action == 'verify_email':
+                user.email_verified = True
+                results.append(f'{user.username}: email verificado')
+                
+            elif action == 'reset_password':
+                temp_password = 'temp123456'
+                user.set_password(temp_password)
+                results.append(f'{user.username}: contraseña resetada')
+            
+            elif action == 'delete':
+                # Verificaciones para eliminación
+                if user.id == current_user.id:
+                    results.append(f'{user.username}: error - No puedes eliminar tu propia cuenta')
+                    continue
+                
+                if user.username in protected_users:
+                    results.append(f'{user.username}: error - Usuario protegido del sistema')
+                    continue
+                
+                # Eliminar usuario
+                username = user.username
+                db.session.delete(user)
+                deleted_count += 1
+                results.append(f'{user.username}: eliminado')
+                continue
+            else:
+                results.append(f'{user.username}: error - Acción desconocida: {action}')
+                continue
+                
+            # Actualizar timestamp
+            user.updated_at = datetime.utcnow()
         
-        current_app.logger.info(f'Commit de transacción - {len(results)} resultados')
+        # Commit de transacción
         db.session.commit()
+        current_app.logger.info('Transacción completada exitosamente')
         
+        # Preparar respuesta
         if action == 'delete':
             response_data = {
                 'success': True,
@@ -356,13 +347,14 @@ def bulk_actions():
                 'results': results
             }
         
-        current_app.logger.info(f'Bulk action completada exitosamente: {action}')
+        current_app.logger.info(f'Bulk action completada: {action}')
         return jsonify(response_data)
         
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f'Error crítico en bulk_actions: {str(e)}')
-        current_app.logger.error(f'Traceback: {e.__traceback__}')
+        import traceback
+        current_app.logger.error(f'Traceback: {traceback.format_exc()}')
         return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
 
 @bp.route('/export', methods=['GET'])
@@ -416,17 +408,35 @@ def export_users():
 def test_route():
     """Ruta de prueba para verificar que las rutas admin funcionan"""
     try:
+        current_app.logger.info(f'Test route llamado por: {current_user.username}')
+        
         if not current_user.can_access_admin():
+            current_app.logger.warning(f'Usuario {current_user.username} sin permisos admin')
             return jsonify({'error': 'No autorizado'}), 403
         
-        return jsonify({
+        # Probar acceso a datos JSON
+        try:
+            data = request.get_json()
+            current_app.logger.info(f'JSON recibido: {data}')
+        except Exception as e:
+            current_app.logger.error(f'Error parseando JSON: {str(e)}')
+            data = None
+        
+        response_data = {
             'status': 'ok',
             'message': 'Ruta admin funcionando correctamente',
             'user': current_user.username,
-            'timestamp': datetime.utcnow().isoformat()
-        })
+            'timestamp': datetime.utcnow().isoformat(),
+            'json_received': data is not None
+        }
+        
+        current_app.logger.info('Test route completado exitosamente')
+        return jsonify(response_data)
+        
     except Exception as e:
         current_app.logger.error(f'Error en test_route: {str(e)}')
+        import traceback
+        current_app.logger.error(f'Traceback: {traceback.format_exc()}')
         return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
 
 @bp.route('/delete-user/<int:user_id>', methods=['DELETE'])
