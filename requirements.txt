@@ -21,3 +21,13 @@ twilio==8.5.0
 openai==1.35.0
 anthropic==0.25.0
 eventlet==0.33.3
+
+# Nuevas dependencias para mejoras críticas
+PyJWT==2.8.0
+alembic==1.13.1
+psycopg2-binary==2.9.9
+redis==5.0.1
+marshmallow==3.20.2
+pytest==7.4.3
+pytest-flask==1.3.0
+pytest-cov==4.1.0
