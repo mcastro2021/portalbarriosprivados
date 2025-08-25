@@ -16,30 +16,38 @@ def create_application():
     try:
         print("🔄 Iniciando creación de aplicación WSGI...")
         
+        # Configurar variables de entorno críticas
+        if not os.environ.get('FLASK_ENV'):
+            os.environ['FLASK_ENV'] = 'production'
+        if not os.environ.get('SECRET_KEY'):
+            os.environ['SECRET_KEY'] = 'fallback-secret-key-for-production'
+        
         # Intentar importar la aplicación existente primero
         try:
-            from app import app as existing_app
-            if existing_app:
-                print("✅ Aplicación existente encontrada en app.py")
+            from main import app as existing_app
+            if existing_app and hasattr(existing_app, 'wsgi_app'):
+                print("✅ Aplicación existente encontrada en main.py")
                 return existing_app
         except (ImportError, AttributeError) as e:
             print(f"ℹ️ No se pudo importar app existente: {e}")
         
         # Si no existe, crear usando create_app
         try:
-            from app import create_app
+            from main import create_app
             config_name = os.environ.get('FLASK_ENV', 'production')
             application = create_app(config_name)
             print("✅ Aplicación Flask creada usando create_app()")
             return application
         except Exception as e:
             print(f"⚠️ Error con create_app: {e}")
+            import traceback
+            traceback.print_exc()
         
-        # Último intento: importar cualquier objeto Flask del módulo app
+        # Último intento: importar cualquier objeto Flask del módulo main
         try:
-            import app as app_module
-            for attr_name in dir(app_module):
-                attr = getattr(app_module, attr_name)
+            import main as main_module
+            for attr_name in dir(main_module):
+                attr = getattr(main_module, attr_name)
                 if hasattr(attr, 'wsgi_app'):  # Es una aplicación Flask
                     print(f"✅ Aplicación Flask encontrada como {attr_name}")
                     return attr
@@ -112,16 +120,38 @@ def create_application():
 
 # Crear la aplicación
 print("🚀 Iniciando WSGI...")
-application = create_application()
-
-# Alias para compatibilidad
-app = application
-
-# Verificar que la aplicación es válida
-if hasattr(application, 'wsgi_app') or callable(application):
-    print("✅ Aplicación WSGI válida creada")
-else:
-    print("⚠️ Aplicación creada pero podría no ser válida para WSGI")
+try:
+    application = create_application()
+    
+    # Alias para compatibilidad
+    app = application
+    
+    # Verificar que la aplicación es válida
+    if hasattr(application, 'wsgi_app') or callable(application):
+        print("✅ Aplicación WSGI válida creada")
+        print(f"✅ Tipo de aplicación: {type(application)}")
+    else:
+        print("⚠️ Aplicación creada pero podría no ser válida para WSGI")
+        
+except Exception as e:
+    print(f"❌ Error crítico creando aplicación WSGI: {e}")
+    import traceback
+    traceback.print_exc()
+    
+    # Crear aplicación de fallback mínima
+    class FallbackApp:
+        def __init__(self):
+            self.wsgi_app = self
+            
+        def __call__(self, environ, start_response):
+            status = '500 Internal Server Error'
+            headers = [('Content-Type', 'application/json')]
+            start_response(status, headers)
+            return [b'{"error": "Application failed to start", "status": "error"}']
+    
+    application = FallbackApp()
+    app = application
+    print("⚠️ Usando aplicación de fallback")
 
 if __name__ == "__main__":
     if hasattr(application, 'run'):

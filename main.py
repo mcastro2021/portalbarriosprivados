@@ -21,8 +21,21 @@ import uuid
 import json
 from datetime import datetime, timedelta
 from dateutil import parser
-import mercadopago
-from twilio.rest import Client
+# Importar dependencias opcionales
+try:
+    import mercadopago
+    MERCADOPAGO_AVAILABLE = True
+except ImportError:
+    MERCADOPAGO_AVAILABLE = False
+    mercadopago = None
+
+try:
+    from twilio.rest import Client
+    TWILIO_AVAILABLE = True
+except ImportError:
+    TWILIO_AVAILABLE = False
+    Client = None
+
 # OpenAI import moved to where it's used
 
 # Importar configuración y modelos
