@@ -61,7 +61,19 @@ python app.py
 
 ## 🔍 Diagnóstico de Problemas
 
-### 1. Verificar Importaciones
+### 1. Script de Prueba Automático (NUEVO)
+```bash
+# Ejecutar script de diagnóstico completo
+python test_wsgi.py
+
+# Este script verifica:
+# - Dependencias críticas
+# - Importación de app.py
+# - Configuración WSGI
+# - Endpoint /health
+```
+
+### 2. Verificar Importaciones Manualmente
 ```bash
 # Probar importaciones manualmente
 python -c "from app import create_app; print('✅ Importación exitosa')"
@@ -110,6 +122,7 @@ portalbarriosprivados/
 ├── app.py                  # ✅ Aplicación Flask principal
 ├── render.yaml             # ✅ Configuración de Render
 ├── requirements.txt        # ✅ Dependencias actualizadas
+├── test_wsgi.py           # ✅ Script de diagnóstico WSGI
 ├── config.py              # Configuración de la app
 ├── models.py              # Modelos de base de datos
 └── app/                   # Servicios y mejoras implementadas
