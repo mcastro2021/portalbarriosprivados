@@ -17,7 +17,9 @@
 
                     <!-- Login Form -->
                     <form method="POST" action="{{ url_for('auth.login') }}" data-validate>
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {% if config.WTF_CSRF_ENABLED %}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {% endif %}
                         {{ form.hidden_tag() }}
                         
                         <!-- Username Field -->

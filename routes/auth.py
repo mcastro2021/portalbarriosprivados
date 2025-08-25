@@ -10,38 +10,55 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     """Página de inicio de sesión"""
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    
-    form = LoginForm()
-    
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        remember = form.remember_me.data
+    try:
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
         
-        user = User.query.filter_by(username=username).first()
+        form = LoginForm()
         
-        if user and user.check_password(password):
-            if not user.is_active:
-                flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
-                return render_template('auth/login.html', form=form)
+        # Log para debugging
+        print(f"Login attempt - Method: {request.method}")
+        print(f"Form data: {request.form}")
+        print(f"Form errors: {form.errors}")
+        
+        if form.validate_on_submit():
+            username = form.username.data
+            password = form.password.data
+            remember = form.remember_me.data
             
-            login_user(user, remember=remember)
-            user.last_login = datetime.utcnow()
-            db.session.commit()
+            print(f"Attempting login for user: {username}")
             
-            # Redirigir a la página solicitada o al dashboard
-            next_page = request.args.get('next')
-            if not next_page or not next_page.startswith('/'):
-                next_page = url_for('dashboard')
+            user = User.query.filter_by(username=username).first()
             
-            flash(f'¡Bienvenido, {user.name}!', 'success')
-            return redirect(next_page)
+            if user and user.check_password(password):
+                if not user.is_active:
+                    flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
+                    return render_template('auth/login.html', form=form)
+                
+                login_user(user, remember=remember)
+                user.last_login = datetime.utcnow()
+                db.session.commit()
+                
+                # Redirigir a la página solicitada o al dashboard
+                next_page = request.args.get('next')
+                if not next_page or not next_page.startswith('/'):
+                    next_page = url_for('dashboard')
+                
+                flash(f'¡Bienvenido, {user.name}!', 'success')
+                return redirect(next_page)
+            else:
+                flash('Usuario o contraseña incorrectos', 'error')
         else:
-            flash('Usuario o contraseña incorrectos', 'error')
-    
-    return render_template('auth/login.html', form=form)
+            print(f"Form validation failed: {form.errors}")
+        
+        return render_template('auth/login.html', form=form)
+        
+    except Exception as e:
+        print(f"Error in login route: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash('Error interno del servidor. Por favor, intenta de nuevo.', 'error')
+        return render_template('auth/login.html', form=form)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
