@@ -30,6 +30,12 @@ class User(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = db.Column(db.DateTime)
     
+    # Campos para autenticación de dos factores (2FA)
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(32))  # Secreto TOTP
+    two_factor_enabled_at = db.Column(db.DateTime)
+    two_factor_backup_codes = db.Column(db.Text)  # Códigos de respaldo separados por comas
+    
     # Relaciones
     visits = db.relationship('Visit', backref='resident', lazy='dynamic', cascade='all, delete-orphan')
     reservations = db.relationship('Reservation', foreign_keys='Reservation.user_id', backref='user', lazy='dynamic', cascade='all, delete-orphan')
@@ -544,4 +550,4 @@ class ChatbotSession(db.Model):
         """Actualizar contexto"""
         context = self.get_context_dict()
         context[key] = value
-        self.set_context(context) 
+        self.set_context(context)

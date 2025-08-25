@@ -36,3 +36,22 @@ pytest-cov==4.1.0
 cssmin==0.2.0
 jsmin==3.0.1
 Pillow==10.4.0
+
+# Dependencias para 2FA
+pyotp==2.9.0
+qrcode==7.4.2
+
+# Dependencias para monitoreo
+psutil==5.9.6
+
+# Dependencias para internacionalización
+Flask-Babel==4.0.0
+Babel==2.13.1
+
+# Dependencias para testing avanzado
+factory-boy==3.3.0
+faker==19.12.0
+coverage==7.3.2
+
+# Dependencias para backup
+schedule==1.2.0
