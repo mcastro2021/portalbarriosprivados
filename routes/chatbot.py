@@ -104,14 +104,14 @@ def chat():
 def handle_claude_query(message, session):
     """Manejar consultas usando la API de Claude"""
     try:
-        from flask import current_app
-        api_key = current_app.config.get('CLAUDE_API_KEY')
-        model = current_app.config.get('CLAUDE_MODEL', 'claude-3-sonnet-20240229')
+        from chatbot_config import get_claude_config, is_claude_available, get_system_prompt
         
-        if not api_key:
+        if not is_claude_available():
+            print("⚠️ Claude AI no disponible - API key no configurada")
             return None  # Si no hay API key, continuar con otros métodos
         
-        client = anthropic.Anthropic(api_key=api_key)
+        config = get_claude_config()
+        client = anthropic.Anthropic(api_key=config['api_key'])
         context = session.get_context_dict()
         
         # Obtener información del usuario y contexto
@@ -122,70 +122,13 @@ def handle_claude_query(message, session):
         # Obtener historial de conversación
         conversation_history = context.get('conversation_history', [])
         
-        # Cargar reglamentos desde el archivo
-        try:
-            with open('REGLAMENTOS_BARRIO.md', 'r', encoding='utf-8') as f:
-                reglamentos_content = f.read()
-        except FileNotFoundError:
-            reglamentos_content = "Reglamentos no disponibles"
+        # Obtener el prompt del sistema
+        system_prompt = get_system_prompt(user_name, user_role, is_authenticated)
         
-        # Construir el prompt del sistema
-        system_prompt = f"""Eres un asistente virtual especializado para un barrio cerrado privado llamado "Barrio Tejas 4". 
-
-INFORMACIÓN DEL USUARIO:
-- Nombre: {user_name}
-- Rol: {user_role}
-- Autenticado: {'Sí' if is_authenticated else 'No'}
-
-CONOCIMIENTO ESPECÍFICO DEL BARRIO:
-- Horarios: Administración (Lun-Vie 9-17h), Seguridad (24/7), Quincho (10-22h)
-- Contactos: Administración (+54 11 4444-5555), Seguridad (+54 11 4444-5556)
-- Espacios comunes: Quincho principal, Quincho pequeño, SUM, Cancha de fútbol, Cancha de tenis, Piscina, Espacio coworking
-- Servicios disponibles: Visitas, reservas, expensas, mantenimiento, noticias, clasificados, comunicaciones
-
-REGLAMENTOS Y NORMAS COMPLETAS DEL BARRIO:
-
-{reglamentos_content}
-
-INSTRUCCIONES IMPORTANTES:
-1. SIEMPRE responde basándote en los reglamentos específicos del barrio
-2. Si te preguntan sobre reglamentos constructivos, usa la información del archivo de reglamentos
-3. Proporciona información precisa y actualizada
-4. Si no encuentras información específica, indícalo claramente
-5. Para consultas sobre el mapa, usa la información del reglamento
-6. Para sanciones y multas, cita los montos específicos del reglamento
-- Cancha de tenis: Manzana B
-- Pista de jogging: Perímetro del barrio
-
-FUNCIONES PRINCIPALES:
-1. Responder consultas sobre reglamentos, horarios, procedimientos del barrio
-2. Ayudar con consultas sobre servicios (visitas, reservas, expensas)
-3. Clasificar y derivar reclamos de mantenimiento
-4. Proporcionar información de contacto y emergencias
-5. Ayudar con navegación por el sistema
-6. Explicar reglamentos y normas del barrio
-7. Proporcionar información del mapa y ubicaciones
-
-ESTILO DE RESPUESTA:
-- Amigable y profesional
-- Respuestas concisas pero informativas
-- Usar emojis apropiados para hacer la conversación más amena
-- Si no tienes información específica, sugerir contactar administración
-- Para consultas personales (expensas, visitas, reservas), recordar que necesitan estar autenticados
-- Ser muy específico con reglamentos y procedimientos
-- Citar secciones específicas de reglamentos cuando sea relevante
-
-IMPORTANTE:
-- Si el usuario pregunta sobre datos personales (expensas, visitas, reservas) y no está autenticado, sugerir que inicie sesión
-- Para reclamos de mantenimiento, clasificar por prioridad y área responsable
-- Mantener el contexto de la conversación usando el historial proporcionado
-- Siempre citar reglamentos específicos cuando sea relevante
-- Proporcionar información precisa sobre ubicaciones y mapas del barrio"""
-
         # Construir el mensaje con historial de conversación
         messages = [{"role": "user", "content": system_prompt}]
         
-        # Agregar historial de conversación (últimos 5 intercambios)
+        # Agregar historial de conversación (últimos 10 intercambios)
         recent_history = conversation_history[-10:]  # Últimos 10 intercambios
         for exchange in recent_history:
             messages.append({"role": "user", "content": exchange['user']})
@@ -196,10 +139,10 @@ IMPORTANTE:
         
         # Llamar a la API de Claude
         response = client.messages.create(
-            model=model,
+            model=config['model'],
             messages=messages,
-            max_tokens=500,
-            temperature=0.7
+            max_tokens=config['max_tokens'],
+            temperature=config['temperature']
         )
         
         return response.content[0].text.strip()
