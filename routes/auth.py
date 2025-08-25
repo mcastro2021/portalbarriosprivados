@@ -12,7 +12,7 @@ def login():
     """Página de inicio de sesión"""
     try:
         if current_user.is_authenticated:
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('admin.dashboard'))
         
         # Log para debugging
         print(f"Login attempt - Method: {request.method}")
@@ -52,7 +52,7 @@ def login():
                 # Redirigir a la página solicitada o al dashboard
                 next_page = request.args.get('next')
                 if not next_page or not next_page.startswith('/'):
-                    next_page = url_for('dashboard')
+                                            next_page = url_for('admin.dashboard')
                 
                 flash(f'¡Bienvenido, {user.name}!', 'success')
                 return redirect(next_page)
@@ -72,7 +72,7 @@ def login():
 def register():
     """Página de registro"""
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('admin.dashboard'))
     
     form = RegistrationForm()
     
@@ -121,13 +121,13 @@ def logout():
     """Cerrar sesión"""
     logout_user()
     flash('Has cerrado sesión correctamente', 'info')
-    return redirect(url_for('index'))
+    return redirect(url_for('admin.dashboard'))
 
 @bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     """Página de recuperación de contraseña"""
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('admin.dashboard'))
     
     form = ForgotPasswordForm()
     
