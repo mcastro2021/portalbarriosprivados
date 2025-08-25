@@ -1,5 +1,20 @@
 // Main JavaScript for Portal Barrio Privado
 
+// Helper function to handle API responses
+function handleApiResponse(response) {
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+        // If not JSON, user is probably not authenticated
+        throw new Error('User not authenticated');
+    }
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+}
+
 // Initialize Socket.IO connection
 let socket = null;
 
@@ -81,7 +96,7 @@ function initializeNotifications() {
 
 function updateNotificationCount() {
     fetch('/api/notifications/count')
-        .then(response => response.json())
+        .then(handleApiResponse)
         .then(data => {
             const countElement = document.getElementById('notification-count');
             if (countElement) {
@@ -89,7 +104,12 @@ function updateNotificationCount() {
                 countElement.style.display = data.count > 0 ? 'inline' : 'none';
             }
         })
-        .catch(error => console.error('Error updating notification count:', error));
+        .catch(error => {
+            // Only log as error if it's not an authentication issue
+            if (error.message !== 'User not authenticated') {
+                console.error('Error updating notification count:', error);
+            }
+        });
 }
 
 function showNotification(data) {
@@ -142,7 +162,7 @@ function markNotificationAsRead(notificationId) {
             'Content-Type': 'application/json',
         }
     })
-    .then(response => response.json())
+    .then(handleApiResponse)
     .then(data => {
         if (data.success) {
             const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
@@ -152,7 +172,12 @@ function markNotificationAsRead(notificationId) {
             updateNotificationCount();
         }
     })
-    .catch(error => console.error('Error marking notification as read:', error));
+    .catch(error => {
+        // Only log as error if it's not an authentication issue
+        if (error.message !== 'User not authenticated') {
+            console.error('Error marking notification as read:', error);
+        }
+    });
 }
 
 // Chatbot functionality
@@ -205,13 +230,17 @@ function sendChatbotMessage() {
         },
         body: JSON.stringify({ message: message })
     })
-    .then(response => response.json())
+    .then(handleApiResponse)
     .then(data => {
         addChatbotMessage('bot', data.response);
     })
     .catch(error => {
-        console.error('Error sending chatbot message:', error);
-        addChatbotMessage('bot', 'Lo siento, hubo un error. Inténtalo de nuevo.');
+        if (error.message === 'User not authenticated') {
+            addChatbotMessage('bot', 'Por favor, inicia sesión para usar el chatbot.');
+        } else {
+            console.error('Error sending chatbot message:', error);
+            addChatbotMessage('bot', 'Lo siento, hubo un error. Inténtalo de nuevo.');
+        }
     });
 }
 
