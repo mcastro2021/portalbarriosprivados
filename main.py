@@ -69,8 +69,20 @@ except ImportError:
         }
 from models import db, User, Visit, Reservation, News, Maintenance, Expense, Classified, SecurityReport, Notification, NeighborhoodMap, ChatbotSession
 
-# Importar rutas
-from routes import auth, visits, reservations, news, maintenance, expenses, classifieds, security, chatbot, smart_maintenance, user_management, camera_security, broadcast_communications, map
+# Importar rutas de manera segura
+try:
+    from routes import auth
+    print("✅ Ruta auth importada")
+except ImportError as e:
+    print(f"⚠️ No se pudo importar auth: {e}")
+    auth = None
+
+try:
+    from routes import visits, reservations, news, maintenance, expenses, classifieds, security, chatbot, smart_maintenance, user_management, camera_security, broadcast_communications, map
+    print("✅ Rutas adicionales importadas")
+except ImportError as e:
+    print(f"⚠️ No se pudieron importar algunas rutas: {e}")
+    visits = reservations = news = maintenance = expenses = classifieds = security = chatbot = smart_maintenance = user_management = camera_security = broadcast_communications = map = None
 
 # Importar nuevas mejoras de manera segura
 try:
@@ -142,10 +154,9 @@ def create_app(config_name=None):
         print(f"⚠️ Configuración '{config_name}' no encontrada, usando desarrollo")
         app.config.from_object(config.config['development'])
     
-    # Inicializar extensiones
+    # Inicializar extensiones básicas
     db.init_app(app)
     login_manager.init_app(app)
-    migrate.init_app(app, db)
     
     # Configurar login manager
     login_manager.login_view = 'auth.login'
@@ -156,16 +167,34 @@ def create_app(config_name=None):
     def load_user(user_id):
         return User.query.get(int(user_id))
     
-    # Registrar blueprints
-    from routes.auth import bp as auth_bp
-    from routes.main import bp as main_bp
-    from routes.admin import bp as admin_bp
-    from routes.api import bp as api_bp
+    # Registrar blueprints de manera segura
+    try:
+        from routes.auth import bp as auth_bp
+        app.register_blueprint(auth_bp)
+        print("✅ Blueprint auth registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar auth blueprint: {e}")
     
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(main_bp)
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(api_bp)
+    try:
+        from routes.main import bp as main_bp
+        app.register_blueprint(main_bp)
+        print("✅ Blueprint main registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar main blueprint: {e}")
+    
+    try:
+        from routes.admin import bp as admin_bp
+        app.register_blueprint(admin_bp)
+        print("✅ Blueprint admin registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar admin blueprint: {e}")
+    
+    try:
+        from routes.api import bp as api_bp
+        app.register_blueprint(api_bp)
+        print("✅ Blueprint api registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar api blueprint: {e}")
     
     # Intentar registrar blueprints de API v1 si existen
     try:
