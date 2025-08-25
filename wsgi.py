@@ -92,6 +92,27 @@ def create_application():
                     'fallback': True
                 })
             
+            @fallback_app.route('/diagnostic')
+            def diagnostic():
+                return jsonify({
+                    'status': 'wsgi_fallback_diagnostic',
+                    'message': 'WSGI fallback mode active',
+                    'error': str(e),
+                    'python_path': sys.path,
+                    'current_dir': os.getcwd(),
+                    'files_in_dir': os.listdir('.'),
+                    'wsgi_mode': True
+                })
+            
+            @fallback_app.route('/auth/login', methods=['GET', 'POST'])
+            def fallback_login():
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Login endpoint not available in WSGI fallback mode',
+                    'error': str(e),
+                    'wsgi_fallback': True
+                }), 500
+            
             @fallback_app.errorhandler(404)
             def not_found(error):
                 return jsonify({
