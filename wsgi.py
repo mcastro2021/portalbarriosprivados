@@ -74,44 +74,44 @@ def create_application():
             fallback_app = Flask(__name__)
             fallback_app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-secret-key')
             
-            @fallback_app.route('/')
-            def index():
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Aplicación en modo fallback',
-                    'error': str(e),
-                    'help': 'Revisa los logs para más detalles'
-                })
+                            @fallback_app.route('/')
+                def index():
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Aplicación en modo fallback',
+                        'error': 'Application failed to load',
+                        'help': 'Revisa los logs para más detalles'
+                    })
             
-            @fallback_app.route('/health')
-            def health_check():
-                return jsonify({
-                    'status': 'unhealthy',
-                    'message': 'Aplicación principal falló',
-                    'error': str(e),
-                    'fallback': True
-                })
+                            @fallback_app.route('/health')
+                def health_check():
+                    return jsonify({
+                        'status': 'unhealthy',
+                        'message': 'Aplicación principal falló',
+                        'error': 'Application failed to load',
+                        'fallback': True
+                    })
             
-            @fallback_app.route('/diagnostic')
-            def diagnostic():
-                return jsonify({
-                    'status': 'wsgi_fallback_diagnostic',
-                    'message': 'WSGI fallback mode active',
-                    'error': str(e),
-                    'python_path': sys.path,
-                    'current_dir': os.getcwd(),
-                    'files_in_dir': os.listdir('.'),
-                    'wsgi_mode': True
-                })
+                            @fallback_app.route('/diagnostic')
+                def diagnostic():
+                    return jsonify({
+                        'status': 'wsgi_fallback_diagnostic',
+                        'message': 'WSGI fallback mode active',
+                        'error': 'Application failed to load',
+                        'python_path': sys.path,
+                        'current_dir': os.getcwd(),
+                        'files_in_dir': os.listdir('.'),
+                        'wsgi_mode': True
+                    })
             
-            @fallback_app.route('/auth/login', methods=['GET', 'POST'])
-            def fallback_login():
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Login endpoint not available in WSGI fallback mode',
-                    'error': str(e),
-                    'wsgi_fallback': True
-                }), 500
+                            @fallback_app.route('/auth/login', methods=['GET', 'POST'])
+                def fallback_login():
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Login endpoint not available in WSGI fallback mode',
+                        'error': 'Application failed to load',
+                        'wsgi_fallback': True
+                    }), 500
             
             @fallback_app.errorhandler(404)
             def not_found(error):

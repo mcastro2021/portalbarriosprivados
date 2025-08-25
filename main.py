@@ -39,15 +39,53 @@ except ImportError:
 # OpenAI import moved to where it's used
 
 # Importar configuración y modelos
-from config import config
+try:
+    from config import config
+    print("✅ Configuración principal importada")
+except ImportError:
+    try:
+        from config_simple import config
+        print("✅ Configuración simplificada importada")
+    except ImportError:
+        print("⚠️ No se pudo importar configuración")
+        # Configuración mínima de emergencia
+        class EmergencyConfig:
+            SECRET_KEY = 'emergency-secret-key'
+            SQLALCHEMY_DATABASE_URI = 'sqlite:///barrio_cerrado.db'
+            SQLALCHEMY_TRACK_MODIFICATIONS = False
+            UPLOAD_FOLDER = 'uploads'
+            DEBUG = False
+            ENV = 'production'
+            
+            @staticmethod
+            def init_app(app):
+                pass
+        
+        config = {
+            'development': EmergencyConfig,
+            'production': EmergencyConfig,
+            'testing': EmergencyConfig,
+            'default': EmergencyConfig
+        }
 from models import db, User, Visit, Reservation, News, Maintenance, Expense, Classified, SecurityReport, Notification, NeighborhoodMap, ChatbotSession
 
 # Importar rutas
 from routes import auth, visits, reservations, news, maintenance, expenses, classifieds, security, chatbot, smart_maintenance, user_management, camera_security, broadcast_communications, map
 
-# Importar nuevas mejoras
-from security import security_manager
-from api.v1 import api_v1
+# Importar nuevas mejoras de manera segura
+try:
+    from security import security_manager
+    print("✅ Security manager importado")
+except ImportError as e:
+    print(f"⚠️ No se pudo importar security_manager: {e}")
+    security_manager = None
+
+try:
+    from api.v1 import api_v1
+    print("✅ API v1 importada")
+except ImportError as e:
+    print(f"⚠️ No se pudo importar api_v1: {e}")
+    api_v1 = None
 
 def create_app(config_name='default'):
     """Factory function para crear la aplicación Flask"""
@@ -62,7 +100,11 @@ def create_app(config_name='default'):
     csrf = CSRFProtect(app)
     
     # Inicializar seguridad
-    security_manager.init_app(app)
+    if security_manager:
+        security_manager.init_app(app)
+        print("✅ Security manager inicializado")
+    else:
+        print("⚠️ Security manager no disponible")
     
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -198,8 +240,11 @@ def create_app(config_name='default'):
     app.register_blueprint(expense_notifications.bp)
     
     # Registrar API v1
-    app.register_blueprint(api_v1)
-    print("✅ API v1 registrada correctamente")
+    if api_v1:
+        app.register_blueprint(api_v1)
+        print("✅ API v1 registrada correctamente")
+    else:
+        print("⚠️ API v1 no disponible")
     
     # Filtros personalizados para Jinja2
     @app.template_filter('stage_color')
