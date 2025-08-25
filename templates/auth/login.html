@@ -157,7 +157,7 @@ document.getElementById('togglePassword').addEventListener('click', function() {
 
 // Form validation
 document.querySelector('form').addEventListener('submit', function(e) {
-    const email = document.getElementById('email');
+    const username = document.getElementById('username');
     const password = document.getElementById('password');
     let isValid = true;
     
@@ -166,9 +166,9 @@ document.querySelector('form').addEventListener('submit', function(e) {
         el.classList.remove('is-invalid');
     });
     
-    // Validate email
-    if (!email.value || !email.value.includes('@')) {
-        email.classList.add('is-invalid');
+    // Validate username
+    if (!username.value || username.value.length < 3) {
+        username.classList.add('is-invalid');
         isValid = false;
     }
     
@@ -183,9 +183,12 @@ document.querySelector('form').addEventListener('submit', function(e) {
     }
 });
 
-// Auto-focus on email field
+// Auto-focus on username field
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('email').focus();
+    const usernameField = document.getElementById('username');
+    if (usernameField) {
+        usernameField.focus();
+    }
 });
 </script>
 {% endblock %} 
