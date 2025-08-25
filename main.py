@@ -199,6 +199,63 @@ def create_app(config_name=None):
     except Exception as e:
         print(f"⚠️ No se pudo registrar api blueprint: {e}")
     
+    # Registrar blueprints de rutas principales
+    try:
+        from routes.visits import bp as visits_bp
+        app.register_blueprint(visits_bp)
+        print("✅ Blueprint visits registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar visits blueprint: {e}")
+    
+    try:
+        from routes.reservations import bp as reservations_bp
+        app.register_blueprint(reservations_bp)
+        print("✅ Blueprint reservations registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar reservations blueprint: {e}")
+    
+    try:
+        from routes.news import bp as news_bp
+        app.register_blueprint(news_bp)
+        print("✅ Blueprint news registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar news blueprint: {e}")
+    
+    try:
+        from routes.maintenance import bp as maintenance_bp
+        app.register_blueprint(maintenance_bp)
+        print("✅ Blueprint maintenance registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar maintenance blueprint: {e}")
+    
+    try:
+        from routes.expenses import bp as expenses_bp
+        app.register_blueprint(expenses_bp)
+        print("✅ Blueprint expenses registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar expenses blueprint: {e}")
+    
+    try:
+        from routes.classifieds import bp as classifieds_bp
+        app.register_blueprint(classifieds_bp)
+        print("✅ Blueprint classifieds registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar classifieds blueprint: {e}")
+    
+    try:
+        from routes.security import bp as security_bp
+        app.register_blueprint(security_bp)
+        print("✅ Blueprint security registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar security blueprint: {e}")
+    
+    try:
+        from routes.map import bp as map_bp
+        app.register_blueprint(map_bp)
+        print("✅ Blueprint map registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar map blueprint: {e}")
+    
     # Intentar registrar blueprints de API v1 si existen
     try:
         from api.v1 import api_v1
