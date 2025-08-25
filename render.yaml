@@ -13,4 +13,6 @@ services:
         generateValue: true
       - key: SECRET_KEY
         generateValue: true
+      - key: START_COMMAND
+        value: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --threads 2
     healthCheckPath: /health
