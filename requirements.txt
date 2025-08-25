@@ -31,7 +31,7 @@ qrcode==7.4.2
 mercadopago==2.2.0
 twilio==8.5.0
 openai==1.35.0
-anthropic==0.25.0
+anthropic==0.34.0
 
 # Dependencias para WebSockets y eventos
 eventlet==0.33.3
