@@ -170,7 +170,8 @@ def create_app(config_name=None):
     @app.context_processor
     def inject_csrf_token():
         from utils import get_csrf_token
-        return dict(csrf_token=get_csrf_token())
+        token = get_csrf_token()
+        return dict(csrf_token=lambda: token)
     
     @login_manager.user_loader
     def load_user(user_id):
