@@ -734,6 +734,23 @@ def init_db():
 config_name = os.environ.get('FLASK_ENV', 'production')
 app = create_app(config_name)
 
+# Asegurar que socketio esté disponible para gunicorn
+if SOCKETIO_AVAILABLE and SocketIO:
+    try:
+        socketio_config = {
+            'async_mode': 'threading',
+            'cors_allowed_origins': "*",
+            'logger': False,
+            'engineio_logger': False,
+            'manage_session': False
+        }
+        socketio = SocketIO(app, **socketio_config)
+    except Exception as e:
+        print(f"⚠️ Error configurando SocketIO para producción: {e}")
+        socketio = None
+else:
+    socketio = None
+
 # Función de migración automática
 def migrate_ai_columns():
     """Migrar columnas de IA automáticamente"""
@@ -853,4 +870,4 @@ if __name__ == '__main__':
         socketio = SocketIO(app)
         socketio.run(app, debug=True, host='0.0.0.0', port=5000)
     else:
-        app.run(debug=True, host='0.0.0.0', port=5000) 
+        app.run(debug=True, host='0.0.0.0', port=5000)
