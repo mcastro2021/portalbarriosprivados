@@ -256,6 +256,49 @@ def create_app(config_name=None):
     except Exception as e:
         print(f"⚠️ No se pudo registrar map blueprint: {e}")
     
+    # Registrar blueprints adicionales
+    try:
+        from routes.user_management import bp as user_management_bp
+        app.register_blueprint(user_management_bp)
+        print("✅ Blueprint user_management registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar user_management blueprint: {e}")
+    
+    try:
+        from routes.broadcast_communications import bp as broadcast_communications_bp
+        app.register_blueprint(broadcast_communications_bp)
+        print("✅ Blueprint broadcast_communications registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar broadcast_communications blueprint: {e}")
+    
+    try:
+        from routes.expense_notifications import bp as expense_notifications_bp
+        app.register_blueprint(expense_notifications_bp)
+        print("✅ Blueprint expense_notifications registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar expense_notifications blueprint: {e}")
+    
+    try:
+        from routes.chatbot import bp as chatbot_bp
+        app.register_blueprint(chatbot_bp)
+        print("✅ Blueprint chatbot registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar chatbot blueprint: {e}")
+    
+    try:
+        from routes.camera_security import bp as camera_security_bp
+        app.register_blueprint(camera_security_bp)
+        print("✅ Blueprint camera_security registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar camera_security blueprint: {e}")
+    
+    try:
+        from routes.smart_maintenance import bp as smart_maintenance_bp
+        app.register_blueprint(smart_maintenance_bp)
+        print("✅ Blueprint smart_maintenance registrado")
+    except Exception as e:
+        print(f"⚠️ No se pudo registrar smart_maintenance blueprint: {e}")
+    
     # Intentar registrar blueprints de API v1 si existen
     try:
         from api.v1 import api_v1
