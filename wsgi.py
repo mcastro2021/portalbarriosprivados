@@ -65,6 +65,7 @@ def create_application():
         print(f"❌ Error crítico creando aplicación Flask:")
         print(f"Error: {str(e)}")
         print("Traceback completo:")
+        import traceback
         traceback.print_exc()
         
         # Crear aplicación mínima de fallback

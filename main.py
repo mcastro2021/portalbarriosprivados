@@ -69,6 +69,9 @@ except ImportError:
         }
 from models import db, User, Visit, Reservation, News, Maintenance, Expense, Classified, SecurityReport, Notification, NeighborhoodMap, ChatbotSession
 
+# Inicializar login_manager
+login_manager = LoginManager()
+
 # Importar rutas de manera segura
 try:
     from routes import auth
