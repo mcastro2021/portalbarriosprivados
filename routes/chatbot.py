@@ -104,14 +104,15 @@ def chat():
 def handle_claude_query(message, session):
     """Manejar consultas usando la API de Claude"""
     try:
-        from chatbot_config import get_claude_config, is_claude_available, get_system_prompt
+        # Verificar si Claude está disponible
+        import os
+        api_key = os.environ.get('CLAUDE_API_KEY')
         
-        if not is_claude_available():
+        if not api_key:
             print("⚠️ Claude AI no disponible - API key no configurada")
             return None  # Si no hay API key, continuar con otros métodos
         
-        config = get_claude_config()
-        client = anthropic.Anthropic(api_key=config['api_key'])
+        client = anthropic.Anthropic(api_key=api_key)
         context = session.get_context_dict()
         
         # Obtener información del usuario y contexto
@@ -122,14 +123,69 @@ def handle_claude_query(message, session):
         # Obtener historial de conversación
         conversation_history = context.get('conversation_history', [])
         
-        # Obtener el prompt del sistema
-        system_prompt = get_system_prompt(user_name, user_role, is_authenticated)
+        # Cargar reglamentos desde el archivo
+        try:
+            with open('REGLAMENTOS_BARRIO.md', 'r', encoding='utf-8') as f:
+                reglamentos_content = f.read()
+        except FileNotFoundError:
+            reglamentos_content = "Reglamentos no disponibles"
         
+        # Construir el prompt del sistema
+        system_prompt = f"""Eres un asistente virtual especializado para un barrio cerrado privado llamado "Barrio Tejas 4". 
+
+INFORMACIÓN DEL USUARIO:
+- Nombre: {user_name}
+- Rol: {user_role}
+- Autenticado: {'Sí' if is_authenticated else 'No'}
+
+CONOCIMIENTO ESPECÍFICO DEL BARRIO:
+- Horarios: Administración (Lun-Vie 9-17h), Seguridad (24/7), Quincho (10-22h)
+- Contactos: Administración (+54 11 4444-5555), Seguridad (+54 11 4444-5556)
+- Espacios comunes: Quincho principal, Quincho pequeño, SUM, Cancha de fútbol, Cancha de tenis, Piscina, Espacio coworking
+- Servicios disponibles: Visitas, reservas, expensas, mantenimiento, noticias, clasificados, comunicaciones
+
+REGLAMENTOS Y NORMAS COMPLETAS DEL BARRIO:
+
+{reglamentos_content}
+
+INSTRUCCIONES IMPORTANTES:
+1. SIEMPRE responde basándote en los reglamentos específicos del barrio
+2. Si te preguntan sobre reglamentos constructivos, usa la información del archivo de reglamentos
+3. Proporciona información precisa y actualizada
+4. Si no encuentras información específica, indícalo claramente
+5. Para consultas sobre el mapa, usa la información del reglamento
+6. Para sanciones y multas, cita los montos específicos del reglamento
+
+FUNCIONES PRINCIPALES:
+1. Responder consultas sobre reglamentos, horarios, procedimientos del barrio
+2. Ayudar con consultas sobre servicios (visitas, reservas, expensas)
+3. Clasificar y derivar reclamos de mantenimiento
+4. Proporcionar información de contacto y emergencias
+5. Ayudar con navegación por el sistema
+6. Explicar reglamentos y normas del barrio
+7. Proporcionar información del mapa y ubicaciones
+
+ESTILO DE RESPUESTA:
+- Amigable y profesional
+- Respuestas concisas pero informativas
+- Usar emojis apropiados para hacer la conversación más amena
+- Si no tienes información específica, sugerir contactar administración
+- Para consultas personales (expensas, visitas, reservas), recordar que necesitan estar autenticados
+- Ser muy específico con reglamentos y procedimientos
+- Citar secciones específicas de reglamentos cuando sea relevante
+
+IMPORTANTE:
+- Si el usuario pregunta sobre datos personales (expensas, visitas, reservas) y no está autenticado, sugerir que inicie sesión
+- Para reclamos de mantenimiento, clasificar por prioridad y área responsable
+- Mantener el contexto de la conversación usando el historial proporcionado
+- Siempre citar reglamentos específicos cuando sea relevante
+- Proporcionar información precisa sobre ubicaciones y mapas del barrio"""
+
         # Construir el mensaje con historial de conversación
         messages = [{"role": "user", "content": system_prompt}]
         
-        # Agregar historial de conversación (últimos 10 intercambios)
-        recent_history = conversation_history[-10:]  # Últimos 10 intercambios
+        # Agregar historial de conversación (últimos 5 intercambios para no sobrecargar)
+        recent_history = conversation_history[-5:]  # Últimos 5 intercambios
         for exchange in recent_history:
             messages.append({"role": "user", "content": exchange['user']})
             messages.append({"role": "assistant", "content": exchange['bot']})
@@ -139,10 +195,10 @@ def handle_claude_query(message, session):
         
         # Llamar a la API de Claude
         response = client.messages.create(
-            model=config['model'],
+            model="claude-3-sonnet-20240229",
             messages=messages,
-            max_tokens=config['max_tokens'],
-            temperature=config['temperature']
+            max_tokens=500,
+            temperature=0.7
         )
         
         return response.content[0].text.strip()

@@ -166,6 +166,12 @@ def create_app(config_name=None):
     login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
     login_manager.login_message_category = 'info'
     
+    # Agregar contexto global para CSRF
+    @app.context_processor
+    def inject_csrf_token():
+        from utils import get_csrf_token
+        return dict(csrf_token=get_csrf_token())
+    
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
