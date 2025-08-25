@@ -5,7 +5,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt || echo "Warning: Some dependencies failed to install"
       python test_deployment.py || echo "Warning: Deployment test failed, using fallback"
-    startCommand: gunicorn smart_wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --threads 2
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --threads 2
     envVars:
       - key: FLASK_ENV
         value: production
@@ -16,5 +16,5 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: START_COMMAND
-        value: gunicorn smart_wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --threads 2
+        value: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --threads 2
     healthCheckPath: /health
