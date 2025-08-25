@@ -74,7 +74,7 @@ def create_application():
             fallback_app = Flask(__name__)
             fallback_app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-secret-key')
             
-                            @fallback_app.route('/')
+            @fallback_app.route('/')
             def index():
                 return jsonify({
                     'status': 'error',

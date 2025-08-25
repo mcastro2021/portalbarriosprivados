@@ -149,10 +149,10 @@ def create_app(config_name=None):
         config_name = os.environ.get('FLASK_CONFIG', 'development')
     
     try:
-        app.config.from_object(config.config[config_name])
+        app.config.from_object(config[config_name])
     except KeyError:
         print(f"⚠️ Configuración '{config_name}' no encontrada, usando desarrollo")
-        app.config.from_object(config.config['development'])
+        app.config.from_object(config['development'])
     
     # Inicializar extensiones básicas
     db.init_app(app)
