@@ -14,26 +14,36 @@ def login():
         if current_user.is_authenticated:
             return redirect(url_for('dashboard'))
         
-        form = LoginForm()
-        
         # Log para debugging
         print(f"Login attempt - Method: {request.method}")
         print(f"Form data: {request.form}")
-        print(f"Form errors: {form.errors}")
         
-        if form.validate_on_submit():
-            username = form.username.data
-            password = form.password.data
-            remember = form.remember_me.data
+        if request.method == 'POST':
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')
+            remember = request.form.get('remember_me') == 'y'
             
             print(f"Attempting login for user: {username}")
+            
+            # Validación básica
+            if not username or not password:
+                flash('Usuario y contraseña son requeridos', 'error')
+                return render_template('auth/login.html')
+            
+            if len(username) < 3:
+                flash('El usuario debe tener al menos 3 caracteres', 'error')
+                return render_template('auth/login.html')
+            
+            if len(password) < 6:
+                flash('La contraseña debe tener al menos 6 caracteres', 'error')
+                return render_template('auth/login.html')
             
             user = User.query.filter_by(username=username).first()
             
             if user and user.check_password(password):
                 if not user.is_active:
                     flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
-                    return render_template('auth/login.html', form=form)
+                    return render_template('auth/login.html')
                 
                 login_user(user, remember=remember)
                 user.last_login = datetime.utcnow()
@@ -48,17 +58,15 @@ def login():
                 return redirect(next_page)
             else:
                 flash('Usuario o contraseña incorrectos', 'error')
-        else:
-            print(f"Form validation failed: {form.errors}")
         
-        return render_template('auth/login.html', form=form)
+        return render_template('auth/login.html')
         
     except Exception as e:
         print(f"Error in login route: {str(e)}")
         import traceback
         traceback.print_exc()
         flash('Error interno del servidor. Por favor, intenta de nuevo.', 'error')
-        return render_template('auth/login.html', form=form)
+        return render_template('auth/login.html')
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
