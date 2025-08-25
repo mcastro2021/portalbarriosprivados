@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
+from models import Notification, db
+from datetime import datetime
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -22,3 +24,19 @@ def user_profile():
         'email': current_user.email,
         'role': current_user.role
     })
+
+@bp.route('/notifications/count')
+@login_required
+def notifications_count():
+    """Get unread notifications count"""
+    try:
+        unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        return jsonify({
+            'success': True,
+            'count': unread_count
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': 'Error interno del servidor'
+        }), 500
