@@ -8,7 +8,7 @@ from flask import current_app
 from sqlalchemy import func, text
 from sqlalchemy.orm import joinedload, selectinload, subqueryload
 from models import db, User, Visit, Reservation, News, Maintenance, Expense, Notification
-from app.services.cache_service import CacheService, cached
+from app_modules.services.cache_service import CacheService, cached
 
 
 class QueryOptimizer:

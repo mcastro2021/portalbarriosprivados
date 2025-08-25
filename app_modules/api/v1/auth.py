@@ -6,9 +6,9 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_user, logout_user, current_user
 from datetime import datetime, timedelta
 from models import db, User
-from app.services.auth_service import AuthService
-from app.services.security_service import SecurityService
-from app.core.error_handler import ValidationError, BusinessLogicError
+from app_modules.services.auth_service import AuthService
+from app_modules.services.security_service import SecurityService
+from app_modules.core.error_handler import ValidationError, BusinessLogicError
 
 auth_bp = Blueprint('auth_api', __name__)
 

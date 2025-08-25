@@ -9,10 +9,10 @@ import sys
 import secrets
 import subprocess
 from pathlib import Path
-from app.core.config_validator import ConfigValidator
-from app.services.cache_service import CacheService
-from app.services.query_optimizer import QueryOptimizer
-from app.utils.asset_optimizer import AssetOptimizer
+from app_modules.core.config_validator import ConfigValidator
+from app_modules.services.cache_service import CacheService
+from app_modules.services.query_optimizer import QueryOptimizer
+from app_modules.utils.asset_optimizer import AssetOptimizer
 
 
 class ImprovedSetup:
@@ -256,8 +256,8 @@ PROFILING_ENABLED=False
             print("⚙️ Configurando servicios...")
             
             from app import create_app
-            from app.services.cache_service import CacheService
-            from app.services.websocket_service import WebSocketService
+            from app_modules.services.cache_service import CacheService
+from app_modules.services.websocket_service import WebSocketService
             
             app = create_app('development')
             with app.app_context():
@@ -520,8 +520,8 @@ window.PortalUtils = {
         print("   - Dashboard de administrador para estadísticas")
         
         print("\n6. 🔧 Optimizaciones adicionales:")
-        print("   - python -c \"from app.services.query_optimizer import QueryOptimizer; QueryOptimizer.optimize_database()\"")
-        print("   - python -c \"from app.utils.asset_optimizer import AssetOptimizer; AssetOptimizer().build_all_assets()\"")
+        print("   - python -c \"from app_modules.services.query_optimizer import QueryOptimizer; QueryOptimizer.optimize_database()\"")
+print("   - python -c \"from app_modules.utils.asset_optimizer import AssetOptimizer; AssetOptimizer().build_all_assets()\"")
         
         print("\n📚 Documentación:")
         print("   - README_MEJORAS_CRITICAS.md")

@@ -461,8 +461,8 @@ Tests unitarios de ejemplo
 
 import pytest
 from unittest.mock import Mock, patch
-from app.services.two_factor_service import TwoFactorService
-from app.core.error_handler import ValidationError
+from app_modules.services.two_factor_service import TwoFactorService
+from app_modules.core.error_handler import ValidationError
 
 class TestTwoFactorService:
     """Tests para el servicio de 2FA"""
@@ -518,7 +518,7 @@ class TestValidationSchemas:
     
     def test_user_registration_valid_data(self):
         """Test validación de datos válidos de registro"""
-        from app.schemas.validation_schemas import UserRegistrationSchema
+        from app_modules.schemas.validation_schemas import UserRegistrationSchema
         
         schema = UserRegistrationSchema()
         valid_data = {
@@ -536,7 +536,7 @@ class TestValidationSchemas:
     
     def test_user_registration_invalid_email(self):
         """Test validación con email inválido"""
-        from app.schemas.validation_schemas import UserRegistrationSchema
+        from app_modules.schemas.validation_schemas import UserRegistrationSchema
         from marshmallow import ValidationError
         
         schema = UserRegistrationSchema()

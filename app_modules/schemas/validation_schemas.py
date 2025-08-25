@@ -459,7 +459,7 @@ def validate_with_schema(schema_class):
     def decorator(f):
         from functools import wraps
         from flask import request, jsonify
-        from app.core.error_handler import ValidationError as CustomValidationError
+        from app_modules.core.error_handler import ValidationError as CustomValidationError
         
         @wraps(f)
         def decorated_function(*args, **kwargs):

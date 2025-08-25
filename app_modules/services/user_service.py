@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from flask import current_app
 from models import db, User, Notification
 from sqlalchemy import func
-from app.core.error_handler import ValidationError, BusinessLogicError
+from app_modules.core.error_handler import ValidationError, BusinessLogicError
 
 
 class UserService:

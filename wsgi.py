@@ -11,6 +11,11 @@ import traceback
 # Agregar el directorio actual al path
 sys.path.insert(0, os.path.dirname(__file__))
 
+# Asegurar que el directorio app/ no interfiera con las importaciones
+# Agregar el directorio actual al principio del path para priorizar archivos locales
+if os.path.dirname(__file__) not in sys.path:
+    sys.path.insert(0, os.path.dirname(__file__))
+
 def create_application():
     """Crear aplicación Flask de forma segura"""
     try:

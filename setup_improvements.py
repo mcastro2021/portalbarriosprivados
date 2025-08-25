@@ -367,11 +367,11 @@ class ImprovementsSetup:
         try:
             # Test de importación de módulos críticos
             test_imports = [
-                "from app.core.error_handler import ErrorHandler",
-                "from app.core.logging_service import LoggingService", 
-                "from app.core.monitoring_service import MonitoringService",
-                "from app.services.two_factor_service import TwoFactorService",
-                "from app.schemas.validation_schemas import UserRegistrationSchema"
+                "from app_modules.core.error_handler import ErrorHandler",
+"from app_modules.core.logging_service import LoggingService",
+"from app_modules.core.monitoring_service import MonitoringService",
+"from app_modules.services.two_factor_service import TwoFactorService",
+"from app_modules.schemas.validation_schemas import UserRegistrationSchema"
             ]
             
             for import_test in test_imports:

@@ -54,7 +54,7 @@ def test_auth_service():
     print_header("VERIFICACIÓN DE AUTH SERVICE")
     
     try:
-        from app.services.auth_service import AuthService
+        from app_modules.services.auth_service import AuthService
         
         # Test validación de contraseña
         valid_password = "TestPassword123!"
@@ -94,7 +94,7 @@ def test_security_service():
     print_header("VERIFICACIÓN DE SECURITY SERVICE")
     
     try:
-        from app.services.security_service import SecurityService
+        from app_modules.services.security_service import SecurityService
         
         # Test validación de IP
         valid_ip = "192.168.1.1"
@@ -131,7 +131,7 @@ def test_config_validator():
     print_header("VERIFICACIÓN DE CONFIG VALIDATOR")
     
     try:
-        from app.core.config_validator import ConfigValidator
+        from app_modules.core.config_validator import ConfigValidator
         
         # Test configuración básica
         test_config = {
@@ -160,7 +160,7 @@ def test_error_handler():
     print_header("VERIFICACIÓN DE ERROR HANDLER")
     
     try:
-        from app.core.error_handler import ErrorHandler, ValidationError, BusinessLogicError, SecurityError
+        from app_modules.core.error_handler import ErrorHandler, ValidationError, BusinessLogicError, SecurityError
         
         # Test excepciones personalizadas
         try:
@@ -290,7 +290,7 @@ def run_all_tests():
         print("\n🔧 Soluciones sugeridas:")
         print("1. Instalar dependencias: pip install -r requirements.txt")
         print("2. Verificar estructura: ls -la app/ tests/")
-        print("3. Revisar imports: python -c 'from app.services import *'")
+        print("3. Revisar imports: python -c 'from app_modules.services import *'")
         return False
 
 

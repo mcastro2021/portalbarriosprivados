@@ -6,7 +6,7 @@ Script de configuración y validación para Portal Barrios Privados
 import os
 import sys
 import secrets
-from app.core.config_validator import ConfigValidator
+from app_modules.core.config_validator import ConfigValidator
 
 
 def generate_secret_key():

@@ -4,7 +4,7 @@ Tests para AuthService
 
 import pytest
 from unittest.mock import patch, MagicMock
-from app.services.auth_service import AuthService
+from app_modules.services.auth_service import AuthService
 
 
 class TestAuthService:
