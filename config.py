@@ -185,6 +185,7 @@ class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_ECHO = False
     SESSION_COOKIE_SECURE = True
+    WTF_CSRF_ENABLED = False  # Deshabilitar CSRF en producción para evitar problemas
     
     # Configuraciones específicas para producción
     SQLALCHEMY_ENGINE_OPTIONS = {

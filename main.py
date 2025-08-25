@@ -723,12 +723,15 @@ def create_app(config_name='default'):
             return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500
     
     @api_route('/api/notifications/count')
-    @login_required
     def api_notifications_count():
         """API para contar notificaciones no leídas"""
         try:
+            # Si el usuario no está autenticado, devolver 0 notificaciones
+            if not current_user.is_authenticated:
+                return jsonify({'count': 0, 'authenticated': False})
+            
             unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
-            return jsonify({'count': unread_count})
+            return jsonify({'count': unread_count, 'authenticated': True})
         except Exception as e:
             app.logger.error(f'Error en api_notifications_count: {str(e)}')
             return jsonify({'error': 'Error interno del servidor', 'message': str(e)}), 500

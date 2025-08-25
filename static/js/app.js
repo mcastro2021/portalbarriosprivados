@@ -105,8 +105,14 @@ function updateNotificationCount() {
             }
         })
         .catch(error => {
-            // Only log as error if it's not an authentication issue
-            if (error.message !== 'User not authenticated') {
+            // Silently handle authentication issues - user is not logged in
+            if (error.message === 'User not authenticated') {
+                // Hide notification count for unauthenticated users
+                const countElement = document.getElementById('notification-count');
+                if (countElement) {
+                    countElement.style.display = 'none';
+                }
+            } else {
                 console.error('Error updating notification count:', error);
             }
         });

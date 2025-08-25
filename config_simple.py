@@ -14,6 +14,9 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     ITEMS_PER_PAGE = 20
     
+    # Configuración de seguridad CSRF
+    WTF_CSRF_ENABLED = False  # Deshabilitar CSRF para evitar problemas en producción
+    
     # Configuración de seguridad
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-key-change-in-production'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)

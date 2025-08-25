@@ -80,7 +80,7 @@ class SecurityManager:
     def check_rate_limit(self):
         """Verificar rate limiting"""
         if not self.redis_client:
-            return
+            return  # Si Redis no está disponible, no aplicar rate limiting
         
         client_ip = request.remote_addr
         key = f"rate_limit:{client_ip}"
@@ -95,7 +95,8 @@ class SecurityManager:
             pipe.expire(key, 60)  # 1 minuto
             pipe.execute()
         except Exception as e:
-            logger.error(f"Error en rate limiting: {e}")
+            logger.warning(f"Rate limiting no disponible: {e}")
+            # No fallar la aplicación si Redis no está disponible
     
     def generate_token(self, user):
         """Generar JWT token para usuario"""
