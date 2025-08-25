@@ -195,7 +195,7 @@ IMPORTANTE:
         
         # Llamar a la API de Claude
         response = client.messages.create(
-            model="claude-3-sonnet-20240229",
+            model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=500,
             temperature=0.7

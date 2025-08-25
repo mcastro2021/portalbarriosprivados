@@ -11,10 +11,10 @@ def test_chatbot():
     print("🤖 Probando Chatbot con Preguntas Específicas")
     print("=" * 50)
     
-    # Configurar variable de entorno para Claude (reemplaza con tu key real)
-    api_key = "sk-ant-api03-YourActualAPIKeyHere"  # Reemplaza con tu key real
+    # Configurar variable de entorno para Claude
+    api_key = "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"
     
-    if api_key == "sk-ant-api03-YourActualAPIKeyHere":
+    if not api_key or api_key == "sk-ant-api03-YourActualAPIKeyHere":
         print("❌ Por favor, configura tu API key de Claude en el script")
         return
     
@@ -75,7 +75,7 @@ ESTILO DE RESPUESTA:
             
             try:
                 response = client.messages.create(
-                    model="claude-3-sonnet-20240229",
+                    model="claude-sonnet-4-20250514",
                     messages=[
                         {"role": "user", "content": system_prompt},
                         {"role": "user", "content": question}

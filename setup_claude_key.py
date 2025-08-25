@@ -10,11 +10,10 @@ def setup_claude_key():
     print("🤖 Configuración Rápida de Claude AI")
     print("=" * 40)
     
-    # Aquí puedes poner tu API key real
-    # Reemplaza "TU_API_KEY_AQUI" con tu key real de Claude
-    api_key = "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"  # ← Reemplaza con tu key real
+    # API key de Claude configurada
+    api_key = "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"
     
-    if api_key == "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":
+    if not api_key or api_key == "TU_API_KEY_AQUI":
         print("❌ Por favor, edita este archivo y reemplaza 'TU_API_KEY_AQUI' con tu API key real")
         print("\n📋 Para obtener tu API key:")
         print("1. Ve a https://console.anthropic.com/")
@@ -36,7 +35,7 @@ def setup_claude_key():
         
         # Hacer una llamada de prueba simple
         response = client.messages.create(
-            model="claude-3-sonnet-20240229",
+            model="claude-sonnet-4-20250514",
             max_tokens=10,
             messages=[{"role": "user", "content": "Hola"}]
         )
@@ -46,7 +45,7 @@ def setup_claude_key():
         # Probar una pregunta específica sobre reglamentos
         print("\n🧪 Probando pregunta sobre reglamentos...")
         response = client.messages.create(
-            model="claude-3-sonnet-20240229",
+            model="claude-sonnet-4-20250514",
             max_tokens=100,
             messages=[{"role": "user", "content": "¿Cuál es el reglamento de construcción en un barrio cerrado?"}]
         )
