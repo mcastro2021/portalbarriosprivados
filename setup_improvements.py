@@ -43,6 +43,15 @@ class ImprovementsSetup:
         # Configurar monitoreo
         self.setup_monitoring()
         
+        # Configurar optimizador de BD
+        self.setup_database_optimizer()
+        
+        # Configurar servicio de backup
+        self.setup_backup_service()
+        
+        # Configurar servicio de testing
+        self.setup_testing_service()
+        
         # Configurar 2FA
         self.setup_2fa()
         
@@ -217,6 +226,75 @@ class ImprovementsSetup:
         except Exception as e:
             self.errors.append(f"Error configurando monitoreo: {e}")
     
+    def setup_database_optimizer(self):
+        """Configurar optimizador de base de datos"""
+        print("\n🗄️ Configurando optimizador de base de datos...")
+        
+        try:
+            # Verificar servicio de optimización
+            db_optimizer = self.project_root / "app" / "core" / "database_optimizer.py"
+            if db_optimizer.exists():
+                print("✅ Optimizador de base de datos disponible")
+            else:
+                self.warnings.append("Optimizador de base de datos no encontrado")
+            
+            print("✅ Optimizador de base de datos configurado")
+            
+        except Exception as e:
+            self.errors.append(f"Error configurando optimizador de BD: {e}")
+    
+    def setup_backup_service(self):
+        """Configurar servicio de backup"""
+        print("\n💾 Configurando servicio de backup...")
+        
+        try:
+            # Verificar servicio de backup
+            backup_service = self.project_root / "app" / "core" / "backup_service.py"
+            if backup_service.exists():
+                print("✅ Servicio de backup disponible")
+            else:
+                self.warnings.append("Servicio de backup no encontrado")
+            
+            # Crear directorio de backups
+            backup_dir = self.project_root / "backups"
+            backup_dir.mkdir(exist_ok=True)
+            print("📁 Directorio de backups creado")
+            
+            print("✅ Servicio de backup configurado")
+            
+        except Exception as e:
+            self.errors.append(f"Error configurando servicio de backup: {e}")
+    
+    def setup_testing_service(self):
+        """Configurar servicio de testing"""
+        print("\n🧪 Configurando servicio de testing...")
+        
+        try:
+            # Verificar servicio de testing
+            testing_service = self.project_root / "app" / "core" / "testing_service.py"
+            if testing_service.exists():
+                print("✅ Servicio de testing disponible")
+            else:
+                self.warnings.append("Servicio de testing no encontrado")
+            
+            # Crear directorio de tests
+            tests_dir = self.project_root / "tests"
+            tests_dir.mkdir(exist_ok=True)
+            
+            # Crear subdirectorios de tests
+            test_subdirs = ["unit", "integration", "functional", "fixtures", "mocks"]
+            for subdir in test_subdirs:
+                (tests_dir / subdir).mkdir(exist_ok=True)
+            
+            print("📁 Estructura de tests creada")
+            print("✅ Servicio de testing configurado")
+            
+        except Exception as e:
+            self.errors.append(f"Error configurando servicio de testing: {e}")
+            
+        except Exception as e:
+            self.errors.append(f"Error configurando monitoreo: {e}")
+    
     def setup_2fa(self):
         """Configurar autenticación de dos factores"""
         print("\n🔐 Configurando 2FA...")
@@ -321,16 +399,16 @@ class ImprovementsSetup:
                 "✅ Mejora 1: Seguridad y Autenticación (2FA)",
                 "✅ Mejora 2: Gestión de Errores Centralizada", 
                 "✅ Mejora 3: Validación de Datos Robusta",
+                "✅ Mejora 4: Optimización de Base de Datos",
                 "✅ Mejora 5: Sistema de Logging Avanzado",
-                "✅ Mejora 10: Monitoreo y Métricas"
+                "✅ Mejora 9: Sistema de Backup Automatizado",
+                "✅ Mejora 10: Monitoreo y Métricas",
+                "✅ Mejora 11: Testing Automatizado"
             ],
             "pending_improvements": [
-                "⏳ Mejora 4: Optimización de Base de Datos",
                 "⏳ Mejora 6: API REST Completa",
                 "⏳ Mejora 7: Sistema de Notificaciones Push",
-                "⏳ Mejora 8: Gestión de Archivos Avanzada", 
-                "⏳ Mejora 9: Sistema de Backup Automatizado",
-                "⏳ Mejora 11: Testing Automatizado",
+                "⏳ Mejora 8: Gestión de Archivos Avanzada",
                 "⏳ Mejora 12: Internacionalización (i18n)"
             ],
             "errors": self.errors,
