@@ -45,6 +45,10 @@ from models import db, User, Visit, Reservation, News, Maintenance, Expense, Cla
 # Importar rutas
 from routes import auth, visits, reservations, news, maintenance, expenses, classifieds, security, chatbot, smart_maintenance, user_management, camera_security, broadcast_communications, map
 
+# Importar nuevas mejoras
+from security import security_manager
+from api.v1 import api_v1
+
 def create_app(config_name='default'):
     """Factory function para crear la aplicación Flask"""
     
@@ -56,6 +60,9 @@ def create_app(config_name='default'):
     db.init_app(app)
     migrate = Migrate(app, db)
     csrf = CSRFProtect(app)
+    
+    # Inicializar seguridad
+    security_manager.init_app(app)
     
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -189,6 +196,10 @@ def create_app(config_name='default'):
     # Importar y registrar blueprint de notificaciones de expensas
     from routes import expense_notifications
     app.register_blueprint(expense_notifications.bp)
+    
+    # Registrar API v1
+    app.register_blueprint(api_v1)
+    print("✅ API v1 registrada correctamente")
     
     # Filtros personalizados para Jinja2
     @app.template_filter('stage_color')
