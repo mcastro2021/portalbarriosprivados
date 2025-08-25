@@ -2,7 +2,9 @@ services:
   - type: web
     name: portal-barrios-privados
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      python test_deployment.py
     startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --threads 2
     envVars:
       - key: FLASK_ENV
