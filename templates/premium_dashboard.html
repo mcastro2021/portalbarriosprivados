@@ -1,0 +1,571 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Premium - Portal Barrios Privados{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/premium-ux.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Skip Links para Accesibilidad -->
+<a href="#main-content" class="skip-link sr-only">Saltar al contenido principal</a>
+<a href="#navigation" class="skip-link sr-only">Saltar a la navegación</a>
+
+<!-- Header Premium -->
+<header class="navbar" id="navigation">
+    <div class="container d-flex align-items-center justify-content-between">
+        <a href="{{ url_for('index') }}" class="navbar-brand text-gradient">
+            <i class="fas fa-home"></i>
+            Portal Barrios Privados
+        </a>
+        
+        <nav class="navbar-nav d-flex align-items-center">
+            <a href="#dashboard" class="nav-link active" data-tooltip="Dashboard principal">
+                <i class="fas fa-tachometer-alt"></i>
+                <span class="d-none d-md-inline">Dashboard</span>
+            </a>
+            <a href="#analytics" class="nav-link" data-tooltip="Analytics y reportes">
+                <i class="fas fa-chart-line"></i>
+                <span class="d-none d-md-inline">Analytics</span>
+            </a>
+            <a href="#automation" class="nav-link" data-tooltip="Automatización">
+                <i class="fas fa-robot"></i>
+                <span class="d-none d-md-inline">Automatización</span>
+            </a>
+            <a href="#settings" class="nav-link" data-tooltip="Configuración">
+                <i class="fas fa-cog"></i>
+                <span class="d-none d-md-inline">Configuración</span>
+            </a>
+            
+            <!-- Botón de cambio de tema -->
+            <button class="btn btn-icon btn-ghost" data-theme-toggle data-tooltip="Cambiar tema">
+                <i class="fas fa-moon"></i>
+            </button>
+            
+            <!-- Botón de menú móvil -->
+            <button class="btn btn-icon btn-ghost d-md-none" data-modal-target="mobile-menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </div>
+</header>
+
+<!-- Contenido Principal -->
+<main id="main-content" class="main-content">
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero-section fade-in" data-animate>
+            <div class="hero-content text-center">
+                <h1 class="text-gradient mb-3">Dashboard Premium</h1>
+                <p class="hero-subtitle">Experiencia de usuario excepcional con micro-interacciones y accesibilidad avanzada</p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary btn-lg" data-loading>
+                        <i class="fas fa-rocket"></i>
+                        Comenzar Experiencia
+                    </button>
+                    <button class="btn btn-outline btn-lg" data-modal-target="features-modal">
+                        <i class="fas fa-info-circle"></i>
+                        Ver Características
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Métricas Principales -->
+        <section class="metrics-section slide-in-left" data-animate>
+            <h2 class="section-title">Métricas en Tiempo Real</h2>
+            <div class="metrics-grid">
+                <div class="metric-card card" data-hover-animate>
+                    <div class="card-body text-center">
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="metric-value" data-counter="1250">0</h3>
+                        <p class="metric-label">Usuarios Activos</p>
+                        <div class="metric-trend up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card card" data-hover-animate>
+                    <div class="card-body text-center">
+                        <div class="metric-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="metric-value" data-counter="98.5">0</h3>
+                        <p class="metric-label">Uptime del Sistema</p>
+                        <div class="metric-trend stable">
+                            <i class="fas fa-minus"></i>
+                            <span>Estable</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card card" data-hover-animate>
+                    <div class="card-body text-center">
+                        <div class="metric-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3 class="metric-value" data-counter="245">0</h3>
+                        <p class="metric-label">Acciones Automatizadas</p>
+                        <div class="metric-trend up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+8%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card card" data-hover-animate>
+                    <div class="card-body text-center">
+                        <div class="metric-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="metric-value" data-counter="4.8">0</h3>
+                        <p class="metric-label">Satisfacción Usuario</p>
+                        <div class="metric-trend up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+0.2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Características Premium -->
+        <section class="features-section slide-in-right" data-animate>
+            <h2 class="section-title">Características Premium Implementadas</h2>
+            <div class="features-grid">
+                <div class="feature-card card" data-hover-animate>
+                    <div class="card-header">
+                        <i class="fas fa-palette feature-icon"></i>
+                        <h3>Diseño Premium</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Sistema de diseño moderno con gradientes, sombras y micro-interacciones que elevan la experiencia visual.</p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> Paleta de colores premium</li>
+                            <li><i class="fas fa-check"></i> Gradientes y efectos visuales</li>
+                            <li><i class="fas fa-check"></i> Tipografía optimizada</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="feature-card card" data-hover-animate>
+                    <div class="card-header">
+                        <i class="fas fa-magic feature-icon"></i>
+                        <h3>Micro-interacciones</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Animaciones sutiles y efectos que proporcionan feedback inmediato y mejoran la usabilidad.</p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> Efectos ripple en botones</li>
+                            <li><i class="fas fa-check"></i> Animaciones de hover</li>
+                            <li><i class="fas fa-check"></i> Transiciones suaves</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="feature-card card" data-hover-animate>
+                    <div class="card-header">
+                        <i class="fas fa-universal-access feature-icon"></i>
+                        <h3>Accesibilidad Avanzada</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Sistema completamente accesible que respeta las preferencias del usuario y estándares WCAG.</p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> Navegación por teclado</li>
+                            <li><i class="fas fa-check"></i> Screen reader compatible</li>
+                            <li><i class="fas fa-check"></i> Alto contraste</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="feature-card card" data-hover-animate>
+                    <div class="card-header">
+                        <i class="fas fa-mobile-alt feature-icon"></i>
+                        <h3>Responsive Design</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Interfaz adaptativa que se ve perfecta en todos los dispositivos y tamaños de pantalla.</p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> Mobile-first design</li>
+                            <li><i class="fas fa-check"></i> Breakpoints optimizados</li>
+                            <li><i class="fas fa-check"></i> Touch-friendly</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demostración de Componentes -->
+        <section class="components-section fade-in" data-animate>
+            <h2 class="section-title">Demostración de Componentes</h2>
+            
+            <!-- Formulario Premium -->
+            <div class="component-demo card">
+                <div class="card-header">
+                    <h3><i class="fas fa-edit"></i> Formulario Premium</h3>
+                </div>
+                <div class="card-body">
+                    <form class="premium-form">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Nombre Completo</label>
+                            <input type="text" id="name" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Teléfono</label>
+                            <input type="tel" id="phone" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message" class="form-label">Mensaje</label>
+                            <textarea id="message" class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" data-loading>
+                                <i class="fas fa-paper-plane"></i>
+                                Enviar Mensaje
+                            </button>
+                            <button type="reset" class="btn btn-outline">
+                                <i class="fas fa-undo"></i>
+                                Limpiar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Botones y Estados -->
+            <div class="component-demo card">
+                <div class="card-header">
+                    <h3><i class="fas fa-mouse-pointer"></i> Botones y Estados</h3>
+                </div>
+                <div class="card-body">
+                    <div class="button-showcase">
+                        <button class="btn btn-primary" data-tooltip="Botón primario">
+                            <i class="fas fa-star"></i>
+                            Botón Primario
+                        </button>
+                        
+                        <button class="btn btn-secondary" data-tooltip="Botón secundario">
+                            <i class="fas fa-heart"></i>
+                            Botón Secundario
+                        </button>
+                        
+                        <button class="btn btn-success" data-tooltip="Botón de éxito">
+                            <i class="fas fa-check"></i>
+                            Éxito
+                        </button>
+                        
+                        <button class="btn btn-warning" data-tooltip="Botón de advertencia">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Advertencia
+                        </button>
+                        
+                        <button class="btn btn-danger" data-tooltip="Botón de peligro">
+                            <i class="fas fa-trash"></i>
+                            Peligro
+                        </button>
+                        
+                        <button class="btn btn-outline" data-tooltip="Botón outline">
+                            <i class="fas fa-border-all"></i>
+                            Outline
+                        </button>
+                        
+                        <button class="btn btn-ghost" data-tooltip="Botón ghost">
+                            <i class="fas fa-ghost"></i>
+                            Ghost
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notificaciones -->
+            <div class="component-demo card">
+                <div class="card-header">
+                    <h3><i class="fas fa-bell"></i> Sistema de Notificaciones</h3>
+                </div>
+                <div class="card-body">
+                    <div class="notification-demo">
+                        <button class="btn btn-primary" onclick="showNotification('success', '¡Éxito!', 'Operación completada correctamente.')">
+                            <i class="fas fa-check-circle"></i>
+                            Notificación de Éxito
+                        </button>
+                        
+                        <button class="btn btn-warning" onclick="showNotification('warning', 'Advertencia', 'Por favor, revisa los datos ingresados.')">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Notificación de Advertencia
+                        </button>
+                        
+                        <button class="btn btn-danger" onclick="showNotification('error', 'Error', 'Ha ocurrido un error inesperado.')">
+                            <i class="fas fa-times-circle"></i>
+                            Notificación de Error
+                        </button>
+                        
+                        <button class="btn btn-info" onclick="showNotification('info', 'Información', 'Esta es una notificación informativa.')">
+                            <i class="fas fa-info-circle"></i>
+                            Notificación de Info
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progreso y Métricas -->
+        <section class="progress-section slide-in-left" data-animate>
+            <h2 class="section-title">Progreso y Métricas</h2>
+            <div class="progress-grid">
+                <div class="progress-card card">
+                    <div class="card-header">
+                        <h3>Progreso del Proyecto</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Fase 1 - Performance</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Fase 2 - Automatización</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Fase 3 - Analytics</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Fase 4 - UX Premium</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-card card">
+                    <div class="card-header">
+                        <h3>Estadísticas del Sistema</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>Líneas de Código</h4>
+                                <p class="stat-value" data-counter="15420">0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-file-code"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>Archivos Creados</h4>
+                                <p class="stat-value" data-counter="45">0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>Tiempo de Desarrollo</h4>
+                                <p class="stat-value">72 horas</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-bug"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>Bugs Corregidos</h4>
+                                <p class="stat-value" data-counter="23">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- Modal de Características -->
+<div id="features-modal" class="modal">
+    <div class="modal-header">
+        <h3 class="modal-title">Características Premium</h3>
+        <button class="modal-close" data-modal-close>&times;</button>
+    </div>
+    <div class="modal-body">
+        <div class="features-list">
+            <div class="feature-item">
+                <i class="fas fa-palette"></i>
+                <div>
+                    <h4>Sistema de Diseño Premium</h4>
+                    <p>Paleta de colores moderna, tipografía optimizada y componentes visuales de alta calidad.</p>
+                </div>
+            </div>
+            
+            <div class="feature-item">
+                <i class="fas fa-magic"></i>
+                <div>
+                    <h4>Micro-interacciones</h4>
+                    <p>Animaciones sutiles, efectos hover y transiciones que mejoran la experiencia del usuario.</p>
+                </div>
+            </div>
+            
+            <div class="feature-item">
+                <i class="fas fa-universal-access"></i>
+                <div>
+                    <h4>Accesibilidad Avanzada</h4>
+                    <p>Navegación por teclado, screen readers, alto contraste y respeto por las preferencias del usuario.</p>
+                </div>
+            </div>
+            
+            <div class="feature-item">
+                <i class="fas fa-mobile-alt"></i>
+                <div>
+                    <h4>Responsive Design</h4>
+                    <p>Interfaz adaptativa que funciona perfectamente en todos los dispositivos y tamaños de pantalla.</p>
+                </div>
+            </div>
+            
+            <div class="feature-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <div>
+                    <h4>Performance Optimizada</h4>
+                    <p>Lazy loading, debouncing, optimizaciones de CSS y JavaScript para máxima velocidad.</p>
+                </div>
+            </div>
+            
+            <div class="feature-item">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <h4>Seguridad Mejorada</h4>
+                    <p>Validación en tiempo real, sanitización de datos y protección contra ataques comunes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" data-modal-close>
+            <i class="fas fa-check"></i>
+            Entendido
+        </button>
+    </div>
+</div>
+
+<!-- Modal de Menú Móvil -->
+<div id="mobile-menu" class="modal">
+    <div class="modal-header">
+        <h3 class="modal-title">Menú de Navegación</h3>
+        <button class="modal-close" data-modal-close>&times;</button>
+    </div>
+    <div class="modal-body">
+        <nav class="mobile-nav">
+            <a href="#dashboard" class="mobile-nav-item" data-modal-close>
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="#analytics" class="mobile-nav-item" data-modal-close>
+                <i class="fas fa-chart-line"></i>
+                Analytics
+            </a>
+            <a href="#automation" class="mobile-nav-item" data-modal-close>
+                <i class="fas fa-robot"></i>
+                Automatización
+            </a>
+            <a href="#settings" class="mobile-nav-item" data-modal-close>
+                <i class="fas fa-cog"></i>
+                Configuración
+            </a>
+        </nav>
+    </div>
+</div>
+
+<script>
+// Función para mostrar notificaciones
+function showNotification(type, title, message) {
+    document.dispatchEvent(new CustomEvent('premium-ux:show-toast', {
+        detail: { type, title, message }
+    }));
+}
+
+// Función para animar contadores
+function animateCounters() {
+    const counters = document.querySelectorAll('[data-counter]');
+    counters.forEach(counter => {
+        const target = parseFloat(counter.getAttribute('data-counter'));
+        const duration = 2000;
+        const step = target / (duration / 16);
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += step;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            counter.textContent = Math.floor(current);
+        }, 16);
+    });
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    // Animar contadores cuando entren en vista
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounters();
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+    
+    const metricsSection = document.querySelector('.metrics-section');
+    if (metricsSection) {
+        observer.observe(metricsSection);
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/premium-ux.js') }}"></script>
+{% endblock %}

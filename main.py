@@ -166,7 +166,53 @@ def create_app(config_name=None):
     login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
     login_manager.login_message_category = 'info'
     
-    # Agregar contexto global para CSRF
+    # Inicializar optimizaciones de performance (Fase 1)
+    try:
+        from performance_integration import init_performance
+        init_performance(app)
+        print("✅ Optimizaciones de performance inicializadas")
+    except Exception as e:
+        print(f"⚠️ No se pudieron inicializar optimizaciones de performance: {e}")
+    
+    # Inicializar sistemas de automatización inteligente (Fase 2)
+    try:
+        from intelligent_automation import init_intelligent_automation
+        init_intelligent_automation(app)
+        print("✅ Sistema de automatización inteligente inicializado")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar automatización inteligente: {e}")
+    
+    try:
+        from advanced_chatbot import init_advanced_chatbot
+        init_advanced_chatbot(app)
+        print("✅ Chatbot inteligente avanzado inicializado")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar chatbot avanzado: {e}")
+    
+    try:
+        from intelligent_monitoring import init_intelligent_monitoring
+        init_intelligent_monitoring(app)
+        print("✅ Sistema de monitoreo inteligente inicializado")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar monitoreo inteligente: {e}")
+    
+            # Inicializar motor de analytics y business intelligence (Fase 3)
+        try:
+            from analytics_engine import init_analytics_engine
+            init_analytics_engine(app)
+            print("✅ Motor de Analytics y Business Intelligence inicializado")
+        except Exception as e:
+            print(f"⚠️ No se pudo inicializar motor de analytics: {e}")
+        
+        # Inicializar rutas premium UX (Fase 4)
+        try:
+            from routes.premium_routes import init_premium_routes
+            init_premium_routes(app)
+            print("✅ Rutas Premium UX inicializadas")
+        except Exception as e:
+            print(f"⚠️ No se pudo inicializar rutas premium: {e}")
+        
+        # Agregar contexto global para CSRF
     @app.context_processor
     def inject_csrf_token():
         from utils import get_csrf_token
