@@ -53,7 +53,11 @@ class SecurityManager:
             self.redis_client.ping()
             logger.info("✅ Redis conectado para rate limiting")
         except Exception as e:
-            logger.warning(f"⚠️ Rate limiting no disponible: {e}")
+            # En producción, solo mostrar un mensaje informativo sin el error completo
+            if os.getenv('FLASK_ENV') == 'production':
+                logger.info("ℹ️ Rate limiting no disponible - usando fallback")
+            else:
+                logger.warning(f"⚠️ Rate limiting no disponible: {e}")
             self.redis_client = None
         
         # Registrar middleware de seguridad

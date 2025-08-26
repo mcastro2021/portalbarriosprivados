@@ -860,7 +860,11 @@ class ExternalIntegrationsManager:
             self.redis_client.ping()
             logger.info("✅ Redis cache inicializado")
         except Exception as e:
-            logger.warning(f"⚠️ Redis no disponible: {e}")
+            # En producción, solo mostrar un mensaje informativo sin el error completo
+            if os.getenv('FLASK_ENV') == 'production':
+                logger.info("ℹ️ Redis no disponible - usando fallback en memoria")
+            else:
+                logger.warning(f"⚠️ Redis no disponible: {e}")
     
     def create_payment(self, amount: float, description: str, provider: PaymentProvider, **kwargs) -> PaymentResponse:
         """Crear pago"""

@@ -114,16 +114,10 @@ class IntelligentMonitoringSystem:
         if not self.monitoring_enabled:
             return
         
-        # Verificar que estamos en un contexto de aplicación válido
-        try:
-            from flask import current_app
-            if not current_app:
-                self.logger.warning("No hay aplicación Flask activa, monitoreo deshabilitado")
-                return
-        except RuntimeError:
-            self.logger.warning("No hay contexto de aplicación Flask, monitoreo deshabilitado")
-            return
-            
+        # En producción, no verificamos el contexto de Flask inmediatamente
+        # ya que puede no estar disponible durante la inicialización
+        # El sistema de monitoreo manejará los errores de contexto internamente
+        
         # Iniciar monitoreo en hilos separados
         monitoring_threads = [
             Thread(target=self._monitor_system_performance, daemon=True),

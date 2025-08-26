@@ -60,7 +60,11 @@ class DockerManager:
             self.client.ping()
             logger.info("✅ Docker inicializado")
         except Exception as e:
-            logger.error(f"❌ Error Docker: {e}")
+            # En producción, solo mostrar un mensaje informativo sin el error completo
+            if os.getenv('FLASK_ENV') == 'production':
+                logger.info("ℹ️ Docker no disponible - funcionalidades de containerización limitadas")
+            else:
+                logger.error(f"❌ Error Docker: {e}")
     
     def build_image(self, dockerfile_path: str, tag: str) -> Dict:
         try:
@@ -113,7 +117,11 @@ class LoadBalancer:
             self.redis_client.ping()
             logger.info("✅ Redis para balanceo inicializado")
         except Exception as e:
-            logger.warning(f"⚠️ Redis no disponible: {e}")
+            # En producción, solo mostrar un mensaje informativo sin el error completo
+            if os.getenv('FLASK_ENV') == 'production':
+                logger.info("ℹ️ Redis no disponible - balanceo de carga limitado")
+            else:
+                logger.warning(f"⚠️ Redis no disponible: {e}")
     
     def register_server(self, server_id: str, host: str, port: int) -> Dict:
         try:
