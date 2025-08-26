@@ -1,20 +1,60 @@
 services:
   - type: web
-    name: portal-barrios-privados
+    name: portalbarriosprivados
     env: python
+    plan: starter
     buildCommand: |
-      pip install -r requirements.txt || echo "Warning: Some dependencies failed to install"
-      python test_deployment.py || echo "Warning: Deployment test failed, using fallback"
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --threads 2
+      pip install --upgrade pip setuptools wheel
+      pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.18
       - key: FLASK_ENV
         value: production
-      - key: PYTHONPATH
-        value: .
+      - key: FLASK_APP
+        value: app.py
       - key: DATABASE_URL
-        generateValue: true
+        fromDatabase:
+          name: portalbarriosprivados-db
+          property: connectionString
+      - key: REDIS_URL
+        value: redis://localhost:6379
       - key: SECRET_KEY
         generateValue: true
-      - key: START_COMMAND
-        value: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --threads 2
-    healthCheckPath: /health
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: MERCADOPAGO_ACCESS_TOKEN
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: OPENWEATHERMAP_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        value: us-east-1
+      - key: SENTRY_DSN
+        sync: false
+
+databases:
+  - name: portalbarriosprivados-db
+    databaseName: portalbarriosprivados
+    user: portalbarriosprivados_user
+    plan: starter

@@ -1,92 +1,97 @@
+# Dependencias de build (necesarias para Python 3.13)
+setuptools>=68.0.0
+wheel>=0.40.0
+pip>=23.0.0
+
 # Dependencias principales de Flask
-Flask==2.3.3
-Flask-SQLAlchemy==3.0.5
-Flask-Login==0.6.3
-Flask-SocketIO==5.3.6
-Flask-Mail==0.9.1
-Flask-WTF==1.1.1
-Flask-Migrate==4.0.7
-Flask-CORS==4.0.0
-Flask-RESTful==0.3.10
-Flask-Caching==2.1.0
-Flask-Testing==0.8.1
-Flask-Babel==4.0.0
+Flask>=2.3.3,<3.0.0
+Flask-SQLAlchemy>=3.0.5,<4.0.0
+Flask-Login>=0.6.3,<1.0.0
+Flask-SocketIO>=5.3.6,<6.0.0
+Flask-Mail>=0.9.1,<1.0.0
+Flask-WTF>=1.1.1,<2.0.0
+Flask-Migrate>=4.0.7,<5.0.0
+Flask-CORS>=4.0.0,<5.0.0
+Flask-RESTful>=0.3.10,<1.0.0
+Flask-Caching>=2.1.0,<3.0.0
+Flask-Testing>=0.8.1,<1.0.0
+Flask-Babel>=4.0.0,<5.0.0
 
 # Dependencias del sistema
-Werkzeug==2.3.7
-SQLAlchemy==2.0.36
-python-dotenv==1.0.0
-Jinja2==3.1.2
-WTForms==3.0.1
-email-validator==2.0.0
-gunicorn==21.2.0
-requests==2.31.0
-python-dateutil==2.8.2
+Werkzeug>=2.3.7,<3.0.0
+SQLAlchemy>=2.0.36,<3.0.0
+python-dotenv>=1.0.0,<2.0.0
+Jinja2>=3.1.2,<4.0.0
+WTForms>=3.0.1,<4.0.0
+email-validator>=2.0.0,<3.0.0
+gunicorn>=21.2.0,<22.0.0
+requests>=2.31.0,<3.0.0
+python-dateutil>=2.8.2,<3.0.0
 
 # Dependencias para procesamiento de imágenes y códigos QR
-Pillow==10.4.0
-qrcode==7.4.2
+Pillow>=10.4.0,<11.0.0
+qrcode>=7.4.2,<8.0.0
 
 # Dependencias para servicios externos
-mercadopago==2.2.0
-twilio==8.5.0
-openai==1.35.0
-anthropic==0.64.0
+mercadopago>=2.2.0,<3.0.0
+twilio>=8.5.0,<9.0.0
+openai>=1.35.0,<2.0.0
+anthropic>=0.64.0,<1.0.0
 
 # Dependencias para WebSockets y eventos
-eventlet==0.33.3
+eventlet>=0.33.3,<1.0.0
 
 # Dependencias para mejoras críticas
-PyJWT==2.8.0
-alembic==1.13.1
-psycopg2-binary==2.9.9
-redis==5.0.1
-marshmallow==3.20.2
-marshmallow-sqlalchemy==0.29.0
-flask-limiter==3.5.0
-sentry-sdk[flask]==1.40.0
+PyJWT>=2.8.0,<3.0.0
+alembic>=1.13.1,<2.0.0
+psycopg2-binary>=2.9.9,<3.0.0
+redis>=5.0.1,<6.0.0
+marshmallow>=3.20.2,<4.0.0
+marshmallow-sqlalchemy>=0.29.0,<1.0.0
+flask-limiter>=3.5.0,<4.0.0
+sentry-sdk[flask]>=1.40.0,<2.0.0
 
 # Dependencias para 2FA
-pyotp==2.9.0
+pyotp>=2.9.0,<3.0.0
 
 # Dependencias para optimización de assets
-cssmin==0.2.0
-jsmin==3.0.1
+cssmin>=0.2.0,<1.0.0
+jsmin>=3.0.1,<4.0.0
 
 # Dependencias para monitoreo y programación
-psutil==5.9.6
-APScheduler==3.10.4
+psutil>=5.9.6,<6.0.0
+APScheduler>=3.10.4,<4.0.0
 
 # Dependencias para internacionalización
-Babel==2.13.1
+Babel>=2.13.1,<3.0.0
 
 # Dependencias para testing
-pytest==7.4.3
-pytest-flask==1.3.0
-pytest-cov==4.1.0
-pytest-json-report==1.5.0
-factory-boy==3.3.0
-faker==19.12.0
-coverage==7.3.2
+pytest>=7.4.3,<8.0.0
+pytest-flask>=1.3.0,<2.0.0
+pytest-cov>=4.1.0,<5.0.0
+pytest-json-report>=1.5.0,<2.0.0
+factory-boy>=3.3.0,<4.0.0
+faker>=19.12.0,<20.0.0
+coverage>=7.3.2,<8.0.0
 
 # Dependencias para backup
-schedule==1.2.0
+schedule>=1.2.0,<2.0.0
 
 # Dependencias para testing de interfaz
-selenium==4.15.2
-webdriver-manager==4.0.1
+selenium>=4.15.2,<5.0.0
+webdriver-manager>=4.0.1,<5.0.0
 
-# Dependencias para Fases 1-6 (Nuevas)
-numpy==1.24.3
-pandas==2.0.3
-matplotlib==3.7.2
-seaborn==0.12.2
-scikit-learn==1.3.0
-googlemaps==4.10.0
-docker==6.1.3
-boto3==1.28.44
-sendgrid==6.10.0
-stripe==6.6.0
-paypalrestsdk==1.13.1
-openweathermap==0.1.0
-geopy==2.3.0
+# Dependencias para Fases 1-6 (Nuevas) - Versiones compatibles con Python 3.13
+numpy>=1.24.0,<2.0.0
+pandas>=2.0.0,<3.0.0
+matplotlib>=3.7.0,<4.0.0
+seaborn>=0.12.0,<1.0.0
+scikit-learn>=1.3.0,<2.0.0
+googlemaps>=4.10.0,<5.0.0
+docker>=6.1.0,<7.0.0
+boto3>=1.28.0,<2.0.0
+sendgrid>=6.10.0,<7.0.0
+stripe>=6.6.0,<7.0.0
+paypalrestsdk>=1.13.0,<2.0.0
+openweathermap>=0.1.0,<1.0.0
+geopy>=2.3.0,<3.0.0
