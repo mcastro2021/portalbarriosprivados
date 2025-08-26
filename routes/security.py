@@ -219,31 +219,40 @@ def update_status(id):
 
 @bp.route('/panic_button', methods=['POST'])
 def panic_button():
-    """Activar botón de pánico"""
+    """Activar botón de pánico - EMERGENCIA INMEDIATA"""
     try:
+        # Log de activación del botón de pánico
+        logger.critical("🚨 BOTÓN DE PÁNICO ACTIVADO")
+        
         # Crear reporte de emergencia
         data = request.get_json() or {}
         
         if current_user.is_authenticated:
             user_info = f'{current_user.name} ({current_user.username})'
             location = current_user.address or 'Ubicación no especificada'
+            contact_phone = current_user.phone
+            emergency_contact = current_user.emergency_contact
         else:
             user_info = data.get('anonymous_name', 'Usuario Anónimo')
             location = data.get('location', 'Ubicación no especificada')
+            contact_phone = data.get('anonymous_phone', 'No especificado')
+            emergency_contact = None
         
+        # Crear reporte de emergencia con prioridad máxima
         report = SecurityReport(
             user_id=current_user.id if current_user.is_authenticated else None,
             reporter_name=data.get('anonymous_name') if not current_user.is_authenticated else None,
             reporter_phone=data.get('anonymous_phone') if not current_user.is_authenticated else None,
-            title='🚨 ALERTA DE PÁNICO',
+            title='🚨 ALERTA DE PÁNICO - EMERGENCIA INMEDIATA',
             incident_type='emergency',
-            description=f'Botón de pánico activado por {user_info}. {data.get("emergency_description", "")}',
+            description=f'BOTÓN DE PÁNICO ACTIVADO\n\nUsuario: {user_info}\nUbicación: {location}\nHora: {datetime.utcnow().strftime("%H:%M:%S")}\n\nDescripción: {data.get("emergency_description", "Emergencia reportada")}\n\nACCIÓN INMEDIATA REQUERIDA',
             location=location,
             severity='critical',
+            status='active',  # Estado activo para emergencias
             incident_date=datetime.utcnow().date(),
             incident_time=datetime.utcnow().time(),
-            contact_phone=current_user.phone,
-            emergency_contact=current_user.emergency_contact
+            contact_phone=contact_phone,
+            emergency_contact=emergency_contact
         )
         
         db.session.add(report)
@@ -252,15 +261,20 @@ def panic_button():
         # Notificar inmediatamente a todo el equipo de seguridad
         notify_emergency_team(report)
         
+        # Log de confirmación
+        logger.critical(f"🚨 ALERTA DE PÁNICO CONFIRMADA: Reporte ID {report.id}")
+        
         return jsonify({
             'success': True,
-            'message': 'Alerta de pánico enviada. El equipo de seguridad ha sido notificado.',
-            'report_id': report.id
+            'message': '🚨 ALERTA DE PÁNICO ENVIADA\nEl equipo de seguridad ha sido notificado inmediatamente.',
+            'report_id': report.id,
+            'timestamp': datetime.utcnow().isoformat()
         })
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"❌ Error en botón de pánico: {str(e)}")
+        return jsonify({'error': 'Error procesando alerta de pánico. Contacta seguridad directamente.'}), 500
 
 def notify_security_team(report):
     """Notificar al equipo de seguridad sobre nuevo reporte"""
@@ -282,12 +296,19 @@ def notify_emergency_team(report):
     emergency_users = User.query.filter(User.role.in_(['admin', 'security'])).all()
     
     for user in emergency_users:
+        # Notificación de emergencia con prioridad máxima
         notification = Notification(
             user_id=user.id,
-            title='🚨 ALERTA DE PÁNICO 🚨',
-            message=f'Botón de pánico activado por {report.author.name} en {report.location}',
+            title='🚨 ALERTA DE PÁNICO - EMERGENCIA 🚨',
+            message=f'BOTÓN DE PÁNICO ACTIVADO\n\nUsuario: {report.author.name if report.author else report.reporter_name}\nUbicación: {report.location}\nHora: {datetime.utcnow().strftime("%H:%M:%S")}\n\nACCIÓN INMEDIATA REQUERIDA',
             category='emergency',
             related_id=report.id,
-            related_type='security_report'
+            related_type='security_report',
+            priority='critical'
         )
         db.session.add(notification)
+        
+        # Log de emergencia para auditoría
+        logger.critical(f"🚨 ALERTA DE PÁNICO: Usuario {report.author.name if report.author else report.reporter_name} en {report.location}")
+    
+    db.session.commit()

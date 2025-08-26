@@ -149,20 +149,34 @@ def edit(news_id):
 @login_required
 def delete(news_id):
     """Eliminar noticia"""
-    news_item = News.query.get_or_404(news_id)
-    
-    # Verificar permisos
-    if news_item.author_id != current_user.id and not current_user.can_access_admin():
-        flash('No tienes permisos para eliminar esta noticia', 'error')
-        return redirect(url_for('news.show', news_id=news_item.id))
-    
     try:
+        news_item = News.query.get_or_404(news_id)
+        
+        # Verificar permisos
+        if news_item.author_id != current_user.id and not current_user.can_access_admin():
+            flash('No tienes permisos para eliminar esta noticia', 'error')
+            return redirect(url_for('news.show', news_id=news_item.id))
+        
+        # Guardar información para el log
+        news_title = news_item.title
+        news_id_value = news_item.id
+        
+        # Eliminar la noticia
         db.session.delete(news_item)
         db.session.commit()
+        
         flash('Noticia eliminada exitosamente', 'success')
+        print(f"✅ Noticia eliminada: ID {news_id_value} - '{news_title}'")
+        
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al eliminar la noticia: {str(e)}', 'error')
+        error_msg = f'Error al eliminar la noticia: {str(e)}'
+        flash(error_msg, 'error')
+        print(f"❌ Error eliminando noticia ID {news_id}: {str(e)}")
+        
+        # Log detallado del error
+        import traceback
+        print(f"Traceback completo: {traceback.format_exc()}")
     
     return redirect(url_for('news.index'))
 

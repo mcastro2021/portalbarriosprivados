@@ -238,7 +238,10 @@ function panicButtonAnonymous() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('🚨 ALERTA DE EMERGENCIA ENVIADA\n\nSeguridad y administración han sido notificados.\nSe contactarán contigo lo antes posible.');
+                alert('🚨 ALERTA DE PÁNICO ENVIADA\n\nEl equipo de seguridad ha sido notificado inmediatamente.\nMantén la calma y espera la respuesta del equipo de emergencia.');
+                
+                // Mostrar indicador visual de emergencia activa
+                showEmergencyIndicator();
             } else {
                 alert('Error enviando alerta: ' + data.error);
             }
@@ -259,7 +262,10 @@ function confirmPanic() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('🚨 Alerta de pánico enviada. Seguridad ha sido notificada.');
+            alert('🚨 ALERTA DE PÁNICO ENVIADA\n\nEl equipo de seguridad ha sido notificado inmediatamente.\nMantén la calma y espera la respuesta del equipo de emergencia.');
+            
+            // Mostrar indicador visual de emergencia activa
+            showEmergencyIndicator();
         } else {
             alert('Error enviando alerta: ' + data.error);
         }
@@ -270,9 +276,31 @@ function confirmPanic() {
     
     const modal = bootstrap.Modal.getInstance(document.getElementById('panicModal'));
     modal.hide();
+}
+
+function showEmergencyIndicator() {
+    // Crear indicador visual de emergencia
+    const indicator = document.createElement('div');
+    indicator.id = 'emergencyIndicator';
+    indicator.innerHTML = `
+        <div class="alert alert-danger alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; max-width: 400px;">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>🚨 EMERGENCIA ACTIVA</strong><br>
+            El equipo de seguridad ha sido notificado.<br>
+            Mantén la calma y espera respuesta.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.body.appendChild(indicator);
     
-    // Simular redirección a crear reporte de emergencia
-    window.location.href = '{{ url_for("security.new_report") }}?emergency=true';
+    // Remover después de 30 segundos
+    setTimeout(() => {
+        const indicator = document.getElementById('emergencyIndicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }, 30000);
 }
 </script>
 {% endblock %}
