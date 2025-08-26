@@ -196,23 +196,55 @@ def create_app(config_name=None):
     except Exception as e:
         print(f"⚠️ No se pudo inicializar monitoreo inteligente: {e}")
     
-            # Inicializar motor de analytics y business intelligence (Fase 3)
-        try:
-            from analytics_engine import init_analytics_engine
-            init_analytics_engine(app)
-            print("✅ Motor de Analytics y Business Intelligence inicializado")
-        except Exception as e:
-            print(f"⚠️ No se pudo inicializar motor de analytics: {e}")
-        
-        # Inicializar rutas premium UX (Fase 4)
-        try:
-            from routes.premium_routes import init_premium_routes
-            init_premium_routes(app)
-            print("✅ Rutas Premium UX inicializadas")
-        except Exception as e:
-            print(f"⚠️ No se pudo inicializar rutas premium: {e}")
-        
-        # Agregar contexto global para CSRF
+    # Inicializar motor de analytics y business intelligence (Fase 3)
+    try:
+        from analytics_engine import init_analytics_engine
+        init_analytics_engine(app)
+        print("✅ Motor de Analytics y Business Intelligence inicializado")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar motor de analytics: {e}")
+    
+    # Inicializar rutas premium UX (Fase 4)
+    try:
+        from routes.premium_routes import init_premium_routes
+        init_premium_routes(app)
+        print("✅ Rutas Premium UX inicializadas")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar rutas premium: {e}")
+    
+    # Inicializar integraciones externas (Fase 5)
+    try:
+        from external_integrations import init_external_integrations
+        init_external_integrations(app)
+        print("✅ Integraciones externas inicializadas")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar integraciones externas: {e}")
+    
+    # Inicializar rutas de integraciones externas (Fase 5)
+    try:
+        from routes.external_routes import init_external_routes
+        init_external_routes(app)
+        print("✅ Rutas de integraciones externas inicializadas")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar rutas externas: {e}")
+    
+    # Inicializar sistema de escalabilidad (Fase 6)
+    try:
+        from scalability_deployment import init_scalability_deployment
+        init_scalability_deployment(app)
+        print("✅ Sistema de escalabilidad inicializado")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar escalabilidad: {e}")
+    
+    # Inicializar rutas de escalabilidad (Fase 6)
+    try:
+        from routes.scalability_routes import init_scalability_routes
+        init_scalability_routes(app)
+        print("✅ Rutas de escalabilidad inicializadas")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar rutas de escalabilidad: {e}")
+    
+    # Agregar contexto global para CSRF
     @app.context_processor
     def inject_csrf_token():
         from utils import get_csrf_token
