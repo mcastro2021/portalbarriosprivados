@@ -5,6 +5,10 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, time
 import os
 import json
+import logging
+
+# Configurar logger
+logger = logging.getLogger(__name__)
 
 bp = Blueprint('security', __name__, url_prefix='/security')
 

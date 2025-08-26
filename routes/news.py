@@ -67,6 +67,26 @@ def new():
                 flash('La categoría es obligatoria', 'error')
                 return render_template('news/new.html')
             
+            # Prevenir noticias de demostración
+            demo_keywords = [
+                'demo', 'test', 'ejemplo', 'muestra', 'prueba', 'sample',
+                'noticia de prueba', 'noticia demo', 'noticia ejemplo',
+                'Bienvenidos', 'Bienvenido', 'Primera noticia',
+                'Noticia de prueba', 'Noticia demo', 'Portal del Barrio'
+            ]
+            
+            title_lower = title.lower()
+            for keyword in demo_keywords:
+                if keyword.lower() in title_lower:
+                    flash(f'No se permiten títulos con palabras de demostración como "{keyword}". Use contenido real y relevante.', 'error')
+                    return render_template('news/new.html')
+            
+            content_lower = content.lower()
+            for keyword in demo_keywords:
+                if keyword.lower() in content_lower:
+                    flash(f'No se permite contenido con palabras de demostración como "{keyword}". Use contenido real y relevante.', 'error')
+                    return render_template('news/new.html')
+            
             # Crear noticia
             news_item = News(
                 title=title,
@@ -125,6 +145,26 @@ def edit(news_id):
                 flash('La categoría es obligatoria', 'error')
                 return render_template('news/edit.html', news=news_item)
             
+            # Prevenir noticias de demostración
+            demo_keywords = [
+                'demo', 'test', 'ejemplo', 'muestra', 'prueba', 'sample',
+                'noticia de prueba', 'noticia demo', 'noticia ejemplo',
+                'Bienvenidos', 'Bienvenido', 'Primera noticia',
+                'Noticia de prueba', 'Noticia demo', 'Portal del Barrio'
+            ]
+            
+            title_lower = title.lower()
+            for keyword in demo_keywords:
+                if keyword.lower() in title_lower:
+                    flash(f'No se permiten títulos con palabras de demostración como "{keyword}". Use contenido real y relevante.', 'error')
+                    return render_template('news/edit.html', news=news_item)
+            
+            content_lower = content.lower()
+            for keyword in demo_keywords:
+                if keyword.lower() in content_lower:
+                    flash(f'No se permite contenido con palabras de demostración como "{keyword}". Use contenido real y relevante.', 'error')
+                    return render_template('news/edit.html', news=news_item)
+            
             # Actualizar noticia
             news_item.title = title
             news_item.content = content
@@ -161,6 +201,11 @@ def delete(news_id):
         news_title = news_item.title
         news_id_value = news_item.id
         
+        # Verificar si la noticia existe antes de eliminar
+        if not news_item:
+            flash('La noticia no existe o ya fue eliminada', 'error')
+            return redirect(url_for('news.index'))
+        
         # Eliminar la noticia
         db.session.delete(news_item)
         db.session.commit()
@@ -177,6 +222,15 @@ def delete(news_id):
         # Log detallado del error
         import traceback
         print(f"Traceback completo: {traceback.format_exc()}")
+        
+        # Verificar si la noticia realmente fue eliminada a pesar del error
+        try:
+            check_news = News.query.get(news_id)
+            if not check_news:
+                flash('La noticia fue eliminada exitosamente a pesar del error técnico', 'success')
+                print(f"✅ Noticia ID {news_id} eliminada exitosamente (verificación posterior)")
+        except Exception as check_error:
+            print(f"❌ Error verificando eliminación: {str(check_error)}")
     
     return redirect(url_for('news.index'))
 
