@@ -206,6 +206,14 @@ class IntelligentMonitoringSystem:
                 failed_logins = self._get_failed_login_attempts()
                 suspicious_activities = self._get_suspicious_activities()
                 
+                # Validar que las funciones retornen listas válidas
+                if security_events is None:
+                    security_events = []
+                if failed_logins is None:
+                    failed_logins = []
+                if suspicious_activities is None:
+                    suspicious_activities = []
+                
                 # Registrar métricas
                 self._record_metric('security_events', len(security_events), 'events', 'security')
                 self._record_metric('failed_logins', len(failed_logins), 'attempts', 'security')
@@ -461,20 +469,27 @@ class IntelligentMonitoringSystem:
             else:
                 self.logger.error(f"Error obteniendo eventos de seguridad: {e}")
                 return []
+        
+        # Asegurar que siempre retorne una lista
+        return []
     
     def _get_failed_login_attempts(self) -> List[Dict]:
         """Obtener intentos de login fallidos"""
-        # Simular obtención de intentos fallidos
-        # En un sistema real, esto vendría de logs de autenticación
-        import random
-        attempts = []
-        for _ in range(random.randint(0, 10)):
-            attempts.append({
-                'user_id': random.randint(1, 100),
-                'timestamp': datetime.now() - timedelta(minutes=random.randint(1, 60)),
-                'ip_address': f"192.168.1.{random.randint(1, 255)}"
-            })
-        return attempts
+        try:
+            # Simular obtención de intentos fallidos
+            # En un sistema real, esto vendría de logs de autenticación
+            import random
+            attempts = []
+            for _ in range(random.randint(0, 10)):
+                attempts.append({
+                    'user_id': random.randint(1, 100),
+                    'timestamp': datetime.now() - timedelta(minutes=random.randint(1, 60)),
+                    'ip_address': f"192.168.1.{random.randint(1, 255)}"
+                })
+            return attempts
+        except Exception as e:
+            self.logger.error(f"Error obteniendo intentos de login fallidos: {e}")
+            return []
     
     def _get_suspicious_activities(self) -> List[Dict]:
         """Obtener actividades sospechosas"""
@@ -516,6 +531,9 @@ class IntelligentMonitoringSystem:
             else:
                 self.logger.error(f"Error obteniendo actividades sospechosas: {e}")
                 return []
+        
+        # Asegurar que siempre retorne una lista
+        return []
     
     def _get_pending_maintenance_count(self) -> int:
         """Obtener número de solicitudes de mantenimiento pendientes"""
