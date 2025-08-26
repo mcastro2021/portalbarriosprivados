@@ -113,6 +113,16 @@ class IntelligentMonitoringSystem:
         """Iniciar sistema de monitoreo"""
         if not self.monitoring_enabled:
             return
+        
+        # Verificar que estamos en un contexto de aplicación válido
+        try:
+            from flask import current_app
+            if not current_app:
+                self.logger.warning("No hay aplicación Flask activa, monitoreo deshabilitado")
+                return
+        except RuntimeError:
+            self.logger.warning("No hay contexto de aplicación Flask, monitoreo deshabilitado")
+            return
             
         # Iniciar monitoreo en hilos separados
         monitoring_threads = [
@@ -348,11 +358,12 @@ class IntelligentMonitoringSystem:
     def _get_active_users_count(self) -> int:
         """Obtener número de usuarios activos"""
         try:
-            # Usuarios que han tenido actividad en las últimas 24 horas
-            active_users = User.query.filter(
-                User.last_login >= datetime.now() - timedelta(hours=24)
-            ).count()
-            return active_users
+            with current_app.app_context():
+                # Usuarios que han tenido actividad en las últimas 24 horas
+                active_users = User.query.filter(
+                    User.last_login >= datetime.now() - timedelta(hours=24)
+                ).count()
+                return active_users
         except Exception as e:
             self.logger.error(f"Error obteniendo usuarios activos: {e}")
             return 0
@@ -360,11 +371,12 @@ class IntelligentMonitoringSystem:
     def _get_new_registrations_count(self) -> int:
         """Obtener número de nuevos registros"""
         try:
-            # Usuarios registrados en las últimas 24 horas
-            new_users = User.query.filter(
-                User.created_at >= datetime.now() - timedelta(hours=24)
-            ).count()
-            return new_users
+            with current_app.app_context():
+                # Usuarios registrados en las últimas 24 horas
+                new_users = User.query.filter(
+                    User.created_at >= datetime.now() - timedelta(hours=24)
+                ).count()
+                return new_users
         except Exception as e:
             self.logger.error(f"Error obteniendo nuevos registros: {e}")
             return 0
@@ -383,21 +395,22 @@ class IntelligentMonitoringSystem:
     def _get_recent_security_events(self) -> List[Dict]:
         """Obtener eventos de seguridad recientes"""
         try:
-            # Eventos de seguridad en la última hora
-            events = SecurityReport.query.filter(
-                SecurityReport.created_at >= datetime.now() - timedelta(hours=1)
-            ).all()
-            
-            return [
-                {
-                    'id': event.id,
-                    'title': event.title,
-                    'description': event.description,
-                    'priority': event.priority,
-                    'created_at': event.created_at
-                }
-                for event in events
-            ]
+            with current_app.app_context():
+                # Eventos de seguridad en la última hora
+                events = SecurityReport.query.filter(
+                    SecurityReport.created_at >= datetime.now() - timedelta(hours=1)
+                ).all()
+                
+                return [
+                    {
+                        'id': event.id,
+                        'title': event.title,
+                        'description': event.description,
+                        'priority': event.priority,
+                        'created_at': event.created_at
+                    }
+                    for event in events
+                ]
         except Exception as e:
             self.logger.error(f"Error obteniendo eventos de seguridad: {e}")
             return []
@@ -419,23 +432,24 @@ class IntelligentMonitoringSystem:
     def _get_suspicious_activities(self) -> List[Dict]:
         """Obtener actividades sospechosas"""
         try:
-            # Actividades sospechosas en la última hora
-            activities = SecurityReport.query.filter(
-                and_(
-                    SecurityReport.created_at >= datetime.now() - timedelta(hours=1),
-                    SecurityReport.priority.in_(['high', 'critical'])
-                )
-            ).all()
-            
-            return [
-                {
-                    'id': activity.id,
-                    'title': activity.title,
-                    'description': activity.description,
-                    'priority': activity.priority
-                }
-                for activity in activities
-            ]
+            with current_app.app_context():
+                # Actividades sospechosas en la última hora
+                activities = SecurityReport.query.filter(
+                    and_(
+                        SecurityReport.created_at >= datetime.now() - timedelta(hours=1),
+                        SecurityReport.priority.in_(['high', 'critical'])
+                    )
+                ).all()
+                
+                return [
+                    {
+                        'id': activity.id,
+                        'title': activity.title,
+                        'description': activity.description,
+                        'priority': activity.priority
+                    }
+                    for activity in activities
+                ]
         except Exception as e:
             self.logger.error(f"Error obteniendo actividades sospechosas: {e}")
             return []
@@ -443,7 +457,8 @@ class IntelligentMonitoringSystem:
     def _get_pending_maintenance_count(self) -> int:
         """Obtener número de solicitudes de mantenimiento pendientes"""
         try:
-            return Maintenance.query.filter_by(status='pending').count()
+            with current_app.app_context():
+                return Maintenance.query.filter_by(status='pending').count()
         except Exception as e:
             self.logger.error(f"Error obteniendo mantenimiento pendiente: {e}")
             return 0
@@ -451,12 +466,13 @@ class IntelligentMonitoringSystem:
     def _get_high_priority_maintenance_count(self) -> int:
         """Obtener número de solicitudes de mantenimiento de alta prioridad"""
         try:
-            return Maintenance.query.filter(
-                and_(
-                    Maintenance.status == 'pending',
-                    Maintenance.priority.in_(['high', 'critical'])
-                )
-            ).count()
+            with current_app.app_context():
+                return Maintenance.query.filter(
+                    and_(
+                        Maintenance.status == 'pending',
+                        Maintenance.priority.in_(['high', 'critical'])
+                    )
+                ).count()
         except Exception as e:
             self.logger.error(f"Error obteniendo mantenimiento de alta prioridad: {e}")
             return 0
@@ -464,20 +480,21 @@ class IntelligentMonitoringSystem:
     def _get_maintenance_response_time(self) -> float:
         """Obtener tiempo promedio de respuesta de mantenimiento"""
         try:
-            # Calcular tiempo promedio desde que se reportó hasta que se asignó
-            maintenance_requests = Maintenance.query.filter(
-                Maintenance.assigned_at.isnot(None)
-            ).all()
-            
-            if not maintenance_requests:
-                return 0.0
-            
-            total_time = 0
-            for request in maintenance_requests:
-                response_time = (request.assigned_at - request.reported_at).total_seconds() / 3600
-                total_time += response_time
-            
-            return total_time / len(maintenance_requests)
+            with current_app.app_context():
+                # Calcular tiempo promedio desde que se reportó hasta que se asignó
+                maintenance_requests = Maintenance.query.filter(
+                    Maintenance.assigned_at.isnot(None)
+                ).all()
+                
+                if not maintenance_requests:
+                    return 0.0
+                
+                total_time = 0
+                for request in maintenance_requests:
+                    response_time = (request.assigned_at - request.reported_at).total_seconds() / 3600
+                    total_time += response_time
+                
+                return total_time / len(maintenance_requests)
         except Exception as e:
             self.logger.error(f"Error calculando tiempo de respuesta de mantenimiento: {e}")
             return 0.0
@@ -714,8 +731,17 @@ def init_intelligent_monitoring(app):
             logger.warning("⚠️ numpy no disponible - monitoreo inteligente deshabilitado")
             return
         
-        # Iniciar sistema de monitoreo
-        intelligent_monitoring.start_monitoring()
+        # Configurar el sistema de monitoreo pero no iniciarlo inmediatamente
+        # Se iniciará cuando la aplicación esté completamente configurada
+        def start_monitoring_delayed():
+            import time
+            time.sleep(5)  # Esperar 5 segundos para que la app esté lista
+            intelligent_monitoring.start_monitoring()
+        
+        # Iniciar monitoreo en un hilo separado después de un delay
+        from threading import Thread
+        monitoring_thread = Thread(target=start_monitoring_delayed, daemon=True)
+        monitoring_thread.start()
         
         # Registrar rutas de API para monitoreo
         @app.route('/api/v1/monitoring/status', methods=['GET'])
