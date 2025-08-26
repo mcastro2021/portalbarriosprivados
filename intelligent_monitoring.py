@@ -14,7 +14,9 @@ import asyncio
 from threading import Thread
 import statistics
 from collections import defaultdict, deque
-import numpy as np
+# Importar numpy de forma segura
+from optional_dependencies import get_numpy, NUMPY_AVAILABLE
+np = get_numpy()
 
 from flask import current_app, request
 from sqlalchemy import and_, or_, func, desc
@@ -707,6 +709,11 @@ def init_intelligent_monitoring(app):
     """Inicializar sistema de monitoreo inteligente"""
     
     try:
+        # Verificar dependencias requeridas
+        if not NUMPY_AVAILABLE:
+            logger.warning("⚠️ numpy no disponible - monitoreo inteligente deshabilitado")
+            return
+        
         # Iniciar sistema de monitoreo
         intelligent_monitoring.start_monitoring()
         

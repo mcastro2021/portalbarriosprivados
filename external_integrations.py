@@ -20,20 +20,48 @@ import logging
 from urllib.parse import urlencode
 import os
 from flask import current_app, request
+# Importar dependencias opcionales
+from optional_dependencies import (
+    get_googlemaps, get_openweathermap, get_geopy, get_stripe, 
+    get_paypal, get_sendgrid, get_boto3, GOOGLEMAPS_AVAILABLE,
+    OPENWEATHERMAP_AVAILABLE, GEOPY_AVAILABLE, STRIPE_AVAILABLE,
+    PAYPAL_AVAILABLE, SENDGRID_AVAILABLE, BOTO3_AVAILABLE
+)
+
+# Importar dependencias principales (siempre disponibles)
 import mercadopago
 from twilio.rest import Client
-import googlemaps
-import openweathermap
-from geopy.geocoders import Nominatim
-from geopy.distance import geodesic
-import stripe
-import paypalrestsdk
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
-import boto3
-from botocore.exceptions import ClientError
 import redis
 import jwt
+
+# Importar dependencias opcionales
+googlemaps = get_googlemaps()
+openweathermap = get_openweathermap()
+geopy = get_geopy()
+stripe = get_stripe()
+paypalrestsdk = get_paypal()
+sendgrid = get_sendgrid()
+boto3 = get_boto3()
+
+# Importar clases específicas si están disponibles
+if GEOPY_AVAILABLE and geopy:
+    from geopy.geocoders import Nominatim
+    from geopy.distance import geodesic
+else:
+    Nominatim = None
+    geodesic = None
+
+if SENDGRID_AVAILABLE and sendgrid:
+    from sendgrid import SendGridAPIClient
+    from sendgrid.helpers.mail import Mail
+else:
+    SendGridAPIClient = None
+    Mail = None
+
+if BOTO3_AVAILABLE and boto3:
+    from botocore.exceptions import ClientError
+else:
+    ClientError = None
 
 # Configuración de logging
 logging.basicConfig(level=logging.INFO)
@@ -905,6 +933,28 @@ external_integrations = ExternalIntegrationsManager()
 def init_external_integrations(app):
     """Inicializar integraciones externas en la aplicación Flask"""
     try:
+        # Verificar dependencias requeridas
+        missing_deps = []
+        if not GOOGLEMAPS_AVAILABLE:
+            missing_deps.append('googlemaps')
+        if not OPENWEATHERMAP_AVAILABLE:
+            missing_deps.append('openweathermap')
+        if not GEOPY_AVAILABLE:
+            missing_deps.append('geopy')
+        if not STRIPE_AVAILABLE:
+            missing_deps.append('stripe')
+        if not PAYPAL_AVAILABLE:
+            missing_deps.append('paypalrestsdk')
+        if not SENDGRID_AVAILABLE:
+            missing_deps.append('sendgrid')
+        if not BOTO3_AVAILABLE:
+            missing_deps.append('boto3')
+        
+        if missing_deps:
+            logger.warning(f"⚠️ Dependencias faltantes: {', '.join(missing_deps)} - algunas integraciones estarán limitadas")
+        
+        # Registrar en el contexto de la aplicación
+        app.external_integrations = external_integrations
         # Registrar en el contexto de la aplicación
         app.external_integrations = external_integrations
         

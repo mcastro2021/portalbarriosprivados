@@ -326,7 +326,8 @@ performance_integration = PerformanceIntegration()
 
 def init_performance(app):
     """Función de conveniencia para inicializar performance"""
-    performance_integration.init_app(app)
+    with app.app_context():
+        performance_integration.init_app(app)
     return performance_integration
 
 # Configuración de performance para diferentes entornos

@@ -9,7 +9,9 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Any, Tuple
 from collections import defaultdict, Counter
-import numpy as np
+# Importar numpy de forma segura
+from optional_dependencies import get_numpy, NUMPY_AVAILABLE
+np = get_numpy()
 from enum import Enum
 import threading
 import time
@@ -735,6 +737,11 @@ analytics_manager = AnalyticsManager()
 
 def init_analytics_engine(app):
     """Inicializa el motor de analytics en la aplicación Flask"""
+    
+    # Verificar dependencias requeridas
+    if not NUMPY_AVAILABLE:
+        print("⚠️ numpy no disponible - motor de analytics deshabilitado")
+        return
     
     @app.route('/api/v1/analytics/dashboard', methods=['GET'])
     def get_analytics_dashboard():

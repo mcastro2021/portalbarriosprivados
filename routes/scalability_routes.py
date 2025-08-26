@@ -10,6 +10,7 @@ from flask_login import login_required, current_user
 from scalability_deployment import (
     scalability_manager, DeploymentConfig, DeploymentType
 )
+from optional_dependencies import DOCKER_AVAILABLE
 import json
 from datetime import datetime
 
@@ -52,7 +53,7 @@ def deploy_application():
 def list_containers():
     """Listar contenedores"""
     try:
-        if not scalability_manager.docker_manager.client:
+        if not DOCKER_AVAILABLE or not scalability_manager.docker_manager.client:
             return jsonify({"success": False, "error": "Docker no disponible"}), 503
         
         containers = scalability_manager.docker_manager.client.containers.list()
@@ -81,7 +82,7 @@ def list_containers():
 def stop_container(container_id):
     """Detener contenedor"""
     try:
-        if not scalability_manager.docker_manager.client:
+        if not DOCKER_AVAILABLE or not scalability_manager.docker_manager.client:
             return jsonify({"success": False, "error": "Docker no disponible"}), 503
         
         container = scalability_manager.docker_manager.client.containers.get(container_id)

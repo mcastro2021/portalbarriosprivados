@@ -11,6 +11,10 @@ from external_integrations import (
     external_integrations, PaymentProvider, CommunicationMessage,
     LocationData, WeatherData
 )
+from optional_dependencies import (
+    GOOGLEMAPS_AVAILABLE, OPENWEATHERMAP_AVAILABLE, GEOPY_AVAILABLE,
+    STRIPE_AVAILABLE, PAYPAL_AVAILABLE, SENDGRID_AVAILABLE, BOTO3_AVAILABLE
+)
 import time
 
 external_bp = Blueprint('external', __name__, url_prefix='/external')
@@ -92,6 +96,9 @@ def send_notification():
 def geocode_address():
     """Geocodificar dirección"""
     try:
+        if not GOOGLEMAPS_AVAILABLE and not GEOPY_AVAILABLE:
+            return jsonify({"success": False, "error": "Servicio de geocodificación no disponible"}), 503
+        
         data = request.get_json()
         address = data.get('address')
         

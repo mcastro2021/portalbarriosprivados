@@ -49,9 +49,11 @@ class SecurityManager:
         try:
             redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
             self.redis_client = redis.from_url(redis_url)
-            logger.info("Redis conectado para rate limiting")
+            # Test de conexión
+            self.redis_client.ping()
+            logger.info("✅ Redis conectado para rate limiting")
         except Exception as e:
-            logger.warning(f"Redis no disponible: {e}")
+            logger.warning(f"⚠️ Rate limiting no disponible: {e}")
             self.redis_client = None
         
         # Registrar middleware de seguridad

@@ -7,7 +7,9 @@ Sistema de escalabilidad, containerización y deployment profesional.
 
 import os
 import json
-import docker
+# Importar docker de forma segura
+from optional_dependencies import get_docker, DOCKER_AVAILABLE
+docker = get_docker()
 import logging
 import time
 import threading
@@ -278,6 +280,11 @@ scalability_manager = ScalabilityManager()
 def init_scalability_deployment(app):
     """Inicializar sistema de escalabilidad"""
     try:
+        # Verificar dependencias requeridas
+        if not DOCKER_AVAILABLE:
+            logger.warning("⚠️ docker no disponible - sistema de escalabilidad limitado")
+        
+        app.scalability_manager = scalability_manager
         app.scalability_manager = scalability_manager
         
         @app.route('/api/deploy', methods=['POST'])
