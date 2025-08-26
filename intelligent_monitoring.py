@@ -363,10 +363,15 @@ class IntelligentMonitoringSystem:
                             User.last_login >= datetime.now() - timedelta(hours=24)
                         ).count()
                         return active_users
-            except RuntimeError:
-                # No hay contexto de aplicación, usar valor simulado
-                import random
-                return random.randint(5, 25)
+            except (RuntimeError, Exception) as context_error:
+                # Verificar si es un error de contexto de aplicación
+                if "Working outside of application context" in str(context_error):
+                    # No hay contexto de aplicación, usar valor simulado
+                    import random
+                    return random.randint(5, 25)
+                else:
+                    # Otro tipo de error, re-lanzar
+                    raise context_error
         except Exception as e:
             # En producción, no mostrar errores de contexto
             if os.getenv('FLASK_ENV') == 'production':
@@ -389,10 +394,15 @@ class IntelligentMonitoringSystem:
                             User.created_at >= datetime.now() - timedelta(hours=24)
                         ).count()
                         return new_users
-            except RuntimeError:
-                # No hay contexto de aplicación, usar valor simulado
-                import random
-                return random.randint(0, 5)
+            except (RuntimeError, Exception) as context_error:
+                # Verificar si es un error de contexto de aplicación
+                if "Working outside of application context" in str(context_error):
+                    # No hay contexto de aplicación, usar valor simulado
+                    import random
+                    return random.randint(0, 5)
+                else:
+                    # Otro tipo de error, re-lanzar
+                    raise context_error
         except Exception as e:
             # En producción, no mostrar errores de contexto
             if os.getenv('FLASK_ENV') == 'production':
@@ -436,9 +446,14 @@ class IntelligentMonitoringSystem:
                             }
                             for event in events
                         ]
-            except RuntimeError:
-                # No hay contexto de aplicación, usar valor simulado
-                return []
+            except (RuntimeError, Exception) as context_error:
+                # Verificar si es un error de contexto de aplicación
+                if "Working outside of application context" in str(context_error):
+                    # No hay contexto de aplicación, usar valor simulado
+                    return []
+                else:
+                    # Otro tipo de error, re-lanzar
+                    raise context_error
         except Exception as e:
             # En producción, no mostrar errores de contexto
             if os.getenv('FLASK_ENV') == 'production':
@@ -486,9 +501,14 @@ class IntelligentMonitoringSystem:
                             }
                             for activity in activities
                         ]
-            except RuntimeError:
-                # No hay contexto de aplicación, usar valor simulado
-                return []
+            except (RuntimeError, Exception) as context_error:
+                # Verificar si es un error de contexto de aplicación
+                if "Working outside of application context" in str(context_error):
+                    # No hay contexto de aplicación, usar valor simulado
+                    return []
+                else:
+                    # Otro tipo de error, re-lanzar
+                    raise context_error
         except Exception as e:
             # En producción, no mostrar errores de contexto
             if os.getenv('FLASK_ENV') == 'production':
@@ -506,10 +526,15 @@ class IntelligentMonitoringSystem:
                 if current_app:
                     with current_app.app_context():
                         return Maintenance.query.filter_by(status='pending').count()
-            except RuntimeError:
-                # No hay contexto de aplicación, usar valor simulado
-                import random
-                return random.randint(0, 8)
+            except (RuntimeError, Exception) as context_error:
+                # Verificar si es un error de contexto de aplicación
+                if "Working outside of application context" in str(context_error):
+                    # No hay contexto de aplicación, usar valor simulado
+                    import random
+                    return random.randint(0, 8)
+                else:
+                    # Otro tipo de error, re-lanzar
+                    raise context_error
         except Exception as e:
             # En producción, no mostrar errores de contexto
             if os.getenv('FLASK_ENV') == 'production':
@@ -533,10 +558,15 @@ class IntelligentMonitoringSystem:
                                 Maintenance.priority.in_(['high', 'critical'])
                             )
                         ).count()
-            except RuntimeError:
-                # No hay contexto de aplicación, usar valor simulado
-                import random
-                return random.randint(0, 3)
+            except (RuntimeError, Exception) as context_error:
+                # Verificar si es un error de contexto de aplicación
+                if "Working outside of application context" in str(context_error):
+                    # No hay contexto de aplicación, usar valor simulado
+                    import random
+                    return random.randint(0, 3)
+                else:
+                    # Otro tipo de error, re-lanzar
+                    raise context_error
         except Exception as e:
             # En producción, no mostrar errores de contexto
             if os.getenv('FLASK_ENV') == 'production':
@@ -568,10 +598,15 @@ class IntelligentMonitoringSystem:
                             total_time += response_time
                         
                         return total_time / len(maintenance_requests)
-            except RuntimeError:
-                # No hay contexto de aplicación, usar valor simulado
-                import random
-                return random.uniform(2.0, 8.0)
+            except (RuntimeError, Exception) as context_error:
+                # Verificar si es un error de contexto de aplicación
+                if "Working outside of application context" in str(context_error):
+                    # No hay contexto de aplicación, usar valor simulado
+                    import random
+                    return random.uniform(2.0, 8.0)
+                else:
+                    # Otro tipo de error, re-lanzar
+                    raise context_error
         except Exception as e:
             # En producción, no mostrar errores de contexto
             if os.getenv('FLASK_ENV') == 'production':
