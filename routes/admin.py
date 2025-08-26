@@ -13,7 +13,10 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.can_access_admin():
             flash('No tienes permisos para acceder a esta página.', 'error')
-            return redirect(url_for('dashboard'))
+            if current_user.is_authenticated and current_user.role == 'admin':
+                return redirect(url_for('admin.dashboard'))
+            else:
+                return redirect(url_for('main.dashboard'))
         return f(*args, **kwargs)
     return decorated_function
 

@@ -51,14 +51,11 @@ def reset_database():
         db.session.commit()
         print("✅ Usuario administrador creado (admin/admin123)")
         
-        # Crear datos de ejemplo
-        from init_db import create_tejas4_map_data, create_sample_news
-        
-        create_tejas4_map_data()
-        create_sample_news(admin)
+        # No crear datos de ejemplo automáticamente
+        # Los datos deben ser creados manualmente por el administrador cuando sea necesario
         
         db.session.commit()
-        print("✅ Datos de ejemplo recreados")
+        print("✅ Base de datos reseteada sin datos de ejemplo")
         print("✅ Base de datos reseteada completamente")
 
 if __name__ == '__main__':

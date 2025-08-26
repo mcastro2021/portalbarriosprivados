@@ -49,10 +49,13 @@ def login():
                 user.last_login = datetime.utcnow()
                 db.session.commit()
                 
-                # Redirigir a la página solicitada o al dashboard
+                # Redirigir a la página solicitada o al dashboard según el rol
                 next_page = request.args.get('next')
                 if not next_page or not next_page.startswith('/'):
-                                            next_page = url_for('admin.dashboard')
+                    if user.role == 'admin':
+                        next_page = url_for('admin.dashboard')
+                    else:
+                        next_page = url_for('main.dashboard')
                 
                 flash(f'¡Bienvenido, {user.name}!', 'success')
                 return redirect(next_page)
@@ -72,7 +75,10 @@ def login():
 def register():
     """Página de registro"""
     if current_user.is_authenticated:
-        return redirect(url_for('admin.dashboard'))
+        if current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        else:
+            return redirect(url_for('main.dashboard'))
     
     form = RegistrationForm()
     
@@ -121,13 +127,16 @@ def logout():
     """Cerrar sesión"""
     logout_user()
     flash('Has cerrado sesión correctamente', 'info')
-    return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('auth.login'))
 
 @bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     """Página de recuperación de contraseña"""
     if current_user.is_authenticated:
-        return redirect(url_for('admin.dashboard'))
+        if current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        else:
+            return redirect(url_for('main.dashboard'))
     
     form = ForgotPasswordForm()
     
@@ -179,7 +188,10 @@ def change_password():
 def reset_password():
     """Resetear contraseña con token"""
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+        if current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        else:
+            return redirect(url_for('main.dashboard'))
     
     token = request.args.get('token')
     user_id = request.args.get('user_id', type=int)
@@ -216,7 +228,10 @@ def admin_reset_user(username):
     """Función de administrador para resetear contraseña de usuario (solo para desarrollo)"""
     if not current_user.can_access_admin():
         flash('No tienes permisos para esta acción', 'error')
-        return redirect(url_for('dashboard'))
+        if current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        else:
+            return redirect(url_for('main.dashboard'))
     
     user = User.query.filter_by(username=username).first()
     if not user:
